@@ -1,0 +1,49 @@
+---
+title: "Course 1 - The Data Scientist's Toolbox - Notes"
+author: "Greg Foletta"
+output:
+  html_document:
+    theme: cerulean
+    highlight: tango
+---
+
+# What is data science?
+
+Using data to answer questions. Can include:
+
+* Statistics
+* Compute Science
+* Mathematics
+* Data Cleaning
+* Data Visualisation
+
+What about "big data"? Its qualities include:
+* Volume - more and more data becoming available.
+* Velocity - data being generated at high rates.
+* Variety - dta coming in many forms.
+
+
+# The Data Science Process
+
+Starts with a questions, ends with communication of the project's findings.
+
+Cite/reference other peoples work that you use.
+
+# R Packages
+
+What packages are installed? Use `install.packages()` or `library()`.
+
+Updating packages: `old.packages()`, `update.packages()` or `install.packages("packagename")`.
+
+Unloading a package use `detatch()`, e.g. `detatch('package:broom', unload = T)`.
+
+Uninstall using `remove.packages()`.
+
+For version info: `version` or `sessionInfo()`.
+
+Use the `browseVignettes()` to access package help. 
+
+# Projects
+
+
+

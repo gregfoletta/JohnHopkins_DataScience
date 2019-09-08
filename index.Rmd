@@ -1,0 +1,13 @@
+---
+title: "Coursera - Data Science - John Hopkins"
+author: "Greg Foletta"
+output:
+  html_document:
+    toc: true
+    theme: cerulean
+    highlight: tango
+---
+
+## Course 1 - The Data Scientist's Toolbox
+
+* [Notes](C1_Data_Scientist_Toolbox/notes.html)
