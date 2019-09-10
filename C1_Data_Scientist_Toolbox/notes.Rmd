@@ -3,6 +3,7 @@ title: "Course 1 - The Data Scientist's Toolbox - Notes"
 author: "Greg Foletta"
 output:
   html_document:
+    toc: true
     theme: cerulean
     highlight: tango
 ---
@@ -11,16 +12,17 @@ output:
 
 Using data to answer questions. Can include:
 
-* Statistics
-* Compute Science
-* Mathematics
-* Data Cleaning
-* Data Visualisation
+- Statistics
+- Compute Science
+- Mathematics
+- Data Cleaning
+- Data Visualisation
 
 What about "big data"? Its qualities include:
-* Volume - more and more data becoming available.
-* Velocity - data being generated at high rates.
-* Variety - dta coming in many forms.
+
+- Volume - more and more data becoming available.
+- Velocity - data being generated at high rates.
+- Variety - dta coming in many forms.
 
 
 # The Data Science Process
@@ -43,7 +45,98 @@ For version info: `version` or `sessionInfo()`.
 
 Use the `browseVignettes()` to access package help. 
 
-# Projects
+# Types of Data Analysis
+
+## Descriptive
+
+**Goal**: to describe or summarise a set of data.
+
+Generate simple summaries about the samples and their measurements. We're not trying to make interpretations.
+
+## Exploratory
+
+**Goal**: example the data and find relationshops that weren't previously known.
+
+We explore how different variables may be related and discover new connections that werent' known.
+
+This helps us formulate a hypotheses and drive future studies and data collection. We have to be careful not to jump to conclusions by thinking that correlation implies causation.
+
+## Inferential
+
+**Goal**: use a relatively small sample of data to say something about the population at large.
+
+We provide an estimate of the variable for the population, as well as our uncertainty. This is typically the job of statistical analysis and modeling.
+
+Analysis depends on the sampling scheme - do we have a representative sample of the population?
+
+## Predictive Analysis
+
+**Goal**: to use current and historial data to make predictions about future data.
+
+As with inferential analysis, we need to be measuring the right variables. 
+
+## Causal Analysis
+
+**Goal**: see what happens to one variable when we manipulate another variable.
+
+Considered the gold standard of data analysis, and often applied to the results of ranomised studies that were designed to identify causation.
+
+Getting data for causal analysis is often a challenge, and it is usually analysed in aggregate. Obverserved relationships are usually average effects.
+
+## Mechanistic
+
+**Goal**: understand the exact changes in variables that lead to exact changes in other variables.
+
+This is applied to simple situatons that are nicely modeled by deterministic equations. Commonly applied to physical or engineering sciences.
+
+# Exerimental Design
+
+Experimental design is organising experiments so that you have the correct data and enough of it.
+
+1. Formulate the queston.
+1. Design your experiment.
+1. Identify problems and sources of error.
+1. Collect the data.
+
+## Concepts
+
+- Independent variable: also known as *factor*, is the variable that the experimenter manipulated. It does not depend on other variables being measured.
+- Dependent variable: those that are expected to change as a result of changes to the independent variable.
+- Confounder: an extraneous variable that may affect the independent and dependent variable.
+    * Imagine shoe size vs literacy, age would be a confounder as it affects both variables.
+    * Can measure the age variable, or fix the same age.
+    * Can also have a control group.
+- Replication: repeating the experiment many times. It allows us to measure the variability of the data.
+- p-value: was the situation observed by chance? In this age of multiple experiments and 'big-data', p-hacking has become possible. You search your dataset to find statisically significant patterns or correlations. These spurious correlations can be reported as significant and if you perform enough tests, you can find a dataset that shows what you want it to show.
+
+## Data Sharing
+
+The Leek group have a [guide to sharing data](https://github.com/jtleek/datasharing). The items that should be shared:
+
+1. The raw data.
+1. A tidy data set.
+1. A code book describing each variable and its values in the tidy data set.
+1. An explicit and exact recipe you used to go from the raw data to the tidy data set.
+
+# Big Data
+
+Now a buzzword, but can be considered large datasets of diverse types that are generated rapidly (volume, variety, velocity).
+
+The main reason for the explosion of interest is the ease of collecting and storing data.
+
+The challenges are that it is big, its changing and updating, the variety can be overwhelming, and its messy.
+
+## Challenge - Benefit
+
+- Volume: so much data to analyse - having lots of slightly messy data negates small errors.
+- Velocity: data is constantly updating - however you can do real time analysis to make decisions on the spot.
+- Variety: determining what source and type of data that is best suited to the question is can be difficult - unconventional data sources allow you to answer unconventional questions.
+
+As we can collect a myriad of data from multiple sources, hidden interactions what may not have been seen before.
+
+You still need to right data, no matter how large the dataset is
+
+> The combination of some data and an aching desire for an answer does not ensure that a reasonable answer can be extracted from a given body of data. - John Tukey
 
 
 
