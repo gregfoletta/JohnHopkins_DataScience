@@ -1,0 +1,233 @@
+---
+title: "Course 2 - R Programming - Notes"
+author: "Greg Foletta"
+output:
+  html_document:
+    toc: true
+    theme: cerulean
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+```
+
+# Pre-Lecture - Writing Code
+
+Working directory found with `getwd()`.
+
+See the files in a directory with `dir()`.
+
+# Overview and History of R
+
+R is a dialect of the S language.
+
+S was developed by John Chambers and others at Bell Labs.
+
+R was developed in 1991 in New Zealand by Ross Ihaka and Robert Gentleman.
+
+R version 1 released in 2000.
+
+# Features of R
+
+- Syntax is similar to S-PLUS
+- Semantics are superficially like S, but are in reality quite different.
+- Runs on almost any standard playform/OS
+- Frequent releases.
+- Quite lean, functionality in modular packages.
+- Graphics capabilities are very sophisticated and better than most stat packages.
+- Useful for interactive work.
+- Active and vibrant user community.
+
+# Free Software
+
+With **free** software you are granted:
+
+- The freedom to run the program.
+- The freedom to study how the program works and apapt it to your needs.
+- The freedom to redistribute copies.
+- The freedom to improve the program.
+
+# Drawbacks of R
+
+- Essentially based on 40 year old technology.
+- Little built in support for dynamic or 3D graphics.
+- Functionality is based on consumer demand and user contributions.
+- Objects must generally be stored in physical memory - however advancements have been made on this.
+- Not ideal for all possible situations.
+
+# Design
+
+1. Base R
+1. Everything else
+
+Base R comes with base packages (stat, util, etc) as well as recommended packages.
+
+# Data Types - R Objects and Attributes
+
+Everything is R is an object.
+
+R has five basic "atomic" classes of objects:
+
+- Character
+- Numeric (real numbers)
+- Integer
+- Complex
+- Logical
+
+The most basic object is a vector. Can only contain objects of the same class. Empty vectors are created with the `vector()` function.
+
+## Numbers
+
+Generally treated as numberic objects (double precision real numbers. Need to provide the `L` suffix if you want an integer.
+
+```{r numbers}
+real_vec <- c(1,2,3,4)
+int_vec <- c(1L, 2L, 3L, 4L)
+
+real_vec %>% class()
+int_vec %>% class()
+```
+
+`Inf` represents infinity. `NaN` represents an undefined value.
+
+## Attributes
+
+R objects can have attributes. `names` and `dimnames` are common - for example a matrix has the number of rows and columns:
+
+```{r attributes}
+example_attr <- matrix(1:16, ncol = 4)
+example_attr
+
+print('Attributes:')
+example_attr %>% attributes()
+```
+
+You also have `class`, `length`, and other user defined attributes / metadata.
+
+# Vectors and Lists
+
+`c()` function can be used to create vectors, as well as `vector()`.
+
+```{r vectors}
+c(1:10)
+vector('numeric', 10)
+```
+
+If you mix the classes, values are coerced you'll get the lowest common denominator.
+
+```{r mixing}
+c(1,2,3L, "a") %>% class()
+c(TRUE, 1, 2) %>% class()
+c(TRUE, 1, "a") %>% class()
+```
+
+## Explicit Coercion
+
+Can use explicit coercion:
+
+```{r explicit_coercion}
+c(1,2,3) %>% as.character() %>% class()
+```
+Nonsensical coercion will result in `NAs`.
+
+```{r nonsense_coercion}
+c("1", "2") %>% as.logical()
+```
+
+## Lists
+
+Special type of vector that can contain elements of different classes.
+
+```{r list}
+example_list <- list("a", c(1:10), TRUE)
+example_list
+```
+
+Using a single bracket on a list returns a list of one. Using a double bracket returns the element in the list
+
+```{r list_index}
+example_list[1]
+example_list[1] %>% class()
+
+example_list[[1]]
+example_list[[1]] %>% class()
+```
+
+# Matrices
+
+A special type of vector with a 'dimension' attribute. The atrribute itself is a vector of length two (rows / cols).
+
+```{r matrix}
+matrix(1:16, nrow = 4)
+```
+
+Matrices are built column wise - see above.
+
+Can be created from vectors:
+
+```{r vec_to_matrix}
+mv <- c(1:16)
+mv
+
+# Assign the attribute
+attr(mv, 'dim') <- c(4,4)
+mv
+
+# Use the dim() function
+dim(mv) <- c(2,8)
+mv
+```
+
+# Column and Row Binding
+
+Can column or row bind a vector:
+
+```{r binding}
+cbind(c(0:7), c(32:39))
+rbind(1:4, 8:11)
+```
+# Factors
+
+Special vector used to represent categorical data. There's ordered and unordered factors.
+
+Can be thought of as an integer vector with labels.
+
+```{r factor}
+example_factor <- factor(c('y', 'y', 'n', 'n', 'y'))
+example_factor
+
+example_factor %>% class()
+example_factor %>% typeof()
+
+unclass(example_factor)
+```
+## Factor Ordering
+
+Can be set using the `levels` argument to `factor()`. The levels are set alphabetically - hence why 'n' above was coded as 1.
+
+```{r factors_ordered}
+factor(c('y', 'y', 'n', 'n', 'y'), levels = c('y', 'n')) %>% unclass()
+```
+
+# Missing Values
+
+Denoted by `NA` or `NaN`. Use `is.na()` or `is.nan()` to determine if an object of of that value.
+
+The NAs can have a class as well.
+
+An NaN is also considered NA.
+
+```{r na}
+na_vec <- c(1,2,NaN, NA, 4)
+is.na(na_vec)
+is.nan(na_vec)
+extract <- na_vec[4]
+extract
+extract %>% class()
+```
+
+# Data Frames
+
