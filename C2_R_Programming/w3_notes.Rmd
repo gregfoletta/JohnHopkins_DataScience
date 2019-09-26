@@ -1,0 +1,164 @@
+---
+title: "Course 2 - R Programming - Week 3 - Notes"
+author: "Greg Foletta"
+output:
+  html_document:
+    toc: true
+    theme: cerulean
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# Loop Functions
+
+- `lapply()` - functionally loop over a list.
+- `sapply()` - same as `lapply()` but try to simplify the result.
+- `apply()` - apply a function over the margins of an array.
+- `tapply()` - apply a function over subsets of a vector.
+- `mapply()` - multivariate version of `lapply()`.
+
+`split()` is also useful in conjunction with `lapply()`.
+
+# lapply
+
+Takes a list, a function, and ... which are passed to the function.
+
+If the first argument is not a list, it is coerced into a list.
+```{r lapply}
+val <- list(a = 1:20, b = rnorm(100))
+lapply(val, mean)
+lapply(1:4, rnorm, mean = 100, sd = 3)
+```
+
+# sapply
+
+Will try to return to simplify the result of `lapply()` if possible.
+
+- If the result is a list where every length is 1, a vector is returned.
+- If the result is a list where every element is a vector of the same length (> 1), a matrix is returned.
+- Otherwise a list is returned.
+
+```{r sapply}
+ex_list <- list(a = 0:3, b = 8:11)
+sapply(ex_list, mean)
+sapply(ex_list, function(x) x + 1)
+```
+
+# apply
+
+Used to evaluate a function over the margins of an array.
+
+- Most often used to apply a function to the rows or columns of a matrix.
+- Can be used with general arrays e.g. taking the average of an array of matrices.
+- Not faster than a loop, but is one line.
+
+```{r apply}
+ex_mat <- matrix(rnorm(8), ncol = 2, nrow = 4)
+
+# Mean of the columns
+apply(ex_mat, 1, mean)
+
+# Mean of the rows
+apply(ex_mat, 2, mean)
+
+# Mean of the rows and columns
+apply(ex_mat, c(1,2), mean)
+
+```
+
+The `c(1,2)` would be used if it was multi-dimensional matrix.
+
+```{r apply_3d}
+ex_array <- array(rnorm(2 * 2 * 4), dim = c(2, 2, 4))
+apply(ex_array, c(1,2), mean)
+```
+
+# mapply
+
+Multivariate apply - applies a function in parallel over a set of arguments.
+
+```{r mapply}
+mapply(rep, 1:4, c(2,6))
+```
+
+Can be used to vectorise functions.
+
+# tapply
+
+Apply functions over subset of a vector.
+
+```{r tapply}
+x <- c(rnorm(2000), rnorm(2000, 10), rnorm(2000, 30))
+levels <- gl(3, 2000)
+tapply(x, levels, mean)
+```
+# split
+
+Takes a vector or other objects and splits into groups determined by a factor or list of factors.
+
+```{r split}
+ex_vector <- 1:16
+levels <- gl(4,4)
+split(ex_vector, levels)
+```
+
+Can use `lapply()` or `sapply()` with the split.
+
+```{r split_lapply}
+lapply(split(ex_vector, levels), mean)
+```
+
+Can use it on data frames.
+
+```{r split_df}
+# Split by the month
+aq_monthly <- split(airquality, airquality$Month)
+lapply(
+    aq_monthly,
+    function(x) colMeans( x[, c('Ozone', 'Solar.R')], na.rm = T )
+)
+```
+
+Can use `sapply()` - as the returned values are the same length, you can get the results in a matrix:
+
+```{r split_sapply}
+aq_monthly <- split(airquality, airquality$Month)
+sapply(
+    aq_monthly,
+    function(x) colMeans( x[, c('Ozone', 'Solar.R')], na.rm = T )
+)
+```
+
+You can split on more than one level - e.g. male / female and another eye colour. You can use `drop = T` to drop the empty levels.
+
+```{r split_levels}
+x <- 1:18
+gender <- gl(2, 3)
+eye_colour <- gl(3, 2)
+interaction(gender, eye_colour)
+
+split(x, list(gender, eye_colour))
+```
+
+# Debugging
+
+- `message()`: generic notification
+- `warning()`: indication someting is wrong but not fatal.
+- `error()`: indication a fatal error has ocurred.
+- `condition` generic concept for indicating something unexpected can occur.
+
+**Aside**: To return from a function without printing, can use `invisible()`.
+
+## Tools
+
+- `traceback()` prints the function call stack after an error ocurrs.
+- `debug()` - flags a function for "debug" mode which allows you to step through one line at a time.
+- `browser()` suspends the execution and moves into debug mode.
+- `trace()` allows you to insert debugging code into a function.
+- `recover()` - allows you to modify the error behaviour so that you can browse the function call stack.
+
+

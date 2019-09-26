@@ -1,0 +1,445 @@
+---
+title: "Course 2 - R Programming - Week 1 - Notes"
+author: "Greg Foletta"
+output:
+  html_document:
+    toc: true
+    theme: cerulean
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+```
+
+# Pre-Lecture - Writing Code
+
+Working directory found with `getwd()`.
+
+See the files in a directory with `dir()`.
+
+# Overview and History of R
+
+R is a dialect of the S language.
+
+S was developed by John Chambers and others at Bell Labs.
+
+R was developed in 1991 in New Zealand by Ross Ihaka and Robert Gentleman.
+
+R version 1 released in 2000.
+
+# Features of R
+
+- Syntax is similar to S-PLUS
+- Semantics are superficially like S, but are in reality quite different.
+- Runs on almost any standard playform/OS
+- Frequent releases.
+- Quite lean, functionality in modular packages.
+- Graphics capabilities are very sophisticated and better than most stat packages.
+- Useful for interactive work.
+- Active and vibrant user community.
+
+# Free Software
+
+With **free** software you are granted:
+
+- The freedom to run the program.
+- The freedom to study how the program works and apapt it to your needs.
+- The freedom to redistribute copies.
+- The freedom to improve the program.
+
+# Drawbacks of R
+
+- Essentially based on 40 year old technology.
+- Little built in support for dynamic or 3D graphics.
+- Functionality is based on consumer demand and user contributions.
+- Objects must generally be stored in physical memory - however advancements have been made on this.
+- Not ideal for all possible situations.
+
+# Design
+
+1. Base R
+1. Everything else
+
+Base R comes with base packages (stat, util, etc) as well as recommended packages.
+
+# Data Types - R Objects and Attributes
+
+Everything is R is an object.
+
+R has five basic "atomic" classes of objects:
+
+- Character
+- Numeric (real numbers)
+- Integer
+- Complex
+- Logical
+
+The most basic object is a vector. Can only contain objects of the same class. Empty vectors are created with the `vector()` function.
+
+## Numbers
+
+Generally treated as numberic objects (double precision real numbers. Need to provide the `L` suffix if you want an integer.
+
+```{r numbers}
+real_vec <- c(1,2,3,4)
+int_vec <- c(1L, 2L, 3L, 4L)
+
+real_vec %>% class()
+int_vec %>% class()
+```
+
+`Inf` represents infinity. `NaN` represents an undefined value.
+
+## Attributes
+
+R objects can have attributes. `names` and `dimnames` are common - for example a matrix has the number of rows and columns:
+
+```{r attributes}
+example_attr <- matrix(1:16, ncol = 4)
+example_attr
+
+print('Attributes:')
+example_attr %>% attributes()
+```
+
+You also have `class`, `length`, and other user defined attributes / metadata.
+
+# Vectors and Lists
+
+`c()` function can be used to create vectors, as well as `vector()`.
+
+```{r vectors}
+c(1:10)
+vector('numeric', 10)
+```
+
+If you mix the classes, values are coerced you'll get the lowest common denominator.
+
+```{r mixing}
+c(1,2,3L, "a") %>% class()
+c(TRUE, 1, 2) %>% class()
+c(TRUE, 1, "a") %>% class()
+```
+
+## Explicit Coercion
+
+Can use explicit coercion:
+
+```{r explicit_coercion}
+c(1,2,3) %>% as.character() %>% class()
+```
+Nonsensical coercion will result in `NAs`.
+
+```{r nonsense_coercion}
+c("1", "2") %>% as.logical()
+```
+
+## Lists
+
+Special type of vector that can contain elements of different classes.
+
+```{r list}
+example_list <- list("a", c(1:10), TRUE)
+example_list
+```
+
+Using a single bracket on a list returns a list of one. Using a double bracket returns the element in the list
+
+```{r list_index}
+example_list[1]
+example_list[1] %>% class()
+
+example_list[[1]]
+example_list[[1]] %>% class()
+```
+
+# Matrices
+
+A special type of vector with a 'dimension' attribute. The atrribute itself is a vector of length two (rows / cols).
+
+```{r matrix}
+matrix(1:16, nrow = 4)
+```
+
+Matrices are built column wise - see above.
+
+Can be created from vectors:
+
+```{r vec_to_matrix}
+mv <- c(1:16)
+mv
+
+# Assign the attribute
+attr(mv, 'dim') <- c(4,4)
+mv
+
+# Use the dim() function
+dim(mv) <- c(2,8)
+mv
+```
+
+# Column and Row Binding
+
+Can column or row bind a vector:
+
+```{r binding}
+cbind(c(0:7), c(32:39))
+rbind(1:4, 8:11)
+```
+# Factors
+
+Special vector used to represent categorical data. There's ordered and unordered factors.
+
+Can be thought of as an integer vector with labels.
+
+```{r factor}
+example_factor <- factor(c('y', 'y', 'n', 'n', 'y'))
+example_factor
+
+example_factor %>% class()
+example_factor %>% typeof()
+
+unclass(example_factor)
+```
+## Factor Ordering
+
+Can be set using the `levels` argument to `factor()`. The levels are set alphabetically - hence why 'n' above was coded as 1.
+
+```{r factors_ordered}
+factor(c('y', 'y', 'n', 'n', 'y'), levels = c('y', 'n')) %>% unclass()
+```
+
+# Missing Values
+
+Denoted by `NA` or `NaN`. Use `is.na()` or `is.nan()` to determine if an object of of that value.
+
+The NAs can have a class as well.
+
+An NaN is also considered NA.
+
+```{r na}
+na_vec <- c(1,2,NaN, NA, 4)
+is.na(na_vec)
+is.nan(na_vec)
+extract <- na_vec[4]
+extract
+extract %>% class()
+```
+
+# Data Frames
+
+Special type of list where every element has the same length. Each element can be considered a column. Different classes in each column.
+
+They have an attribute `row.names`.
+
+# Names Attribute
+
+Objects can have names.
+
+```{r named_vector}
+named_vec <- c(1,2,3)
+named_vec
+names(named_vec) <- c('One', 'Two', 'Three')
+named_vec
+```
+
+Named lists:
+
+```{r named_list}
+named_list <- list(one = 1, two = 2, three = 3)
+named_list
+```
+
+Matrices have dimnames:
+
+```{r named_matrices}
+named_matrix <- matrix(1:4, ncol = 2)
+
+dimnames(named_matrix) <- list(c('A', 'B'), c('C', 'D'))
+
+named_matrix
+```
+
+# Reading Tabular Data
+
+- `read.table()` and `read.csv()` for reading tabular data.
+` `readLines()` for reading lines of a text file.
+- `source()` for reading R code.
+- `dget()` for reading deparsed R objects.
+- `load()` for workspaces.
+- `unserialize()` for reading single R objects in binary form.
+
+## Read Table
+
+Arguments:
+
+- `colClasses` - character vector indicating the class of each column.
+- `comment.char` - character string indicating the comment character.
+- `stringsAsFactors` - should character variables be coded as factors?
+    - Defaults to `TRUE`.
+
+Read table generally figures out the classes, skips lines beginning `#`, and figures out how many rows.
+
+`read.csv()` is identical except the default separator is a comma instead of a space and expects a header line.
+
+# Reading Large Tables
+
+- Make a rough calculation on the memory required and determine if you have enough physical memory.
+- Set `comment.char = ''` if there are no comments.
+
+Using the `colClasses` argument can make reading in much faster, and setting `nrows` can help memory usage, with a mild overestimate being okay.
+
+Know your system - memory, applicatons, other users, OS.
+
+You can calculate memory requirements. Consider 1,000,000 rows and 200 columns of numeric data. Numeric data is 8 bytes.
+
+```{r memcalc}
+# Calculate Gigabytes of storage.
+(1000000 * 200 * 8) / 2^30
+```
+
+# Textual Formats
+
+`dump()` and `dput()` are useful. 
+
+`dump()` dumps named objects from the environment into text format:
+```{r dump}
+dump_obj <- tibble(x = 1:4, y = 2:5)
+vec <- c(1:10)
+
+dump(c('dump_obj', 'vec'), file = tempfile())
+```
+File has the following contents:
+```r
+dump_obj <-
+structure(list(x = 1:4, y = 2:5), row.names = c(NA, -4L), class = c("tbl_df", 
+"tbl", "data.frame"))
+vec <-
+1:10
+```
+
+`Can use `dput()` dumps a single object:
+
+```{r dput}
+tibble(x = 1:16, blah = letters[x]) %>%
+    dput(file = tempfile())
+```
+
+File contains:
+```r
+structure(list(x = 1:16, blah = c("a", "b", "c", "d", "e", "f", 
+"g", "h", "i", "j", "k", "l", "m", "n", "o", "p")), row.names = c(NA, 
+-16L), class = c("tbl_df", "tbl", "data.frame"))
+```
+
+Textual formats are good with version control, easier to fix 'corruption', and adhere to the Unix philosophy. However they are space-inefficient.
+
+# Connections
+
+Connections can be made to:
+
+- `file()`
+- `gzfile()` - gzip compressed file.
+- `bzfile()` - bzip2 compressed file.
+- `url()`
+
+# Subsetting
+
+The `[` returns the same class as the original, can be used to extract more than one object (one exception).
+
+```{r subset}
+x <- c(1:10)
+x[4]
+x > 5
+x[x > 5]
+```
+
+The `[[` returns the objects within.
+
+The $ can extract by name, and the semantics are similar to `[[`.
+
+## Lists
+
+```{r subset_list}
+l <- list(a = 1:4, b = letters[1:4], c = 80:83)
+
+l[c(1,3)]
+
+name <- 'a'
+l[name]
+l[[name]]
+```
+
+## Nested Elements
+
+```{r nested_list}
+l <- list(
+    a = list(
+        b = "Nest B",
+        c = "Nest C"
+    ),
+    d = "Element D",
+    e = "Element E"
+)
+
+# Access the nested element
+l[[c(1,2)]]
+l[[1]][[1]]
+```
+
+## Matrices
+
+Can be subsetted in the normal way using $i,j$ row / column indicies.
+
+```{r matrix_subset}
+m <- matrix(1:16, ncol = 4)
+
+# 2nd Row
+m[2,]
+# First column
+m[,1]
+# Single element
+m[1,4]
+```
+
+Subsetting out a matrix is a vector, not another matrix.
+
+If you want a matrix you need to use the `drop` argument:
+
+```{r matrix_drop}
+# 2nd Row
+m[2,,drop = F]
+# First column
+m[,1, drop = F]
+# Single element
+m[1,4, drop = F]
+```
+
+## Partial Matching
+
+Works with the `$` and the `[[`. Double bracket expects exact, but can use `exact = F` argument,
+
+## Removing Missing Values
+Use `is.na()` or `complete.cases()`.
+
+```{r remove_na}
+x <- c(1,2,3,NA,4,NA,NA,5)
+x[!is.na(x)]
+x[complete.cases(x)]
+```
+
+Can be done on data frames too - done by rows.
+
+```{r remove_na_df}
+x <- data.frame(
+    a = c(1,2,NA,NA,5,6),
+    b = c(1,NA,3,4,5,6)
+)
+
+complete.cases(x)
+
+x[complete.cases(x),]
+```

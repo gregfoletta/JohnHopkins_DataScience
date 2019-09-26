@@ -1,0 +1,244 @@
+---
+title: "Course 3 - Getting and Cleaning Data - Week 1 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(kableExtra)
+```
+
+# Motivation
+
+Where is data?
+
+- Tidy
+- CSV
+- JSON
+- SQL
+- Plain English
+- On a remote machine
+
+# Goal
+
+The items in bold are in scope for this course:
+
+**Raw Data** -> **Processing Script** -> **Tidy Data** -> Data Analysis -> Data Communication
+
+# Raw and Processed Data
+
+## Data
+
+> Data are values or quantitative variables belonging to a set of items.
+
+## Raw Data
+
+Original source, hard to use for analysis. Data analytics *includes* processing. May only need to be processed once.
+
+Remember that even with 'raw' data, there may be even 'rawer' data upstream that was put through its own processing pipeline.
+
+## Processed Data
+
+Data that is ready for analysis. Processing can include merging, subsetting, transforming, etc.
+
+There may be standards for processing, and **all steps should be recorded.**
+
+# Tidy Data Components
+
+Four things to have:
+
+- Raw data
+- Tidy dataset
+- Code book describing each variable in the tidy data set
+- An explicit and exact recipe you used to go from 1 to 2 & 3.
+
+## The Raw Data
+
+Examples:
+
+- The strange binary file your measurement machine spits out.
+- An unformatted Excel document with 10 worksheets.
+- Complicated JSON data.
+- Hand entered measurements collected from looking through a microscope.
+
+You know the raw data is in the right format if:
+
+1. You ran no software on the data.
+1. You did not manipulate the numbers in the data.
+1. You did not remove any data.
+1. You did not summarise any data.
+
+## The Tidy Data
+
+1. Each variable should be in one column.
+1. Each different observation should be in one row.
+1. There should be one table for each "kind" of variable.
+    - e.g. 'Facebook' table and a 'Twitter' table.
+1. If there are multiple tables, they should include a column in the table that allows them to be linked.
+
+**Other tips**:
+- Make variable names human readable.
+- One file per table.
+
+## The Code Book
+
+1. Information about the variables (inc. units) in the data set not contained in the tidy data.
+1. Information about the summary choices.
+1. Information about the experimental study design.
+
+**Other tips**:
+- Common format is Word / text.
+- There should be a section called "Study design" that has a thorough description of how the data was collected.
+- There must be a section called "Code Book" that describes each variable and its units.
+
+## The Instruction List
+
+- Ideally this is a script - could be R or Perl, Python, etc.
+- The input is the raw data.
+- The output is the processed, tidy data.
+- **There are no parameters to the script**.
+
+It may not be possible to script every step. You will need to provide instructions on what needs to be done manually.
+
+# Downloading and Reading Files
+
+## Downloading Files
+
+Remember to get and set your working directory - `getwd()` and `setwd()`.
+
+```{r setwd}
+setwd('~/Documents/Study/Coursera_Data_Science_JHU/C3_Getting_and_Cleaning_Data/')
+```
+
+Check and create directories:
+
+```{r dircreate}
+if (!file.exists('./data_dir')) {
+    dir.create('./data_dir')
+}
+```
+Use `download.file()`. This helps reproducibility. Also keep track of the date and time the file was downloaded.
+
+```{r downloadfile}
+
+check_and_download <- function(uri, destfile, ...) {
+    if(!file.exists(destfile)) {
+    download.file(url = uri, destfile = destfile, ...)
+    }
+}
+
+data_uri <- 'https://data.melbourne.vic.gov.au/api/views/uyp8-7ii8/rows.csv?accessType=DOWNLOAD'
+
+destination_file <- './data_dir/bike_counts.csv'
+
+check_and_download(data_uri, destfile = destination_file, method = 'curl')
+
+list.files('./data_dir/')
+
+dateDownloaded <- date()
+dateDownloaded
+```
+
+## Reading Local Files
+
+```{r reading, message = F}
+bike_counts <- read_csv(destination_file)
+bike_counts %>%
+    select(state, electorate, site_id, latitude, longitude, legs, description) %>%
+    head() %>%
+    kable() %>%
+    kable_styling()
+```
+
+## Reading Excel Files
+
+Still probably one of the most widely used data formats.
+
+```{r read_excel, message = F}
+rental_file <- './data_dir/rental.xlsx'
+
+check_and_download('https://www.dhhs.vic.gov.au/sites/default/files/documents/201908/Tables%20from%20rental%20report%20-%20June%20quarter%202019.xlsx', destfile = rental_file, method = 'curl')
+
+rental <- read_excel(rental_file, sheet = 5, skip = 1)
+rental %>%
+    kable() %>%
+    kable_styling()
+```
+
+## Reading XML
+
+Two components: the markup and the content.
+
+- Tags
+    - `<start_tag>`
+    - `</end_tag>`
+    - `<empty_tag />`
+- Elements are specific examples
+    - `<tag>content</tag>`
+- Attributes are components of the tag
+    - `<tag attribute='value'>content</tag>`
+
+
+## Reading JSON
+
+
+
+# data.table
+
+
+```{r dt}
+library(data.table)
+
+DT <- data.table(
+    x = rnorm(10000000),
+    y = rep(letters[1:10], each = 100000),
+    z = rnorm(10000000)
+)
+
+# All of the data.frame functions work on a data.table object.
+head(DT)
+
+# View the current tables in memory
+tables()
+```
+
+## Special Variables
+
+The **.N** variable is an integer of length 1 containing the number of observations.
+
+```{r dt_n}
+# Total number of observations
+DT[, .N]
+
+# Observations with grouping
+DT[, .N, by = y]
+```
+
+## Keys
+
+Easy subsetting and joining using keys.
+
+```{r dt_keys}
+# Set the key
+setkey(DT, y)
+
+# Subset
+DT['a']
+
+# Joins
+DT_a <- data.table(x = rnorm(10), y = letters[1:10])
+DT_b <- data.table(a = rpois(10, 20), y = letters[1:10])
+setkey(DT_a, y)
+setkey(DT_b, y)
+merge(DT_a, DT_b)
+```
+
+
+```

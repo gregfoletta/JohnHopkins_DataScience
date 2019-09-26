@@ -1,0 +1,106 @@
+---
+title: "Course 3 - Getting and Cleaning Data - Week 2 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# Reading from MySQL
+
+Data structured in databases, tables, and fields.
+
+Different tables are linked together using varaibles. A table in analogous to a data frame.
+
+## Test MySQL Instance
+
+We set up a test MySQL instance using docker.
+
+```{bash}
+# Stop and remove any previous container running
+docker stop greg_test_mysql
+docker rm greg_test_mysql
+
+# Spin up a new MySQL container.
+docker run -p 3306:3306 --name greg_test_mysql -e MYSQL_ROOT_PASSWORD=d3d09j32d32 -d mysql:5.7.27
+docker container ls
+
+sleep 20
+```
+
+We retrieve and then import a test database from https://github.com/datacharmer/test_db.
+
+```{bash}
+cd ~/Documents/Study/Coursera_Data_Science_JHU/C3_Getting_and_Cleaning_Data
+if [ ! -d test_db ]; then
+    git clone https://github.com/datacharmer/test_db.git
+fi
+
+cd test_db
+
+mysql -h 127.0.0.1 -u root -pd3d09j32d32 < employees.sql
+```
+
+## Connecting and Listing Databases
+
+```{r db_connect}
+library(RMySQL)
+
+test_db <- dbConnect(
+    MySQL(),
+    user = 'root',
+    host = '127.0.0.1',
+    password = 'd3d09j32d32'
+)
+
+dbGetQuery(test_db, 'show databases;')
+dbDisconnect(test_db)
+```
+
+## Listing Tables
+
+```{r db_list}
+test_db <- dbConnect(
+    MySQL(),
+    user = 'root',
+    host = '127.0.0.1',
+    password = 'd3d09j32d32',
+    db = 'employees'
+)
+
+dbListTables(test_db)
+dbListFields(test_db, 'employees')
+```
+## Running a Query
+
+```{r db_query}
+dbGetQuery(test_db, 'select count(*) from employees')
+dbGetQuery(test_db, 'select * from employees limit 10;')
+```
+
+## Reading in a Table
+
+```{r db_read_table}
+employees <- dbReadTable(test_db, 'employees') %>% as_tibble()
+employees
+```
+
+## Select a Subset
+
+```{r db_select_subset}
+female_query <- dbSendQuery(test_db, 'select first_name,last_name from employees where `gender`=\'F\' limit 10')
+
+# Can also use the 'n = ' argument to fetch() to limit the query
+females <- fetch(female_query)
+dbClearResult(female_query)
+females %>% as_tibble()
+
+dbDisconnect(test_db)
+```
