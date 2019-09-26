@@ -1,11 +1,11 @@
 ---
 title: "Coursera - Data Science - John Hopkins"
 author: "Greg Foletta"
+date: "`r Sys.Date()`"
 output:
-  html_document:
-    toc: true
-    theme: cerulean
-    highlight: tango
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
 ---
 
 ## Course 1 - The Data Scientist's Toolbox
@@ -14,12 +14,12 @@ output:
 
 ## Course 2 - The R Language
 
-* [Week 1 Notes](C2_R_Programming/w1_notes.Rmd)
-* [Week 2 Notes](C2_R_Programming/w2_notes.Rmd)
-* [Week 3 Notes](C2_R_Programming/w3_notes.Rmd)
-* [Week 4 Notes](C2_R_Programming/w4_notes.Rmd)
+* [Week 1 Notes](C2_R_Programming/w1_notes.html)
+* [Week 2 Notes](C2_R_Programming/w2_notes.html)
+* [Week 3 Notes](C2_R_Programming/w3_notes.html)
+* [Week 4 Notes](C2_R_Programming/w4_notes.html)
 
 ## Course 3 - Getting and Cleaning Data
 
-* [Week 1 Notes](C3_Getting_and_Cleaning_Data/w1_notes.Rmd)
-* [Week 2 Notes](C3_Getting_and_Cleaning_Data/w2_notes.Rmd)
+* [Week 1 Notes](C3_Getting_and_Cleaning_Data/w1_notes.html)
+* [Week 2 Notes](C3_Getting_and_Cleaning_Data/w2_notes.html)
