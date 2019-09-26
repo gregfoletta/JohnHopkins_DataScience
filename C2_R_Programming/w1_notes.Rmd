@@ -1,11 +1,11 @@
 ---
 title: "Course 2 - R Programming - Week 1 - Notes"
 author: "Greg Foletta"
+date: "`r Sys.Date()`"
 output:
-  html_document:
-    toc: true
-    theme: cerulean
-    highlight: tango
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
 ---
 
 ```{r setup, include=FALSE}

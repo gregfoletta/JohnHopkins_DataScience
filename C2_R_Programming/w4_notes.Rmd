@@ -176,6 +176,7 @@ The `summaryRprof()` function summarises the output for `Rprof()`.
 The profiler keeps track of the call stack at regular intervals - default is 0.02 seconds.
 
 ```{r rprof}
+library(magrittr)
 x <- c(1:2000)
 y <- rnorm(2000)
 Rprof(tmp <- tempfile())

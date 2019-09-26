@@ -1,12 +1,13 @@
 ---
 title: "Course 2 - R Programming - Week 2 - Notes"
 author: "Greg Foletta"
+date: "`r Sys.Date()`"
 output:
-  html_document:
-    toc: true
-    theme: cerulean
-    highlight: tango
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)

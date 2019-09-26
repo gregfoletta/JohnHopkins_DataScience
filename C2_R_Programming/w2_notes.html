@@ -15,17 +15,8 @@
 
 <meta name="date" content="2019-09-26" />
 
-<title>Course 2 - R Programming - Week 4 - Notes</title>
+<title>Course 2 - R Programming - Week 2 - Notes</title>
 
-<script>$(document).ready(function(){
-    if (typeof $('[data-toggle="tooltip"]').tooltip === 'function') {
-        $('[data-toggle="tooltip"]').tooltip();
-    }
-    if ($('[data-toggle="popover"]').popover === 'function') {
-        $('[data-toggle="popover"]').popover();
-    }
-});
-</script>
 
 
 <style type="text/css">code{white-space: pre;}</style>
@@ -142,7 +133,7 @@ code span.ot { color: #007020; }
 
 <header>
 <div class="inner">
-<h1 class="title toc-ignore">Course 2 - R Programming - Week 4 - Notes</h1>
+<h1 class="title toc-ignore">Course 2 - R Programming - Week 2 - Notes</h1>
 <h3 class="author">Greg Foletta</h3>
 <h3 class="date">2019-09-26</h3>
 </div>
@@ -153,261 +144,233 @@ code span.ot { color: #007020; }
 <div id="content-wrapper">
   <div class="inner clearfix">
     <section id="main-content">
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(tidyverse)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">library</span>(kableExtra)</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">library</span>(knitr)</a></code></pre></div>
-<div id="str-function" class="section level1">
-<h1>str() Function</h1>
-<p>Compactly display the internal structure of an R object.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">nested_lists &lt;-<span class="st"> </span><span class="kw">list</span>(</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">  <span class="dt">a =</span> <span class="kw">list</span>(</a>
-<a class="sourceLine" id="cb2-3" data-line-number="3">    <span class="dt">b =</span> <span class="kw">list</span>(</a>
-<a class="sourceLine" id="cb2-4" data-line-number="4">      <span class="dt">matrix =</span> <span class="kw">matrix</span>(<span class="kw">rnorm</span>(<span class="dv">4</span>), <span class="dt">ncol =</span> <span class="dv">2</span>),</a>
-<a class="sourceLine" id="cb2-5" data-line-number="5">      <span class="dt">numeric_vector =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">10</span>,</a>
-<a class="sourceLine" id="cb2-6" data-line-number="6">      <span class="dt">character_vector =</span> LETTERS,</a>
-<a class="sourceLine" id="cb2-7" data-line-number="7">      <span class="dt">data_frame =</span> <span class="kw">tibble</span>(<span class="dt">data_a =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">10</span>, <span class="dt">data_b =</span> <span class="dv">11</span><span class="op">:</span><span class="dv">20</span>),</a>
-<a class="sourceLine" id="cb2-8" data-line-number="8">      <span class="dt">list =</span> <span class="kw">list</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>)</a>
-<a class="sourceLine" id="cb2-9" data-line-number="9">    )</a>
-<a class="sourceLine" id="cb2-10" data-line-number="10">  )</a>
-<a class="sourceLine" id="cb2-11" data-line-number="11">)</a>
-<a class="sourceLine" id="cb2-12" data-line-number="12"></a>
-<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="co"># On an object</span></a>
-<a class="sourceLine" id="cb2-14" data-line-number="14"><span class="kw">str</span>(nested_lists)</a></code></pre></div>
-<pre><code>## List of 1
-##  $ a:List of 1
-##   ..$ b:List of 5
-##   .. ..$ matrix          : num [1:2, 1:2] -0.438 -0.669 0.488 0.592
-##   .. ..$ numeric_vector  : int [1:10] 1 2 3 4 5 6 7 8 9 10
-##   .. ..$ character_vector: chr [1:26] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot; ...
-##   .. ..$ data_frame      :Classes 'tbl_df', 'tbl' and 'data.frame':  10 obs. of  2 variables:
-##   .. .. ..$ data_a: int [1:10] 1 2 3 4 5 6 7 8 9 10
-##   .. .. ..$ data_b: int [1:10] 11 12 13 14 15 16 17 18 19 20
-##   .. ..$ list            :List of 1
-##   .. .. ..$ : int [1:10] 1 2 3 4 5 6 7 8 9 10</code></pre>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co"># On a function</span></a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="kw">str</span>(matrix)</a></code></pre></div>
-<pre><code>## function (data = NA, nrow = 1, ncol = 1, byrow = FALSE, dimnames = NULL)</code></pre>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="co"># On dataframes</span></a>
-<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="kw">str</span>(airquality)</a></code></pre></div>
-<pre><code>## 'data.frame':    153 obs. of  6 variables:
-##  $ Ozone  : int  41 36 12 18 NA 28 23 19 8 NA ...
-##  $ Solar.R: int  190 118 149 313 NA NA 299 99 19 194 ...
-##  $ Wind   : num  7.4 8 12.6 11.5 14.3 14.9 8.6 13.8 20.1 8.6 ...
-##  $ Temp   : int  67 72 74 62 56 66 65 59 61 69 ...
-##  $ Month  : int  5 5 5 5 5 5 5 5 5 5 ...
-##  $ Day    : int  1 2 3 4 5 6 7 8 9 10 ...</code></pre>
+<div id="control-structures" class="section level1">
+<h1>Control Structures</h1>
+<p>Allow you to control the flow of a program.</p>
 </div>
-<div id="simulation" class="section level1">
-<h1>Simulation</h1>
-<div id="generating-random-numbers" class="section level2">
-<h2>Generating Random Numbers</h2>
-<p>Functions for probability distributions:</p>
-<ul>
-<li><code>rnorm()</code> - generate random normal variates.</li>
-<li><code>dnorm()</code> - evaluate the normal probability density at a point.</li>
-<li><code>pnorm()</code> - evaluate the cumulative distribution function for a normal distributionl</li>
-<li><code>rpois()</code> - generate random Poisson variates with a given rate.</li>
-</ul>
-<p>For each distribution there are usually four functions with different prefixes:</p>
-<ul>
-<li>‘r’ for random numbers.</li>
-<li>‘d’ for density.</li>
-<li>‘p’ for cumulative distribution.</li>
-<li>‘q’ for quantile.</li>
-</ul>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">rnorm</span>(<span class="dv">4</span>, <span class="dv">100</span>, <span class="dv">10</span>)</a></code></pre></div>
-<pre><code>## [1] 109.98245  95.49942  85.53378  97.56938</code></pre>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="co"># Should be .5</span></a>
-<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="kw">pnorm</span>(<span class="dv">10</span>, <span class="dt">mean =</span> <span class="dv">10</span>)</a></code></pre></div>
-<pre><code>## [1] 0.5</code></pre>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw">rpois</span>(<span class="dv">10</span>, <span class="dv">1</span>)</a></code></pre></div>
-<pre><code>##  [1] 1 2 3 0 0 3 0 2 0 1</code></pre>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="kw">rpois</span>(<span class="dv">10</span>, <span class="dv">4</span>)</a></code></pre></div>
-<pre><code>##  [1] 2 6 4 8 3 3 6 5 5 7</code></pre>
+<div id="if-else" class="section level1">
+<h1>If-Else</h1>
+<p>Standard if-else:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="cf">if</span> (<span class="kw">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,.<span class="dv">5</span>)) {</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">    <span class="kw">print</span>(<span class="st">&quot;True&quot;</span>)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">} <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">    <span class="kw">print</span>(<span class="st">&quot;False&quot;</span>)</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">}</a></code></pre></div>
+<pre><code>## [1] &quot;False&quot;</code></pre>
+<p>You can also assign from the construct:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">y &lt;-<span class="st"> </span><span class="cf">if</span>(<span class="kw">rbinom</span>(<span class="dv">1</span>,<span class="dv">1</span>,.<span class="dv">5</span>)) {</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">    <span class="dv">10</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">} <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">    <span class="dv">20</span></a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">}</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb3-7" data-line-number="7">y</a></code></pre></div>
+<pre><code>## [1] 10</code></pre>
 </div>
-<div id="simulating-a-linear-model" class="section level2">
-<h2>Simulating a Linear Model</h2>
-<p>Suppose we want to simulate</p>
-<p><span class="math display">\[ y = \beta_0+ \beta_1x_1 + \epsilon \]</span></p>
-<p>where:</p>
-<p>$$</p>
-<p>(0,2^2)  x (0,1^2), _0 = 0.5  _1 = 2</p>
-<p>$$</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb16-2" data-line-number="2">x &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>)</a>
-<a class="sourceLine" id="cb16-3" data-line-number="3">e &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>, <span class="dv">0</span>, <span class="dv">2</span>)</a>
-<a class="sourceLine" id="cb16-4" data-line-number="4">y &lt;-<span class="st"> </span><span class="fl">0.5</span> <span class="op">+</span><span class="st"> </span><span class="dv">2</span> <span class="op">*</span><span class="st"> </span>x <span class="op">+</span><span class="st"> </span>e</a>
-<a class="sourceLine" id="cb16-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb16-6" data-line-number="6"><span class="kw">summary</span>(y)</a></code></pre></div>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## -5.4816 -1.1493  0.7582  0.6422  2.3404  6.1534</code></pre>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1"><span class="kw">tibble</span>(<span class="dt">x =</span> x, <span class="dt">y =</span> y) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb18-2" data-line-number="2"><span class="kw">ggplot</span>(<span class="kw">aes</span>(x, y)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb18-3" data-line-number="3"><span class="st">  </span><span class="kw">geom_point</span>()</a></code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
-<p>What if <span class="math inline">\(x\)</span> is binary?</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb19-2" data-line-number="2">x &lt;-<span class="st"> </span><span class="kw">rbinom</span>(<span class="dv">100</span>, <span class="dv">1</span>, <span class="fl">0.5</span>)</a>
-<a class="sourceLine" id="cb19-3" data-line-number="3">e &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>, <span class="dv">0</span>, <span class="dv">2</span>)</a>
-<a class="sourceLine" id="cb19-4" data-line-number="4">y &lt;-<span class="st"> </span><span class="fl">0.5</span> <span class="op">+</span><span class="st"> </span><span class="dv">2</span> <span class="op">*</span><span class="st"> </span>x <span class="op">+</span><span class="st"> </span>e</a>
-<a class="sourceLine" id="cb19-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb19-6" data-line-number="6"><span class="kw">summary</span>(y)</a></code></pre></div>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## -3.3287 -0.1764  1.1098  1.4248  3.1967  6.8452</code></pre>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="kw">tibble</span>(<span class="dt">x =</span> x, <span class="dt">y =</span> y) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb21-2" data-line-number="2"><span class="kw">ggplot</span>(<span class="kw">aes</span>(x,y)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb21-3" data-line-number="3"><span class="st">  </span><span class="kw">geom_point</span>()</a></code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
+<div id="for" class="section level1">
+<h1>For</h1>
+<p>Standard for:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>) {</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">    <span class="kw">print</span>(i)</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">}</a></code></pre></div>
+<pre><code>## [1] 1
+## [1] 2
+## [1] 3</code></pre>
+<p>Can use <code>seq_along()</code> to get integer vector:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">vec &lt;-<span class="st"> </span>LETTERS[<span class="dv">1</span><span class="op">:</span><span class="dv">6</span>]</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_along</span>(vec)) {</a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">    <span class="kw">print</span>( <span class="kw">paste</span>(i, LETTERS[i]) )</a>
+<a class="sourceLine" id="cb7-5" data-line-number="5">}</a></code></pre></div>
+<pre><code>## [1] &quot;1 A&quot;
+## [1] &quot;2 B&quot;
+## [1] &quot;3 C&quot;
+## [1] &quot;4 D&quot;
+## [1] &quot;5 E&quot;
+## [1] &quot;6 F&quot;</code></pre>
 </div>
-<div id="simulating-a-poisson-model" class="section level2">
-<h2>Simulating a Poisson Model</h2>
-<p>$$</p>
-<p>Y Poisson() \ log() = _0 + _1x \  _0 = 0.5  _1 = 0.3.</p>
-<p>$$</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb22-2" data-line-number="2">x &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>)</a>
-<a class="sourceLine" id="cb22-3" data-line-number="3">log_mu &lt;-<span class="st"> </span><span class="fl">0.5</span> <span class="op">+</span><span class="st"> </span><span class="fl">0.3</span> <span class="op">*</span><span class="st"> </span>x</a>
-<a class="sourceLine" id="cb22-4" data-line-number="4">y &lt;-<span class="st"> </span><span class="kw">rpois</span>(<span class="dv">100</span>, <span class="kw">exp</span>(log_mu))</a>
-<a class="sourceLine" id="cb22-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb22-6" data-line-number="6"><span class="kw">tibble</span>(<span class="dt">x =</span> x, <span class="dt">y =</span> y) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb22-7" data-line-number="7"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(x,y)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb22-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_point</span>()</a></code></pre></div>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAqAAAAHgCAMAAABNUi8GAAAAD1BMVEUAAAAzMzNNTU3r6+v///+EK80uAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAOoUlEQVR4nO3djXaqarpEYbbH+7/mszplEhBB/C/N846xe6WAyVfgXKjpsbuHvTHFM7y6gDFrQ1BTPQQ11UNQUz0ENdVDUFM9GwX9v+vmWu4O9AuXVvwONEFbacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyecF3e12BH0+rXjyWUF3h38I+lz67ksPw7CVvuDQTUvfQG8T1BP0+fS9lx6GzdpdcOimpW+htwjqLf4V9J2XHobN2l1w6Kalb6I3CLo7PEX/+zeLR5nyOVh350OfNz6DttGeoMkELaV9Bk0maCntW3zyWUH9HvQ1tOLJ5wUdT0Xnd1la8TvQBG2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpTfCwzCM/vj5s7/4RpqgrfQ2eBi+lDz88fNnf/GtNEFb6U3wMJnveOvSTXf8QkFN10wF/Y6vbvWI8QRtoz1BkwlaSvsMmkzQUtq3+GSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiidvEXRH0OfTiidvEHRH0C0zDMM9157CvyefL7OZ3oDmkKI7vkHQnSfolhmG2et/v+K/Jz+xzFZ6A3o4pOiOE/RO9DDMX/+7Ff89+allNtIb0O9Diu74eUF3359B//s3yxr/9Tm8to8++TXLTAXdtk7dLJba7X1J2jKeoKeWvp0+L+jXEPTs+Ax6aumb6bOCfj9FCXpu5q++b/G30wRtpRVP3iLo71R0fpelFb8DTdBWWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornjwTdFhzdeXMwzA8qfMj4aOr2K9e1vm1L6OHYXR8haDXXP3FS08W2fIEHZYdXV1l+WLeRtDjq9ivXtbZtS+jh2F8fIOgV139pUtPF9n4Fr+k6PoqixfzLoLOrmL9si4+3Zajv48vEPS6q7/8PWvtjWNB0K+/+ytv9bM5LHMJUjizq7jtsi6jfwS9crX7z1P6bFxkesDX8aegrX8PbvtLdU/aE/R6uvUJ+m3mJYL6DHpq7cvo6UtVIGjnZ1Df4if0DX76Fr9tJov4Pei70IonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJ58XdLfbEfT5tOLJZwXdHf75TEGHYTiO40370Y7R9vx4xI5PMnz952ztFWJhyxKxtmdS/NyBo/2/B+7nO7fPK97iP1bQiXbfGo427Y92jKkjdn6SU9YtEye3LBFreybFzx74u3904H6284J5gaAf+xZ/5NFcrf3xjqPDTrx6y3vPECe2LBHL5/qe/dYDf/aPD9xvhNeXvmquEfTg53//ZvU5+35zeAGO4njT8Y6jw44PXN17hjixZYlYPtfFB/7sv6TxC2btS9Lo5zv9tXgi7Qm6fuDP/vGBb/UEHfv5aYL6DPoBn0E/WlDf4t//W/xuN/pF6J1WfSLt14nPpv03Se+ytOJ3oAnaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZOfIugwDDeQ+9mWTSvlx1OVh9k5Dhtm2/dfm342L649/MxPGq09waYNf04/HJfanzjxT/ejjfNT75cKb3oprnfs3+kX7vjGE7xE0BP38hJyP9uyZaXDjycqz1/bYfSyTw7dnxRv4YzD+DSjtSfYccPpjJeen/gEs3Rr9rMtJ7osztWCLpz+AgFeIejJv+1XkuvnOpZp9vgd7RnmWxZe85l4S2c8lmfyEFxquLT4/lSxNWCyYT/bsuH2Tda+ZhZOv3HVk0tfKOhVc+h3F3L9XKO9ywcOs13Tl/zUsV+bF095yrTfAydp3nB58RPF1oD5GbZsuessnP4eq3qCDvPtnqAXzsLpN656culnCOoz6Ag7brikm8+gh/wMQX2L9y2++lv85/xW7om04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJBC2lFU8maCmteDJBS2nFkwlaSiueTNBSWvFkgpbSiicTtJRWPJmgpbTiyQQtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJxO0lFY8maCltOLJ5wXd7XYEfT6tePJZQXeHfx4g6DAM2+ilA4evWT3P/vxSs32/57y0+GTHwlHzzYf1fnf876f9GnF2CHqHzuOXZJVeOnAYzfrSa4fM9o3OeWHxyY6Fo+abZ5fx9dN+hTg/BL298xmzzh84DLOXdmHptUNm+8bnvKz4ZMfCUfPNs8s4OmTzfRrPXxT0v3+zeNQVc7jx1x84fWWvXWq27+w5F3dOdiwcNd88u4yjQzbfp48eT9BTp/UEfTbc9BbvM+jSZXz95DNo8gsF9S1+ut7vjqOH9+V+/iVB/R70NbTiyecFHU9F53dZWvE70ARtpRVPJmgprXgyQUtpxZMJWkornkzQUlrxZIKW0oonE7SUVjyZoKW04skELaUVTyZoKa14MkFLacWTCVpKK55M0FJa8WSCltKKJ18m6JVz13+X6W2W/qOX/ZilCfpZa3/c0gT9rLU/bmmCftbaH7f0X//Xrk35ENRUD0FN9TxY0PG/uvzsedXKf/Ga9w+77McKOvkff3juvEyTv3jN+8dd9uPf4l92z/6eoC99gj5o9YcL+ufe7v6uoG/4Fv/aD0WvW/ZPCvqYtR8l6C6fh15xww5LE/Qjln78l6SXDUE/YWWCPmJZgt5tHizo7oW/+fB70Keu/KCX2n+TZKqHoKZ6CGqqh6CmeghqqoegpnoIaqqHoKZ6CGqqh6APnMP/Reyra7z1uHuPnGHvDt84bt9DZ3CDbxz377Hj/t44buBjx/29cdzAh463+FvH/Xvk+JJ087h9Dxy/Zrp93D1TPQQ11UNQUz0ENdVDUFM9BDXVQ1BTPQQ11UNQUz0ENdVDUFM9/w9yp5E2T2dgrwAAAABJRU5ErkJggg==" /><!-- --></p>
+<div id="while-loops" class="section level1">
+<h1>While Loops</h1>
+<p>Standard while loop:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">i =<span class="st"> </span><span class="dv">4</span></a>
+<a class="sourceLine" id="cb9-2" data-line-number="2"><span class="cf">while</span> (i) {</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">    <span class="kw">print</span>(i)</a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">    i =<span class="st"> </span>i <span class="op">-</span><span class="st"> </span><span class="dv">1</span></a>
+<a class="sourceLine" id="cb9-5" data-line-number="5">}</a></code></pre></div>
+<pre><code>## [1] 4
+## [1] 3
+## [1] 2
+## [1] 1</code></pre>
 </div>
-<div id="random-sampling" class="section level2">
-<h2>Random Sampling</h2>
-<p>The <code>sample()</code> functon draws randomly from a specified set of scalar objects.</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb23-2" data-line-number="2"><span class="kw">sample</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>, <span class="dv">4</span>)</a></code></pre></div>
-<pre><code>## [1] 9 4 7 1</code></pre>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1"><span class="kw">sample</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>, <span class="dv">4</span>)</a></code></pre></div>
-<pre><code>## [1] 2 7 3 6</code></pre>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" data-line-number="1"><span class="kw">sample</span>(letters, <span class="dv">5</span>)</a></code></pre></div>
-<pre><code>## [1] &quot;r&quot; &quot;s&quot; &quot;a&quot; &quot;u&quot; &quot;w&quot;</code></pre>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1"><span class="co"># Permutation</span></a>
-<a class="sourceLine" id="cb29-2" data-line-number="2"><span class="kw">sample</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>)</a></code></pre></div>
-<pre><code>##  [1] 10  6  9  2  1  5  8  4  3  7</code></pre>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" data-line-number="1"><span class="co"># Sample with replacement</span></a>
-<a class="sourceLine" id="cb31-2" data-line-number="2"><span class="kw">sample</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>, <span class="dv">8</span>, <span class="dt">replace =</span> T)</a></code></pre></div>
-<pre><code>## [1]  5  5  2 10  9  1  4  3</code></pre>
+<div id="repeat-next-break" class="section level1">
+<h1>Repeat, Next, Break</h1>
+<p>Repeat is an infinite loop:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">i =<span class="st"> </span><span class="dv">0</span></a>
+<a class="sourceLine" id="cb11-2" data-line-number="2"><span class="cf">repeat</span> {</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3">    i =<span class="st"> </span>i <span class="op">+</span><span class="st"> </span><span class="dv">1</span></a>
+<a class="sourceLine" id="cb11-4" data-line-number="4">    <span class="kw">print</span>(i)</a>
+<a class="sourceLine" id="cb11-5" data-line-number="5">    </a>
+<a class="sourceLine" id="cb11-6" data-line-number="6">    <span class="cf">if</span> (i <span class="op">==</span><span class="st"> </span><span class="dv">1</span>) {</a>
+<a class="sourceLine" id="cb11-7" data-line-number="7">        <span class="cf">next</span></a>
+<a class="sourceLine" id="cb11-8" data-line-number="8">    }</a>
+<a class="sourceLine" id="cb11-9" data-line-number="9">    </a>
+<a class="sourceLine" id="cb11-10" data-line-number="10">    <span class="cf">if</span> (i <span class="op">==</span><span class="st"> </span><span class="dv">4</span>) {</a>
+<a class="sourceLine" id="cb11-11" data-line-number="11">        <span class="cf">break</span></a>
+<a class="sourceLine" id="cb11-12" data-line-number="12">    }</a>
+<a class="sourceLine" id="cb11-13" data-line-number="13">}</a></code></pre></div>
+<pre><code>## [1] 1
+## [1] 2
+## [1] 3
+## [1] 4</code></pre>
 </div>
-</div>
-<div id="r-profiler" class="section level1">
-<h1>R Profiler</h1>
-<p>A very basic tool is to use <code>system.time()</code>. Returns an object of class <code>proc.time</code> which has user time, system (kernel) time, and elapsed (wall clock) time.</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1"><span class="kw">system.time</span>(</a>
-<a class="sourceLine" id="cb33-2" data-line-number="2">  <span class="kw">solve</span>( <span class="kw">matrix</span>(<span class="kw">rnorm</span>(<span class="dv">2048</span> <span class="op">*</span><span class="st"> </span><span class="dv">2048</span>), <span class="dt">ncol =</span> <span class="dv">2048</span>) )</a>
-<a class="sourceLine" id="cb33-3" data-line-number="3">)</a></code></pre></div>
-<pre><code>##    user  system elapsed 
-##   7.764   0.072   7.837</code></pre>
-<ul>
-<li>User time is less than than elapsed if the process spends time off CPU.</li>
-<li>User time is greater than elapsed if parallel processing has occurred (multi-threading).swi</li>
-</ul>
-<div id="rprof" class="section level2">
-<h2>RProf</h2>
-<p>The <code>Rprof()</code> function starts the profiler in R.</p>
-<p>The <code>summaryRprof()</code> function summarises the output for <code>Rprof()</code>.</p>
-<p>The profiler keeps track of the call stack at regular intervals - default is 0.02 seconds.</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" data-line-number="1"><span class="kw">library</span>(magrittr)</a></code></pre></div>
-<pre><code>## 
-## Attaching package: 'magrittr'</code></pre>
-<pre><code>## The following object is masked from 'package:purrr':
+<div id="functions" class="section level1">
+<h1>Functions</h1>
+<p>Functions are first class - treated like everything else.</p>
+<p>Functons can be nested, so you can define a function inside another function.</p>
+<div id="function-arguments" class="section level2">
+<h2>Function Arguments</h2>
+<p><strong>Formal</strong> arguments are the arguements included in the function definition. <code>formals()</code> function returns a list of format arguments.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="kw">formals</span>(mean)</a></code></pre></div>
+<pre><code>## $x
 ## 
-##     set_names</code></pre>
-<pre><code>## The following object is masked from 'package:tidyr':
 ## 
-##     extract</code></pre>
-<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">2000</span>)</a>
-<a class="sourceLine" id="cb39-2" data-line-number="2">y &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">2000</span>)</a>
-<a class="sourceLine" id="cb39-3" data-line-number="3"><span class="kw">Rprof</span>(tmp &lt;-<span class="st"> </span><span class="kw">tempfile</span>())</a>
-<a class="sourceLine" id="cb39-4" data-line-number="4"><span class="kw">invisible</span>(</a>
-<a class="sourceLine" id="cb39-5" data-line-number="5">  <span class="kw">solve</span>( <span class="kw">matrix</span>(<span class="kw">rnorm</span>(<span class="dv">2048</span> <span class="op">*</span><span class="st"> </span><span class="dv">2048</span>), <span class="dt">ncol =</span> <span class="dv">2048</span>) )</a>
-<a class="sourceLine" id="cb39-6" data-line-number="6">)</a>
-<a class="sourceLine" id="cb39-7" data-line-number="7"><span class="kw">Rprof</span>()</a>
-<a class="sourceLine" id="cb39-8" data-line-number="8"><span class="kw">summaryRprof</span>(tmp) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb39-9" data-line-number="9"><span class="st">  </span><span class="kw">use_series</span>(by.self) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb39-10" data-line-number="10"><span class="st">  </span><span class="kw">kable</span>() <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb39-11" data-line-number="11"><span class="st">  </span><span class="kw">kable_styling</span>()</a></code></pre></div>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-</th>
-<th style="text-align:right;">
-self.time
-</th>
-<th style="text-align:right;">
-self.pct
-</th>
-<th style="text-align:right;">
-total.time
-</th>
-<th style="text-align:right;">
-total.pct
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-“solve.default”
-</td>
-<td style="text-align:right;">
-7.30
-</td>
-<td style="text-align:right;">
-96.31
-</td>
-<td style="text-align:right;">
-7.30
-</td>
-<td style="text-align:right;">
-96.31
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-“rnorm”
-</td>
-<td style="text-align:right;">
-0.26
-</td>
-<td style="text-align:right;">
-3.43
-</td>
-<td style="text-align:right;">
-0.26
-</td>
-<td style="text-align:right;">
-3.43
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-“matrix”
-</td>
-<td style="text-align:right;">
-0.02
-</td>
-<td style="text-align:right;">
-0.26
-</td>
-<td style="text-align:right;">
-0.28
-</td>
-<td style="text-align:right;">
-3.69
-</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Note</strong>: C or Fortran code is not profiled.</p>
+## $...</code></pre>
+<p>Function arguments can be <em>missing</em> or might have default values.</p>
+<p>Matched positionally or by name. When an argument is matched by name, it is ‘taken out’, and the remaining arguments are matched in their order.</p>
+<p>Function arguments <strong>can</strong> be partially matched. Checks for exact match, then partial match, then positional match.</p>
+</div>
+<div id="lazy-evaluation" class="section level2">
+<h2>Lazy Evaluation</h2>
+<p>Arguments are only evaluated as needed.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">func &lt;-<span class="st"> </span><span class="cf">function</span>(a, b) {</a>
+<a class="sourceLine" id="cb15-2" data-line-number="2">    a<span class="op">^</span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb15-3" data-line-number="3">}</a>
+<a class="sourceLine" id="cb15-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb15-5" data-line-number="5"><span class="kw">func</span>(<span class="dv">2</span>)</a></code></pre></div>
+<pre><code>## [1] 4</code></pre>
+<p>No error not specifying <code>b</code> as it’s not used.</p>
+</div>
+<div id="the-argument." class="section level2">
+<h2>The ‘…’ Argument.</h2>
+<p>Indicates a variable number of arguments often passed to other functions.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">my_mean &lt;-<span class="st"> </span><span class="cf">function</span>(x, ...) {</a>
+<a class="sourceLine" id="cb17-2" data-line-number="2">    <span class="kw">mean</span>(x, ...)</a>
+<a class="sourceLine" id="cb17-3" data-line-number="3">}</a>
+<a class="sourceLine" id="cb17-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb17-5" data-line-number="5">v &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="ot">NA</span>)</a>
+<a class="sourceLine" id="cb17-6" data-line-number="6"><span class="kw">my_mean</span>(v)</a></code></pre></div>
+<pre><code>## [1] NA</code></pre>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="kw">my_mean</span>(v, <span class="dt">na.rm =</span> T) </a></code></pre></div>
+<pre><code>## [1] 2</code></pre>
+<p>Also used when the number of arguments can’t be known:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="kw">args</span>(paste)</a></code></pre></div>
+<pre><code>## function (..., sep = &quot; &quot;, collapse = NULL) 
+## NULL</code></pre>
+<p>Of course args after the dots must be named and cannot be partially matched.</p>
 </div>
 </div>
-<div id="by-total-and-by-self" class="section level1">
-<h1>“By Total” and “By Self”</h1>
-<p>By total is how much time was spent in the function including child calls. By self is how much time is spent in that function only.</p>
+<div id="scoping-rules" class="section level1">
+<h1>Scoping Rules</h1>
+<p>R searches through environments to find a symbol:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1"><span class="kw">search</span>()</a></code></pre></div>
+<pre><code>## [1] &quot;.GlobalEnv&quot;        &quot;package:stats&quot;     &quot;package:graphics&quot; 
+## [4] &quot;package:grDevices&quot; &quot;package:utils&quot;     &quot;package:datasets&quot; 
+## [7] &quot;package:methods&quot;   &quot;Autoloads&quot;         &quot;package:base&quot;</code></pre>
+<p>The global environment is searched first, with all other packages searched in the order of the <code>search()</code> list.</p>
+<p>When a user loads a package with <code>library()</code>, the namespace (environment) of the package is placed into position 2.</p>
+<p>R has separate namespaces for functions and non-functions, so it’s possible to have an object and a function named <code>c</code>.</p>
+<p>R uses <em>lexical</em> scoping or <em>static scopring</em>.</p>
+<p>Consider the following function:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1">f &lt;-<span class="st"> </span><span class="cf">function</span>(a, b) {</a>
+<a class="sourceLine" id="cb25-2" data-line-number="2">    a <span class="op">+</span><span class="st"> </span>b <span class="op">*</span><span class="st"> </span>z</a>
+<a class="sourceLine" id="cb25-3" data-line-number="3">}</a></code></pre></div>
+<p><code>z</code> is a <em>free variable</em>. What value is assigned to <code>z</code>?</p>
+<p><strong>Lexical Scoping</strong> - variables are seaerched for in the environment in which the function is defined.</p>
+<p>If it’s not found, the search is continued in the <em>parent environment</em>.</p>
+<p>After the top level environment, the search continues down the search list until we hit the empty environment.</p>
+<div id="lexical-vs-dynamic" class="section level2">
+<h2>Lexical vs Dynamic</h2>
+<p>With <strong>lexical</strong> scoping, the value is looked up in the environment in which the function was defined.</p>
+<p>With <strong>dynamic</strong> scoping, the value is looked up in the environment from which the function was <em>called</em>, the calling environment.</p>
+<p>Often functions are defined and called in the global environment, making it seem as if the scoping is dynamic.</p>
+</div>
+<div id="lexical-consequences" class="section level2">
+<h2>Lexical Consequences</h2>
+<p>All kfunctions must carry a pointer to their respective defining environments, which could be anywere.</p>
+</div>
+<div id="scoping-optimisation" class="section level2">
+<h2>Scoping Optimisation</h2>
+<p>There are some statistical optimisation functions like <code>optim()</code>, <code>nlm()</code> and <code>optimize()</code> that you pass a function to.</p>
+<p>However an object may depend on a host of other things besides its parameters - like data.</p>
+<p>We write a constructor function which constructs the objective function.</p>
+<p>Close over the data you want to carry around, then call the constructed function with the variable parameters.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1">make.func &lt;-<span class="st"> </span><span class="cf">function</span>(data, <span class="dt">fixed =</span> <span class="kw">c</span>(F, F)) {</a>
+<a class="sourceLine" id="cb26-2" data-line-number="2">    params &lt;-<span class="st"> </span>fixed</a>
+<a class="sourceLine" id="cb26-3" data-line-number="3">    <span class="cf">function</span>(p) {</a>
+<a class="sourceLine" id="cb26-4" data-line-number="4">        params[<span class="op">!</span>fixed] &lt;-<span class="st"> </span>p</a>
+<a class="sourceLine" id="cb26-5" data-line-number="5">        params</a>
+<a class="sourceLine" id="cb26-6" data-line-number="6">    }</a>
+<a class="sourceLine" id="cb26-7" data-line-number="7">}</a>
+<a class="sourceLine" id="cb26-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb26-9" data-line-number="9">gen1 &lt;-<span class="st"> </span><span class="kw">make.func</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>))</a>
+<a class="sourceLine" id="cb26-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb26-11" data-line-number="11">gen1</a></code></pre></div>
+<pre><code>## function(p) {
+##         params[!fixed] &lt;- p
+##         params
+##     }
+## &lt;environment: 0x55a61cbf80c0&gt;</code></pre>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1"><span class="kw">ls</span>(<span class="kw">environment</span>(gen1))</a></code></pre></div>
+<pre><code>## [1] &quot;data&quot;   &quot;fixed&quot;  &quot;params&quot;</code></pre>
+</div>
+</div>
+<div id="coding-standards" class="section level1">
+<h1>Coding Standards</h1>
+<ol style="list-style-type: decimal">
+<li>Always use text files / text editor.</li>
+<li>Indent your code.
+<ul>
+<li>Can use Ctrl + I in RStudio</li>
+</ul></li>
+<li>Limit the width of your code (80 columns)</li>
+<li>Limit the length of individual functions.</li>
+</ol>
+</div>
+<div id="dates-and-times" class="section level1">
+<h1>Dates and Times</h1>
+<p>Dates are represented by the <code>Date</code> class, times by the <code>POSIXct</code> class.</p>
+<p>Dates are stored as the number of days since 1970-01-01, times the number of seconds since 1970-01-01.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">as.Date</span>(<span class="st">'1984-04-27'</span>)</a>
+<a class="sourceLine" id="cb30-2" data-line-number="2"><span class="kw">unclass</span>(x)</a></code></pre></div>
+<pre><code>## [1] 5230</code></pre>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" data-line-number="1"><span class="kw">weekdays</span>(x)</a></code></pre></div>
+<pre><code>## [1] &quot;Friday&quot;</code></pre>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1"><span class="kw">months</span>(x)</a></code></pre></div>
+<pre><code>## [1] &quot;April&quot;</code></pre>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" data-line-number="1"><span class="kw">quarters</span>(x)</a></code></pre></div>
+<pre><code>## [1] &quot;Q2&quot;</code></pre>
+<p><code>POSIXct</code> is just a very large integer under the hood.</p>
+<p><code>POSIXlt</code> is a list underneath that stores other useful information.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb38-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">Sys.time</span>()</a>
+<a class="sourceLine" id="cb38-2" data-line-number="2">x</a></code></pre></div>
+<pre><code>## [1] &quot;2019-09-26 14:05:50 AEST&quot;</code></pre>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb40-1" data-line-number="1"><span class="kw">class</span>(x)</a></code></pre></div>
+<pre><code>## [1] &quot;POSIXct&quot; &quot;POSIXt&quot;</code></pre>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" data-line-number="1"><span class="kw">weekdays</span>(x)</a></code></pre></div>
+<pre><code>## [1] &quot;Thursday&quot;</code></pre>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" data-line-number="1"><span class="kw">unclass</span>(x)</a></code></pre></div>
+<pre><code>## [1] 1569470751</code></pre>
+<p>Use <code>strptime()</code> to create dates in a different format.</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" data-line-number="1">y &lt;-<span class="st"> </span><span class="kw">as.POSIXct</span>(<span class="kw">as.Date</span>(<span class="st">'1990-01-01'</span>))</a>
+<a class="sourceLine" id="cb46-2" data-line-number="2">y <span class="op">&lt;</span><span class="st"> </span>x</a></code></pre></div>
+<pre><code>## [1] TRUE</code></pre>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb48-1" data-line-number="1">x <span class="op">-</span><span class="st"> </span>y</a></code></pre></div>
+<pre><code>## Time difference of 10860.17 days</code></pre>
+<p>Takes account of leap years, leap seconds, and timezones.</p>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb50-1" data-line-number="1"><span class="kw">as.POSIXct</span>(<span class="st">'1990-01-01 11:00:00'</span>) <span class="op">-</span><span class="st"> </span><span class="kw">as.POSIXct</span>(<span class="st">'1990-01-01 11:00:00'</span>)</a></code></pre></div>
+<pre><code>## Time difference of 0 secs</code></pre>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb52-1" data-line-number="1"><span class="kw">as.POSIXct</span>(<span class="st">'1990-01-01 11:00:00'</span>) <span class="op">-</span><span class="st"> </span><span class="kw">as.POSIXct</span>(<span class="st">'1990-01-01 11:00:00'</span>, <span class="dt">tz =</span> <span class="st">'AEST'</span>)</a></code></pre></div>
+<pre><code>## Time difference of -11 hours</code></pre>
 </div>
     </section>
   </div>
