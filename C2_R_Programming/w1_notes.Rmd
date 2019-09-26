@@ -1,5 +1,5 @@
 ---
-title: "Course 2 - R Programming - Notes"
+title: "Course 2 - R Programming - Week 1 - Notes"
 author: "Greg Foletta"
 output:
   html_document:
@@ -231,3 +231,215 @@ extract %>% class()
 
 # Data Frames
 
+Special type of list where every element has the same length. Each element can be considered a column. Different classes in each column.
+
+They have an attribute `row.names`.
+
+# Names Attribute
+
+Objects can have names.
+
+```{r named_vector}
+named_vec <- c(1,2,3)
+named_vec
+names(named_vec) <- c('One', 'Two', 'Three')
+named_vec
+```
+
+Named lists:
+
+```{r named_list}
+named_list <- list(one = 1, two = 2, three = 3)
+named_list
+```
+
+Matrices have dimnames:
+
+```{r named_matrices}
+named_matrix <- matrix(1:4, ncol = 2)
+
+dimnames(named_matrix) <- list(c('A', 'B'), c('C', 'D'))
+
+named_matrix
+```
+
+# Reading Tabular Data
+
+- `read.table()` and `read.csv()` for reading tabular data.
+` `readLines()` for reading lines of a text file.
+- `source()` for reading R code.
+- `dget()` for reading deparsed R objects.
+- `load()` for workspaces.
+- `unserialize()` for reading single R objects in binary form.
+
+## Read Table
+
+Arguments:
+
+- `colClasses` - character vector indicating the class of each column.
+- `comment.char` - character string indicating the comment character.
+- `stringsAsFactors` - should character variables be coded as factors?
+    - Defaults to `TRUE`.
+
+Read table generally figures out the classes, skips lines beginning `#`, and figures out how many rows.
+
+`read.csv()` is identical except the default separator is a comma instead of a space and expects a header line.
+
+# Reading Large Tables
+
+- Make a rough calculation on the memory required and determine if you have enough physical memory.
+- Set `comment.char = ''` if there are no comments.
+
+Using the `colClasses` argument can make reading in much faster, and setting `nrows` can help memory usage, with a mild overestimate being okay.
+
+Know your system - memory, applicatons, other users, OS.
+
+You can calculate memory requirements. Consider 1,000,000 rows and 200 columns of numeric data. Numeric data is 8 bytes.
+
+```{r memcalc}
+# Calculate Gigabytes of storage.
+(1000000 * 200 * 8) / 2^30
+```
+
+# Textual Formats
+
+`dump()` and `dput()` are useful. 
+
+`dump()` dumps named objects from the environment into text format:
+```{r dump}
+dump_obj <- tibble(x = 1:4, y = 2:5)
+vec <- c(1:10)
+
+dump(c('dump_obj', 'vec'), file = tempfile())
+```
+File has the following contents:
+```r
+dump_obj <-
+structure(list(x = 1:4, y = 2:5), row.names = c(NA, -4L), class = c("tbl_df", 
+"tbl", "data.frame"))
+vec <-
+1:10
+```
+
+`Can use `dput()` dumps a single object:
+
+```{r dput}
+tibble(x = 1:16, blah = letters[x]) %>%
+    dput(file = tempfile())
+```
+
+File contains:
+```r
+structure(list(x = 1:16, blah = c("a", "b", "c", "d", "e", "f", 
+"g", "h", "i", "j", "k", "l", "m", "n", "o", "p")), row.names = c(NA, 
+-16L), class = c("tbl_df", "tbl", "data.frame"))
+```
+
+Textual formats are good with version control, easier to fix 'corruption', and adhere to the Unix philosophy. However they are space-inefficient.
+
+# Connections
+
+Connections can be made to:
+
+- `file()`
+- `gzfile()` - gzip compressed file.
+- `bzfile()` - bzip2 compressed file.
+- `url()`
+
+# Subsetting
+
+The `[` returns the same class as the original, can be used to extract more than one object (one exception).
+
+```{r subset}
+x <- c(1:10)
+x[4]
+x > 5
+x[x > 5]
+```
+
+The `[[` returns the objects within.
+
+The $ can extract by name, and the semantics are similar to `[[`.
+
+## Lists
+
+```{r subset_list}
+l <- list(a = 1:4, b = letters[1:4], c = 80:83)
+
+l[c(1,3)]
+
+name <- 'a'
+l[name]
+l[[name]]
+```
+
+## Nested Elements
+
+```{r nested_list}
+l <- list(
+    a = list(
+        b = "Nest B",
+        c = "Nest C"
+    ),
+    d = "Element D",
+    e = "Element E"
+)
+
+# Access the nested element
+l[[c(1,2)]]
+l[[1]][[1]]
+```
+
+## Matrices
+
+Can be subsetted in the normal way using $i,j$ row / column indicies.
+
+```{r matrix_subset}
+m <- matrix(1:16, ncol = 4)
+
+# 2nd Row
+m[2,]
+# First column
+m[,1]
+# Single element
+m[1,4]
+```
+
+Subsetting out a matrix is a vector, not another matrix.
+
+If you want a matrix you need to use the `drop` argument:
+
+```{r matrix_drop}
+# 2nd Row
+m[2,,drop = F]
+# First column
+m[,1, drop = F]
+# Single element
+m[1,4, drop = F]
+```
+
+## Partial Matching
+
+Works with the `$` and the `[[`. Double bracket expects exact, but can use `exact = F` argument,
+
+## Removing Missing Values
+Use `is.na()` or `complete.cases()`.
+
+```{r remove_na}
+x <- c(1,2,3,NA,4,NA,NA,5)
+x[!is.na(x)]
+x[complete.cases(x)]
+```
+
+Can be done on data frames too - done by rows.
+
+```{r remove_na_df}
+x <- data.frame(
+    a = c(1,2,NA,NA,5,6),
+    b = c(1,NA,3,4,5,6)
+)
+
+complete.cases(x)
+
+x[complete.cases(x),]
+```

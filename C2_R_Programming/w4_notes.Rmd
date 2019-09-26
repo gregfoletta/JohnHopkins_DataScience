@@ -1,0 +1,197 @@
+---
+title: "Course 2 - R Programming - Week 4 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+```{r setup, message = F}
+library(tidyverse)
+library(kableExtra)
+library(knitr)
+```
+
+# str() Function
+
+Compactly display the internal structure of an R object.
+
+```{r str}
+nested_lists <- list(
+  a = list(
+    b = list(
+      matrix = matrix(rnorm(4), ncol = 2),
+      numeric_vector = 1:10,
+      character_vector = LETTERS,
+      data_frame = tibble(data_a = 1:10, data_b = 11:20),
+      list = list(1:10)
+    )
+  )
+)
+
+# On an object
+str(nested_lists)
+
+# On a function
+str(matrix)
+
+# On dataframes
+str(airquality)
+```
+
+# Simulation
+
+## Generating Random Numbers
+
+Functions for probability distributions:
+
+- `rnorm()` - generate random normal variates.
+- `dnorm()` - evaluate the normal probability density at a point.
+- `pnorm()` - evaluate the cumulative distribution function for a normal distributionl
+- `rpois()` - generate random Poisson variates with a given rate.
+
+For each distribution there are usually four functions with different prefixes:
+
+- 'r' for random numbers.
+- 'd' for density.
+- 'p' for cumulative distribution.
+- 'q' for quantile.
+
+```{r random}
+rnorm(4, 100, 10)
+
+# Should be .5
+pnorm(10, mean = 10)
+```
+
+```{r poisson}
+rpois(10, 1)
+rpois(10, 4)
+```
+## Simulating a Linear Model
+
+Suppose we want to simulate 
+
+$$ y = \beta_0+ \beta_1x_1 + \epsilon $$
+
+where:
+
+$$
+
+\epsilon \sim \mathcal{N}(0,2^2)
+\text{. Assume }
+x \sim \mathcal{N}(0,1^2), \beta_0 = 0.5
+\text{ and }
+\beta_1 = 2
+
+$$
+
+```{r linear}
+set.seed(1)
+x <- rnorm(100)
+e <- rnorm(100, 0, 2)
+y <- 0.5 + 2 * x + e
+
+summary(y)
+
+tibble(x = x, y = y) %>%
+ggplot(aes(x, y)) +
+  geom_point()
+```
+
+What if $x$ is binary?
+
+```{r binom}
+set.seed(1)
+x <- rbinom(100, 1, 0.5)
+e <- rnorm(100, 0, 2)
+y <- 0.5 + 2 * x + e
+
+summary(y)
+
+tibble(x = x, y = y) %>%
+ggplot(aes(x,y)) +
+  geom_point()
+```
+
+## Simulating a Poisson Model
+
+$$
+
+Y \sim Poisson(\mu) \\
+log(\mu) = \beta_0 + \beta_1x \\
+\text{and } \beta_0 = 0.5 \text{ and } \beta_1 = 0.3.
+
+$$
+
+```{r pois}
+set.seed(1)
+x <- rnorm(100)
+log_mu <- 0.5 + 0.3 * x
+y <- rpois(100, exp(log_mu))
+
+tibble(x = x, y = y) %>%
+  ggplot(aes(x,y)) +
+  geom_point()
+```
+
+## Random Sampling
+
+The `sample()` functon draws randomly from a specified set of scalar objects.
+
+```{r sample}
+set.seed(1)
+sample(1:10, 4)
+sample(1:10, 4)
+sample(letters, 5)
+
+# Permutation
+sample(1:10)
+
+# Sample with replacement
+sample(1:10, 8, replace = T)
+```
+
+# R Profiler
+
+A very basic tool is to use `system.time()`. Returns an object of class `proc.time` which has user time, system (kernel) time, and elapsed (wall clock) time.
+
+```{r systime}
+system.time(
+  solve( matrix(rnorm(2048 * 2048), ncol = 2048) )
+)
+```
+
+- User time is less than than elapsed if the process spends time off CPU.
+- User time is greater than elapsed if parallel processing has occurred (multi-threading).swi
+
+## RProf
+
+The `Rprof()` function starts the profiler in R.
+
+The `summaryRprof()` function summarises the output for `Rprof()`. 
+
+The profiler keeps track of the call stack at regular intervals - default is 0.02 seconds.
+
+```{r rprof}
+x <- c(1:2000)
+y <- rnorm(2000)
+Rprof(tmp <- tempfile())
+invisible(
+  solve( matrix(rnorm(2048 * 2048), ncol = 2048) )
+)
+Rprof()
+summaryRprof(tmp) %>%
+  use_series(by.self) %>%
+  kable() %>%
+  kable_styling()
+```
+
+**Note**: C or Fortran code is not profiled.
+
+# "By Total" and "By Self"
+
+By total is how much time was spent in the function including child calls. By self is how much time is spent in that function only.
+
