@@ -15,7 +15,7 @@
 
 <meta name="date" content="2019-10-25" />
 
-<title>Course 3 - Getting and Cleaning Data - Week 2 - Notes</title>
+<title>Course 3 - Getting and Cleaning Data - Week 4 - Notes</title>
 
 
 
@@ -97,7 +97,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <header>
 <div class="inner">
-<h1 class="title toc-ignore">Course 3 - Getting and Cleaning Data - Week 2 - Notes</h1>
+<h1 class="title toc-ignore">Course 3 - Getting and Cleaning Data - Week 4 - Notes</h1>
 <h3 class="author">Greg Foletta</h3>
 <h3 class="date">2019-10-25</h3>
 </div>
@@ -108,391 +108,84 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="content-wrapper">
   <div class="inner clearfix">
     <section id="main-content">
-<div id="reading-from-mysql" class="section level1">
-<h1>Reading from MySQL</h1>
-<p>Data structured in databases, tables, and fields.</p>
-<p>Different tables are linked together using varaibles. A table in analogous to a data frame.</p>
-<div id="test-mysql-instance" class="section level2">
-<h2>Test MySQL Instance</h2>
-<p>We set up a test MySQL instance using docker.</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># Stop and remove any previous container running</span>
-<span class="ex">docker</span> stop greg_test_mysql
-<span class="ex">docker</span> rm greg_test_mysql
-
-<span class="co"># Spin up a new MySQL container.</span>
-<span class="ex">docker</span> run -p 3306:3306 --name greg_test_mysql -e MYSQL_ROOT_PASSWORD=d3d09j32d32 -d mysql:5.7.27
-<span class="ex">docker</span> container ls
-
-<span class="fu">sleep</span> 20</code></pre></div>
-<pre><code>## greg_test_mysql
-## greg_test_mysql
-## 9b3e94d277fbbe6ed5a6985a0f0cfed41912a8defeb8948b080d5cf483193280
-## CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                  PORTS                               NAMES
-## 9b3e94d277fb        mysql:5.7.27        &quot;docker-entrypoint.s…&quot;   1 second ago        Up Less than a second   0.0.0.0:3306-&gt;3306/tcp, 33060/tcp   greg_test_mysql
-## 6833e3a9d28a        candidate_lab       &quot;bash&quot;                   14 hours ago        Up 14 hours                                                 focused_nobel</code></pre>
-<p>We retrieve and then import a test database from <a href="https://github.com/datacharmer/test_db" class="uri">https://github.com/datacharmer/test_db</a>.</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="bu">cd</span> ~/Documents/Study/Coursera_Data_Science_JHU/C3_Getting_and_Cleaning_Data
-<span class="kw">if</span><span class="bu"> [</span> <span class="ot">!</span> <span class="ot">-d</span> test_db<span class="bu"> ]</span>; <span class="kw">then</span>
-    <span class="fu">git</span> clone https://github.com/datacharmer/test_db.git
-<span class="kw">fi</span>
-
-<span class="bu">cd</span> test_db
-
-<span class="ex">mysql</span> -h 127.0.0.1 -u root -pd3d09j32d32 <span class="op">&lt;</span> employees.sql</code></pre></div>
-<pre><code>## mysql: [Warning] Using a password on the command line interface can be insecure.
-## INFO
-## CREATING DATABASE STRUCTURE
-## INFO
-## storage engine: InnoDB
-## INFO
-## LOADING departments
-## INFO
-## LOADING employees
-## INFO
-## LOADING dept_emp
-## INFO
-## LOADING dept_manager
-## INFO
-## LOADING titles
-## INFO
-## LOADING salaries
-## data_load_time_diff
-## 00:00:36</code></pre>
-</div>
-<div id="connecting-and-listing-databases" class="section level2">
-<h2>Connecting and Listing Databases</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RMySQL)</code></pre></div>
-<pre><code>## Loading required package: DBI</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">test_db &lt;-<span class="st"> </span><span class="kw">dbConnect</span>(
-    <span class="kw">MySQL</span>(),
-    <span class="dt">user =</span> <span class="st">'root'</span>,
-    <span class="dt">host =</span> <span class="st">'127.0.0.1'</span>,
-    <span class="dt">password =</span> <span class="st">'d3d09j32d32'</span>
-)
-
-<span class="kw">dbGetQuery</span>(test_db, <span class="st">'show databases;'</span>)</code></pre></div>
-<pre><code>##             Database
-## 1 information_schema
-## 2          employees
-## 3              mysql
-## 4 performance_schema
-## 5                sys</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dbDisconnect</span>(test_db)</code></pre></div>
-<pre><code>## [1] TRUE</code></pre>
-</div>
-<div id="listing-tables" class="section level2">
-<h2>Listing Tables</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">test_db &lt;-<span class="st"> </span><span class="kw">dbConnect</span>(
-    <span class="kw">MySQL</span>(),
-    <span class="dt">user =</span> <span class="st">'root'</span>,
-    <span class="dt">host =</span> <span class="st">'127.0.0.1'</span>,
-    <span class="dt">password =</span> <span class="st">'d3d09j32d32'</span>,
-    <span class="dt">db =</span> <span class="st">'employees'</span>
-)
-
-<span class="kw">dbListTables</span>(test_db)</code></pre></div>
-<pre><code>## [1] &quot;current_dept_emp&quot;     &quot;departments&quot;          &quot;dept_emp&quot;            
-## [4] &quot;dept_emp_latest_date&quot; &quot;dept_manager&quot;         &quot;employees&quot;           
-## [7] &quot;salaries&quot;             &quot;titles&quot;</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dbListFields</span>(test_db, <span class="st">'employees'</span>)</code></pre></div>
-<pre><code>## [1] &quot;emp_no&quot;     &quot;birth_date&quot; &quot;first_name&quot; &quot;last_name&quot;  &quot;gender&quot;    
-## [6] &quot;hire_date&quot;</code></pre>
-</div>
-<div id="running-a-query" class="section level2">
-<h2>Running a Query</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dbGetQuery</span>(test_db, <span class="st">'select count(*) from employees'</span>)</code></pre></div>
-<pre><code>##   count(*)
-## 1   300024</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dbGetQuery</span>(test_db, <span class="st">'select * from employees limit 10;'</span>)</code></pre></div>
-<pre><code>##    emp_no birth_date first_name last_name gender  hire_date
-## 1   10001 1953-09-02     Georgi   Facello      M 1986-06-26
-## 2   10002 1964-06-02    Bezalel    Simmel      F 1985-11-21
-## 3   10003 1959-12-03      Parto   Bamford      M 1986-08-28
-## 4   10004 1954-05-01  Chirstian   Koblick      M 1986-12-01
-## 5   10005 1955-01-21    Kyoichi  Maliniak      M 1989-09-12
-## 6   10006 1953-04-20     Anneke   Preusig      F 1989-06-02
-## 7   10007 1957-05-23    Tzvetan Zielinski      F 1989-02-10
-## 8   10008 1958-02-19     Saniya  Kalloufi      M 1994-09-15
-## 9   10009 1952-04-19     Sumant      Peac      F 1985-02-18
-## 10  10010 1963-06-01  Duangkaew  Piveteau      F 1989-08-24</code></pre>
-</div>
-<div id="reading-in-a-table" class="section level2">
-<h2>Reading in a Table</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">employees &lt;-<span class="st"> </span><span class="kw">dbReadTable</span>(test_db, <span class="st">'employees'</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_tibble</span>()
-employees</code></pre></div>
-<pre><code>## # A tibble: 300,024 x 6
-##    emp_no birth_date first_name last_name gender hire_date 
-##     &lt;int&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;     &lt;chr&gt;  &lt;chr&gt;     
-##  1  10001 1953-09-02 Georgi     Facello   M      1986-06-26
-##  2  10002 1964-06-02 Bezalel    Simmel    F      1985-11-21
-##  3  10003 1959-12-03 Parto      Bamford   M      1986-08-28
-##  4  10004 1954-05-01 Chirstian  Koblick   M      1986-12-01
-##  5  10005 1955-01-21 Kyoichi    Maliniak  M      1989-09-12
-##  6  10006 1953-04-20 Anneke     Preusig   F      1989-06-02
-##  7  10007 1957-05-23 Tzvetan    Zielinski F      1989-02-10
-##  8  10008 1958-02-19 Saniya     Kalloufi  M      1994-09-15
-##  9  10009 1952-04-19 Sumant     Peac      F      1985-02-18
-## 10  10010 1963-06-01 Duangkaew  Piveteau  F      1989-08-24
-## # … with 300,014 more rows</code></pre>
-</div>
-<div id="select-a-subset" class="section level2">
-<h2>Select a Subset</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">female_query &lt;-<span class="st"> </span><span class="kw">dbSendQuery</span>(test_db, <span class="st">'select first_name,last_name from employees where `gender`=</span><span class="ch">\'</span><span class="st">F</span><span class="ch">\'</span><span class="st"> limit 10'</span>)
-
-<span class="co"># Can also use the 'n = ' argument to fetch() to limit the query</span>
-females &lt;-<span class="st"> </span><span class="kw">fetch</span>(female_query)
-<span class="kw">dbClearResult</span>(female_query)</code></pre></div>
-<pre><code>## [1] TRUE</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">females <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_tibble</span>()</code></pre></div>
-<pre><code>## # A tibble: 10 x 2
-##    first_name last_name 
-##    &lt;chr&gt;      &lt;chr&gt;     
-##  1 Bezalel    Simmel    
-##  2 Anneke     Preusig   
-##  3 Tzvetan    Zielinski 
-##  4 Sumant     Peac      
-##  5 Duangkaew  Piveteau  
-##  6 Mary       Sluis     
-##  7 Cristinel  Bouloucos 
-##  8 Kazuhide   Peha      
-##  9 Bojan      Montemayor
-## 10 Suzette    Pettey</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dbDisconnect</span>(test_db)</code></pre></div>
-<pre><code>## [1] TRUE</code></pre>
-</div>
-</div>
-<div id="reading-hdf5" class="section level1">
-<h1>Reading HDF5</h1>
-<ul>
-<li>Hierarchical Data Format</li>
-<li>Used for storing large data sets</li>
-<li>Range of data types</li>
-<li><strong>groups</strong> containing zero or more data sets and metadata
-<ul>
-<li>Have a <strong>group header</strong> with group name and a list of attributes</li>
-<li>Have a <strong>group symbol table</strong> with a list of objects in group</li>
-</ul></li>
-<li><strong>datasets</strong> are multidimensional arrays of elements with metadata
-<ul>
-<li>Have a <strong>header</strong> with name, datatype, dataspace, and storage layout.</li>
-<li>Havea <strong>data array</strong> with the data.</li>
-</ul></li>
-</ul>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(rhdf5)
-filename &lt;-<span class="st"> 'data_dir/example.h5'</span>
-<span class="kw">file.remove</span>(filename)</code></pre></div>
-<pre><code>## [1] TRUE</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">h5f &lt;-<span class="st"> </span><span class="kw">h5createFile</span>(filename)
-
-<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">c</span>(<span class="st">'foo'</span>, <span class="st">'bar'</span>, <span class="st">'foo/blarg'</span>)) {
-    h5f &lt;-<span class="st"> </span><span class="kw">h5createGroup</span>(filename, i)
-}
-
-<span class="kw">h5ls</span>(filename)</code></pre></div>
-<pre><code>##   group  name     otype dclass dim
-## 0     /   bar H5I_GROUP           
-## 1     /   foo H5I_GROUP           
-## 2  /foo blarg H5I_GROUP</code></pre>
-<div id="writing-to-groups" class="section level2">
-<h2>Writing to Groups</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">data_a &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">x =</span> <span class="kw">rnorm</span>(<span class="dv">200</span>), <span class="dt">y =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">200</span>, <span class="dt">z =</span> <span class="kw">sample</span>(<span class="kw">rep</span>(letters[<span class="dv">1</span><span class="op">:</span><span class="dv">20</span>], <span class="dt">each =</span> <span class="dv">10</span>)))
-<span class="kw">head</span>(data_a)</code></pre></div>
-<pre><code>## # A tibble: 6 x 3
-##        x     y z    
-##    &lt;dbl&gt; &lt;int&gt; &lt;chr&gt;
-## 1  0.137     1 n    
-## 2 -0.495     2 h    
-## 3  0.699     3 t    
-## 4 -2.44      4 p    
-## 5  1.57      5 s    
-## 6  1.41      6 k</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">data_a <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">class</span>()</code></pre></div>
-<pre><code>## [1] &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">h5write</span>(data_a, filename, <span class="st">'foo/test_table'</span>)
-
-data_b &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">a =</span> <span class="kw">rnorm</span>(<span class="dv">10000</span>), <span class="dt">b =</span> letters)
-<span class="kw">h5write</span>(data_b, filename, <span class="st">'bar/test_list'</span>)
-
-data_c &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">20</span>)
-<span class="kw">h5write</span>(data_c, filename, <span class="st">'test_vector'</span>)
-
-<span class="kw">h5ls</span>(filename)</code></pre></div>
-<pre><code>##            group        name       otype   dclass   dim
-## 0              /         bar   H5I_GROUP               
-## 1           /bar   test_list   H5I_GROUP               
-## 2 /bar/test_list           a H5I_DATASET    FLOAT 10000
-## 3 /bar/test_list           b H5I_DATASET   STRING    26
-## 4              /         foo   H5I_GROUP               
-## 5           /foo       blarg   H5I_GROUP               
-## 6           /foo  test_table H5I_DATASET COMPOUND   200
-## 7              / test_vector H5I_DATASET  INTEGER    20</code></pre>
-</div>
-<div id="reading-data" class="section level2">
-<h2>Reading Data</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">info &lt;-<span class="st"> </span><span class="kw">h5read</span>(filename, <span class="st">'/foo/test_table'</span>)
-<span class="kw">head</span>(info)</code></pre></div>
-<pre><code>##            x y z
-## 1  0.1365751 1 n
-## 2 -0.4948272 2 h
-## 3  0.6985390 3 t
-## 4 -2.4400917 4 p
-## 5  1.5667556 5 s
-## 6  1.4144548 6 k</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">info <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">class</span>()</code></pre></div>
-<pre><code>## [1] &quot;data.frame&quot;</code></pre>
-</div>
-<div id="writing-and-reading-in-chunks" class="section level2">
-<h2>Writing and Reading in Chunks</h2>
-<p>Can write to specific parts of the dataset</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">h5write</span>(
-    <span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">10</span>,<span class="dv">10</span>,<span class="dv">10</span>),
-    filename,
-    <span class="st">'test_vector'</span>,
-    <span class="dt">index =</span> <span class="kw">list</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">4</span>))
-
-<span class="kw">h5read</span>(filename, <span class="st">'test_vector'</span>)</code></pre></div>
-<pre><code>##  [1] 10 10 10 10  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20</code></pre>
-</div>
-</div>
-<div id="webscraping" class="section level1">
-<h1>Webscraping</h1>
-<p>Programatically extracting data fro the HTML code of websites.</p>
-<div id="using-readlines" class="section level2">
-<h2>Using Readlines</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">uri &lt;-<span class="st"> </span><span class="kw">url</span>(<span class="st">'http://datascience.study.foletta.org'</span>)
-site &lt;-<span class="st"> </span><span class="kw">readLines</span>(uri)
-<span class="kw">close</span>(uri)
-<span class="kw">head</span>(site)</code></pre></div>
-<pre><code>## [1] &quot;&lt;!DOCTYPE html&gt;&quot;                              
-## [2] &quot;&quot;                                             
-## [3] &quot;&lt;html xmlns=\&quot;http://www.w3.org/1999/xhtml\&quot;&gt;&quot;
-## [4] &quot;&quot;                                             
-## [5] &quot;&lt;head&gt;&quot;                                       
-## [6] &quot;&quot;</code></pre>
-</div>
-<div id="using-xml" class="section level2">
-<h2>Using XML</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(XML)
-site &lt;-<span class="st"> </span><span class="kw">htmlTreeParse</span>(<span class="st">'http://datascience.study.foletta.org'</span>, <span class="dt">useInternalNodes =</span> T)
-
-<span class="kw">xpathSApply</span>(site, <span class="st">'//title'</span>)</code></pre></div>
+<div id="fixing-character-vectors" class="section level1">
+<h1>Fixing Character Vectors</h1>
+<p>Fix the case of character vectors using <code>tolower()</code> and <code>toupper()</code>.</p>
+<p>Split up a word using <code>strsplit()</code></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">string_to_split &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">'this.1'</span>, <span class="st">'something.2'</span>, <span class="st">'another'</span>)
+<span class="kw">strsplit</span>(string_to_split, <span class="st">'</span><span class="ch">\\</span><span class="st">.'</span>)</code></pre></div>
 <pre><code>## [[1]]
-## &lt;title&gt;Coursera - Data Science - John Hopkins&lt;/title&gt;</code></pre>
-</div>
-<div id="using-httr" class="section level2">
-<h2>Using HTTR</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(httr)
-http_response &lt;-<span class="st"> </span><span class="kw">GET</span>(<span class="st">'http://datascience.study.foletta.org'</span>)
-content &lt;-<span class="st"> </span><span class="kw">content</span>(http_response, <span class="dt">as =</span> <span class="st">'text'</span>)
-parsedHTML &lt;-<span class="st"> </span><span class="kw">htmlParse</span>(content, <span class="dt">asText =</span> T)
-<span class="kw">xpathSApply</span>(parsedHTML, <span class="st">'//title'</span>)</code></pre></div>
-<pre><code>## [[1]]
-## &lt;title&gt;Coursera - Data Science - John Hopkins&lt;/title&gt;</code></pre>
-</div>
-<div id="accessing-sites-with-passwords" class="section level2">
-<h2>Accessing Sites with Passwords</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">http_response &lt;-<span class="st"> </span><span class="kw">GET</span>(<span class="st">'http://httpbin.org/basic-auth/user/password'</span>)
-http_response</code></pre></div>
-<pre><code>## Response [http://httpbin.org/basic-auth/user/password]
-##   Date: 2019-10-24 19:51
-##   Status: 401
-##   Content-Type: &lt;unknown&gt;
-## &lt;EMPTY BODY&gt;</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">http_response &lt;-<span class="st"> </span><span class="kw">GET</span>(
-    <span class="st">'http://httpbin.org/basic-auth/greg/somepass'</span>,
-    <span class="kw">authenticate</span>(<span class="st">'greg'</span>, <span class="st">'somepass'</span>)
-)
-http_response</code></pre></div>
-<pre><code>## Response [http://httpbin.org/basic-auth/greg/somepass]
-##   Date: 2019-10-24 19:51
-##   Status: 200
-##   Content-Type: application/json
-##   Size: 47 B
-## {
-##   &quot;authenticated&quot;: true, 
-##   &quot;user&quot;: &quot;greg&quot;
-## }</code></pre>
-<div id="using-handles" class="section level3">
-<h3>Using Handles</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ds_hndle &lt;-<span class="st"> </span><span class="kw">handle</span>(<span class="st">&quot;http://datascience.study.foletta.org&quot;</span>)
-http_response &lt;-<span class="st"> </span><span class="kw">GET</span>(<span class="dt">handle =</span> ds_hndle, <span class="dt">path =</span> <span class="st">'C3_Getting_and_Cleaning_Data/w2_notes.html'</span>)
-http_response</code></pre></div>
-<pre><code>## Response [http://datascience.study.foletta.org/C3_Getting_and_Cleaning_Data/w2_notes.html]
-##   Date: 2019-10-24 19:51
-##   Status: 200
-##   Content-Type: text/html; charset=utf-8
-##   Size: 95.4 kB
-## &lt;!DOCTYPE html&gt;
+## [1] &quot;this&quot; &quot;1&quot;   
 ## 
-## &lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
+## [[2]]
+## [1] &quot;something&quot; &quot;2&quot;        
 ## 
-## &lt;head&gt;
+## [[3]]
+## [1] &quot;another&quot;</code></pre>
+<p>Substitute out characters using the <code>sub()</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">strings_to_sub &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">'this-is-going-to'</span>, <span class="st">'replace-some'</span>, <span class="st">'hyphens'</span>)
+
+<span class="co"># sub replaces only the first instance</span>
+<span class="kw">sub</span>(<span class="st">'-'</span>, <span class="st">'_'</span>, strings_to_sub)</code></pre></div>
+<pre><code>## [1] &quot;this_is-going-to&quot; &quot;replace_some&quot;     &quot;hyphens&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># gsub replaces all instances</span>
+<span class="kw">gsub</span>(<span class="st">'-'</span>, <span class="st">'_'</span>, strings_to_sub)</code></pre></div>
+<pre><code>## [1] &quot;this_is_going_to&quot; &quot;replace_some&quot;     &quot;hyphens&quot;</code></pre>
+<p>Use <code>grep()</code> and <code>grepl()</code> to find values. <code>grep()</code> returns a vector of the matching indicies, and <code>grepl()</code> returns a logical vector of matches and not matches.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">greppable &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">'these'</span>, <span class="st">'are'</span>, <span class="st">'some'</span>, <span class="st">'words'</span>, <span class="st">'to'</span>, <span class="st">'grep'</span>)
+
+<span class="co"># Return indicies</span>
+<span class="kw">grep</span>(<span class="st">'to'</span>, greppable)</code></pre></div>
+<pre><code>## [1] 5</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Return a logical vector</span>
+<span class="kw">grepl</span>(<span class="st">'o'</span>, greppable)</code></pre></div>
+<pre><code>## [1] FALSE FALSE  TRUE  TRUE  TRUE FALSE</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Return the values</span>
+<span class="kw">grep</span>(<span class="st">'[swt]o'</span>, greppable, <span class="dt">value =</span> T)</code></pre></div>
+<pre><code>## [1] &quot;some&quot;  &quot;words&quot; &quot;to&quot;</code></pre>
+</div>
+<div id="working-with-dates" class="section level1">
+<h1>Working with Dates</h1>
+<div id="dates" class="section level2">
+<h2>Dates</h2>
+<p>Date function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d1 &lt;-<span class="st"> </span><span class="kw">date</span>()
+d1</code></pre></div>
+<pre><code>## [1] &quot;Fri Oct 25 06:52:04 2019&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(d1)</code></pre></div>
+<pre><code>## [1] &quot;character&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d2 &lt;-<span class="st"> </span><span class="kw">Sys.Date</span>()
+d2</code></pre></div>
+<pre><code>## [1] &quot;2019-10-25&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">class</span>(d2)</code></pre></div>
+<pre><code>## [1] &quot;Date&quot;</code></pre>
+<p>Use the <code>format()</code> function to alter the format of the date.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">format</span>(d2, <span class="st">&quot;%A %d %B %Y&quot;</span>)</code></pre></div>
+<pre><code>## [1] &quot;Friday 25 October 2019&quot;</code></pre>
+<p>To create a date, use the <code>as.Date()</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">some_dates &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">'01oct1990'</span>, <span class="st">'02sep1991'</span>)
+d3 &lt;-<span class="st"> </span><span class="kw">as.Date</span>(some_dates, <span class="st">'%d%b%Y'</span>)
+<span class="kw">weekdays</span>(d3)</code></pre></div>
+<pre><code>## [1] &quot;Monday&quot; &quot;Monday&quot;</code></pre>
+<p>The <code>Lubridate</code> package is very good when working with dates / times.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(lubridate)</code></pre></div>
+<pre><code>## 
+## Attaching package: 'lubridate'</code></pre>
+<pre><code>## The following object is masked from 'package:base':
 ## 
-## &lt;meta charset=&quot;utf-8&quot; /&gt;
-## &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
-## &lt;meta name=&quot;generator&quot; content=&quot;pandoc&quot; /&gt;
-## &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=EDGE&quot; /&gt;
-## ...</code></pre>
+##     date</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ymd</span>(<span class="st">'19200202'</span>)</code></pre></div>
+<pre><code>## [1] &quot;1920-02-02&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dmy</span>(<span class="st">'01-01-2001'</span>)</code></pre></div>
+<pre><code>## [1] &quot;2001-01-01&quot;</code></pre>
 </div>
-</div>
-</div>
-<div id="reading-from-apis" class="section level1">
-<h1>Reading from APIs</h1>
-<p>Can authenticatte with OAuth using the <code>oauth_app()</code> and <code>sign_oauth1.0()</code> functions.</p>
-</div>
-<div id="reading-from-other-sources" class="section level1">
-<h1>Reading from Other Sources</h1>
-<div id="files" class="section level2">
-<h2>Files</h2>
-<p>To interact directly with files:</p>
-<ul>
-<li><code>file()</code></li>
-<li><code>url()</code></li>
-<li><code>gzfile()</code></li>
-<li><code>bzfile()</code></li>
-</ul>
-<p>Use <strong>?connections</strong> for more information.</p>
-</div>
-<div id="other-languages" class="section level2">
-<h2>Other Languages</h2>
-<p>The <code>foreign</code> package is useful for interacting with other languages or statistical programming languages.</p>
-<ul>
-<li><code>read.arff()</code> - Weke</li>
-<li><code>read.dta()</code> - Stata</li>
-<li><code>read.mtp()</code> - Minitab</li>
-</ul>
-</div>
-<div id="other-databases" class="section level2">
-<h2>Other Databases</h2>
-<ul>
-<li><code>RPostgresSQL</code></li>
-<li><code>RODBC</code> provides an interface to multiple databases.</li>
-<li><code>RMongo</code> for Mongo access.</li>
-</ul>
-</div>
-<div id="images" class="section level2">
-<h2>Images</h2>
-<ul>
-<li><code>jpeg</code></li>
-<li><code>readbitmap</code></li>
-<li><code>png</code></li>
-<li><code>EBImage</code> - from BioConductor</li>
-</ul>
-</div>
-<div id="gis-data" class="section level2">
-<h2>GIS Data</h2>
-<ul>
-<li><code>rdgal</code></li>
-<li><code>rgeos</code></li>
-<li><code>raster</code></li>
-</ul>
-</div>
-<div id="music-and-sound" class="section level2">
-<h2>Music and Sound</h2>
-<ul>
-<li><code>tuneR</code></li>
-<li><code>seewave</code></li>
-</ul>
+<div id="times" class="section level2">
+<h2>Times</h2>
+<p>Lubridate also has functions for working with times.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ymd_hms</span>(<span class="st">'2002-01-01 14:01:01'</span>)</code></pre></div>
+<pre><code>## [1] &quot;2002-01-01 14:01:01 UTC&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ymd_hms</span>(<span class="st">'2002-01-01 14:01:01'</span>, <span class="dt">tz =</span> <span class="st">'Australia/Melbourne'</span>)</code></pre></div>
+<pre><code>## [1] &quot;2002-01-01 14:01:01 AEDT&quot;</code></pre>
 </div>
 </div>
     </section>
