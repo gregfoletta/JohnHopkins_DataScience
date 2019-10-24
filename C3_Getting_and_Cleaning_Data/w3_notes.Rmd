@@ -1,0 +1,210 @@
+---
+title: "Course 3 - Getting and Cleaning Data - Week 3 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+opts_knit$set(root.dir = '~/Documents/Study/Coursera_Data_Science_JHU/C3_Getting_and_Cleaning_Data/')
+library(tidyverse)
+```
+
+# Summarising Data
+
+```{r restaurants}
+bmore_rstrnts <- read_csv('https://data.baltimorecity.gov/api/views/k5ry-ef3g/rows.csv?accessType=DOWNLOAD')
+```
+Take a quick glance at the data.
+```{r looking}
+# Look at the first few entries
+head(bmore_rstrnts)
+# Look at the last few entries.
+tail(bmore_rstrnts)
+# A summary of the data frame
+summary(bmore_rstrnts)
+```
+
+We can look at the quantiles of quantitative variables.
+
+```{r quantiles}
+quantile(bmore_rstrnts$councilDistrict)
+```
+Can create a table. The `useNA` argument controls whether the table includes NA values. You can use:
+- 'no' - don't include.
+- 'ifany' - only of the count is positive.
+- 'always' - even if there are zero counts.
+
+The default is **no**.
+
+```{r table}
+table(bmore_rstrnts$zipCode, useNA = 'ifany')
+```
+
+Can use two variables:
+
+```{r table_two_vars}
+table(bmore_rstrnts$councilDistrict, bmore_rstrnts$zipCode)
+```
+
+## Check For Missing Values
+
+```{r check_missing}
+# How many missing values
+sum(is.na(bmore_rstrnts$councilDistrict))
+
+# Could also see if there are any missing values
+any(is.na(bmore_rstrnts$councilDistrict))
+
+# Are all the zipcodes greater than 0
+all(bmore_rstrnts$zipCode > 0)
+```
+
+## Row and Column Sums
+
+Check which columns have NA values
+
+```{r column_nas}
+colSums(is.na(bmore_rstrnts))
+```
+
+## Values With Specific Characteristics
+
+```{r values}
+table(bmore_rstrnts$zipCode %in% c('21212'))
+
+head(bmore_rstrnts[bmore_rstrnts$zipCode %in% c('21212'), ])
+```
+
+## Cross Tabs
+
+```{r cross_tabs}
+UCBAdmissions %>% as.data.frame() %>% summary()
+
+xtabs(Freq ~ Gender + Admit, data = UCBAdmissions)
+```
+
+## Flat Tables
+
+With lots of variables the cross-tabulation becomes very hard to read. Can use `ftable()` instead.
+```{r flat_tables}
+warpbreaks$replicate <- rep(1:9, len = 54)
+xtabs(breaks ~ ., data = warpbreaks)
+
+head(ftable(warpbreaks))
+```
+
+## Size in Memory
+
+Use `object.size()`.
+
+```{r object_size}
+big_vec <- 1:1000000000
+object.size(big_vec)
+print(object.size(big_vec), units = 'Mb')
+```
+
+# Creating New Variables
+
+Often the raw data doesn't have a value you're looking for. You need to transform the data to get the values you would like.
+
+Common variables:
+- 'Missingness' indicators.
+- 'Cutting Up' quantitative variables.
+- Applying transforms.
+
+## Creating Categorical Variables
+
+Use `cut()` to cut up quantitative variables.
+
+```{r cutting}
+bmore_rstrnts$zipGroups <- cut(bmore_rstrnts$zipCode, breaks = quantile(bmore_rstrnts$zipCode))
+
+table(bmore_rstrnts$zipGroups)
+```
+
+Can use `cut2()` from the `Hmisc` library to make it easier:
+
+```{r cut2, message = F}
+library(Hmisc)
+bmore_rstrnts$zipGroups <- cut2(bmore_rstrnts$zipCode, g = 4)
+
+table(bmore_rstrnts$zipGroups)
+```
+
+# Reshaping Data
+
+You can melt the data frame, pulling the measurement variables into a single column:
+
+```{r melt}
+library(reshape2)
+car_data <- mtcars %>%
+    as_tibble() %>%
+    rownames_to_column(var = 'carname')
+
+car_melt <- car_data %>% melt(id = c('carname', 'gear', 'cyl'), measure.vars = c('mpg', 'hp'))
+```
+
+## Casting
+
+The `dcast()` function allows you to recast the frame into a different shape. We see cylinders in terms of `mpg` and `hp`.
+
+```{r casting}
+# Standard
+car_melt %>% dcast(cyl ~ variable)
+
+# Can also pass a different function to summarise with
+car_melt %>% dcast(cyl ~ variable,mean)
+```
+
+## Averaging Variables
+
+Use `tapply()`:
+
+```{r tapply_average}
+tapply(InsectSprays$count, InsectSprays$spray, sum)
+```
+
+Can also use `split()`:
+
+```{r split_average}
+InsectSplits <- split(InsectSprays$count, InsectSprays$spray)
+InsectSplits
+
+InsectSplits <- lapply(InsectSplits, sum)
+unlist(InsectSplits)
+```
+
+# Merging Data
+
+The `merge()` function can merge data frames together. By default it merges by all of the columns that have a common name.
+
+
+```{r merge}
+a <- tibble(
+    aa = 1:5,
+    numbera_a = 6:10,
+    normal_a = rnorm(5)
+)
+
+b <- tibble(
+    aa = 1:5,
+    number_b = 6:10,
+    normal_b = rnorm(5)
+)
+
+merge(a, b)
+merge(a, b, by = 'aa')
+```
+
+An alternative is to use `*_join()` functons from `dplyr`.
+
+```{r dplyr_join}
+full_join(a,b)
+```
+

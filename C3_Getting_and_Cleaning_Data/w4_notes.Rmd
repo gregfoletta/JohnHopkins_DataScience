@@ -1,0 +1,101 @@
+---
+title: "Course 3 - Getting and Cleaning Data - Week 4 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+opts_knit$set(root.dir = '~/Documents/Study/Coursera_Data_Science_JHU/C3_Getting_and_Cleaning_Data/')
+library(tidyverse)
+```
+
+# Fixing Character Vectors
+
+Fix the case of character vectors using `tolower()` and `toupper()`.
+
+Split up a word using `strsplit()`
+
+```{r strsplit}
+string_to_split <- c('this.1', 'something.2', 'another')
+strsplit(string_to_split, '\\.')
+```
+
+Substitute out characters using the `sub()` function.
+
+```{r sub}
+strings_to_sub <- c('this-is-going-to', 'replace-some', 'hyphens')
+
+# sub replaces only the first instance
+sub('-', '_', strings_to_sub)
+
+# gsub replaces all instances
+gsub('-', '_', strings_to_sub)
+```
+
+Use `grep()` and `grepl()` to find values. `grep()` returns a vector of the matching indicies, and `grepl()` returns a logical vector of matches and not matches.
+
+```{r grep}
+greppable <- c('these', 'are', 'some', 'words', 'to', 'grep')
+
+# Return indicies
+grep('to', greppable)
+# Return a logical vector
+grepl('o', greppable)
+#Return the values
+grep('[swt]o', greppable, value = T)
+```
+
+# Working with Dates
+
+## Dates
+
+Date function:
+
+```{r date}
+d1 <- date()
+d1
+class(d1)
+
+d2 <- Sys.Date()
+d2
+class(d2)
+```
+
+Use the `format()` function to alter the format of the date.
+
+```{r format}
+format(d2, "%A %d %B %Y")
+```
+
+To create a date, use the `as.Date()` function.
+
+```{r asdate}
+some_dates <- c('01oct1990', '02sep1991')
+d3 <- as.Date(some_dates, '%d%b%Y')
+weekdays(d3)
+```
+
+The `Lubridate` package is very good when working with dates / times.
+
+```{r lubridate}
+library(lubridate)
+
+ymd('19200202')
+
+dmy('01-01-2001')
+```
+
+## Times
+
+Lubridate also has functions for working with times.
+
+```{r lubridate_t}
+ymd_hms('2002-01-01 14:01:01')
+ymd_hms('2002-01-01 14:01:01', tz = 'Australia/Melbourne')
+```

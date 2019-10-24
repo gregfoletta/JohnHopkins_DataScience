@@ -9,7 +9,9 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+library(knitr)
 knitr::opts_chunk$set(echo = TRUE)
+opts_knit$set(root.dir = '~/Documents/Study/Coursera_Data_Science_JHU/C3_Getting_and_Cleaning_Data/')
 library(tidyverse)
 ```
 
@@ -104,3 +106,173 @@ females %>% as_tibble()
 
 dbDisconnect(test_db)
 ```
+
+# Reading HDF5
+
+- Hierarchical Data Format
+- Used for storing large data sets
+- Range of data types
+- **groups** containing zero or more data sets and metadata
+    - Have a **group header** with group name and a list of attributes
+    - Have a **group symbol table** with a list of objects in group
+- **datasets** are multidimensional arrays of elements with metadata
+    - Have a **header** with name, datatype, dataspace, and storage layout.
+    - Havea **data array** with the data.
+    
+```{r hdf5}
+library(rhdf5)
+filename <- 'data_dir/example.h5'
+file.remove(filename)
+h5f <- h5createFile(filename)
+
+for (i in c('foo', 'bar', 'foo/blarg')) {
+    h5f <- h5createGroup(filename, i)
+}
+
+h5ls(filename)
+```
+
+## Writing to Groups
+
+```{r hdf5_writing}
+data_a <- tibble(x = rnorm(200), y = 1:200, z = sample(rep(letters[1:20], each = 10)))
+head(data_a)
+data_a %>% class()
+
+h5write(data_a, filename, 'foo/test_table')
+
+data_b <- list(a = rnorm(10000), b = letters)
+h5write(data_b, filename, 'bar/test_list')
+
+data_c <- c(1:20)
+h5write(data_c, filename, 'test_vector')
+
+h5ls(filename)
+```
+
+## Reading Data
+
+```{r hdf5_reading}
+info <- h5read(filename, '/foo/test_table')
+head(info)
+info %>% class()
+```
+
+## Writing and Reading in Chunks
+
+Can write to specific parts of the dataset
+
+```{r hdf5_chunks}
+h5write(
+    c(10,10,10,10),
+    filename,
+    'test_vector',
+    index = list(1:4))
+
+h5read(filename, 'test_vector')
+```
+
+# Webscraping
+
+Programatically extracting data fro the HTML code of websites.
+
+## Using Readlines
+
+```{r scrape_readlines}
+uri <- url('http://datascience.study.foletta.org')
+site <- readLines(uri)
+close(uri)
+head(site)
+```
+
+## Using XML
+
+```{r scrape_xml}
+library(XML)
+site <- htmlTreeParse('http://datascience.study.foletta.org', useInternalNodes = T)
+
+xpathSApply(site, '//title')
+```
+
+## Using HTTR
+```{r scrape_httr}
+library(httr)
+http_response <- GET('http://datascience.study.foletta.org')
+content <- content(http_response, as = 'text')
+parsedHTML <- htmlParse(content, asText = T)
+xpathSApply(parsedHTML, '//title')
+```
+
+## Accessing Sites with Passwords
+
+```{r scrape_passwords}
+http_response <- GET('http://httpbin.org/basic-auth/user/password')
+http_response
+```
+
+```{r scrape_password_auth}
+http_response <- GET(
+    'http://httpbin.org/basic-auth/greg/somepass',
+    authenticate('greg', 'somepass')
+)
+http_response
+```
+
+### Using Handles
+
+```{r scrape_handles}
+ds_hndle <- handle("http://datascience.study.foletta.org")
+http_response <- GET(handle = ds_hndle, path = 'C3_Getting_and_Cleaning_Data/w2_notes.html')
+http_response
+```
+
+# Reading from APIs
+
+Can authenticatte with OAuth using the `oauth_app()` and `sign_oauth1.0()` functions.
+
+# Reading from Other Sources
+
+## Files
+
+To interact directly with files:
+
+- `file()`
+- `url()`
+- `gzfile()`
+- `bzfile()`
+
+Use **?connections** for more information.
+
+## Other Languages
+
+The `foreign` package is useful for interacting with other languages or statistical programming languages.
+
+- `read.arff()` - Weke
+- `read.dta()` - Stata
+- `read.mtp()` - Minitab
+
+## Other Databases
+
+- `RPostgresSQL`
+- `RODBC` provides an interface to multiple databases.
+- `RMongo` for Mongo access.
+
+## Images
+
+- `jpeg`
+- `readbitmap`
+- `png`
+- `EBImage` - from BioConductor
+
+## GIS Data
+
+- `rdgal`
+- `rgeos`
+- `raster`
+
+## Music and Sound
+
+- `tuneR`
+- `seewave`
+
+
