@@ -1,5 +1,5 @@
 ---
-title: "Course 3 - Getting and Cleaning Data - Week 1 - Notes"
+title: "Course 4 - Exploratory Data Analysis - Week 2 - Notes"
 author: "Greg Foletta"
 date: "`r Sys.Date()`"
 output:
@@ -11,7 +11,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-library(readxl)
 library(kableExtra)
 ```
 
+# Principles of Analytic Graphics

@@ -23,4 +23,9 @@ output:
 
 * [Week 1 Notes](C3_Getting_and_Cleaning_Data/w1_notes.html)
 * [Week 2 Notes](C3_Getting_and_Cleaning_Data/w2_notes.html)
+* [Week 3 Notes](C3_Getting_and_Cleaning_Data/w3_notes.html)
+* [Week 4 Notes](C3_Getting_and_Cleaning_Data/w4_notes.html)
 
+## Course 4 - Exploratory Data Analysis
+
+* [Week 1 Notes](C4_Exploratory_Data_Analysis/w1_notes.html)

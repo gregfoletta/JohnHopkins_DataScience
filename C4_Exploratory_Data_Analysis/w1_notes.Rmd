@@ -162,8 +162,6 @@ xyplot(Life.Exp ~ Income | region, data = state, layout = c(4, 1))
 
 Splits the difference between base and lattice. Automatically deals with spacings and text, but allows for annotation. Makes decisions for you, but you can customise.
 
-# Base Plotting System
-
 Core plotting and graphics is encapsulated in:
 
 - *graphics*, which contains plotting functions for the 'base' graphing systems.
