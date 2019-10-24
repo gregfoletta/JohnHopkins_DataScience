@@ -1,0 +1,345 @@
+---
+title: "Course 4 - Exploratory Data Analysis - Week 1 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+```
+
+# Principles of Analytic Graphics
+
+Refer to the book '[Beautiful Evidence](https://www.amazon.com/Beautiful-Evidence-Edward-R-Tufte/dp/1930824165)' by Edward Tufte.
+
+**Principle 1 - Show comparisons**. 
+
+Evidence is always *relative* to another competing hypothesis.
+
+Always ask "compated to what"? The comparison may be against a control group.
+
+**Principle 2 - Show causality, mechanism, explanation, systematic structure**.
+
+What is the causal framework for thinking about the question? How do you beleive the system is operating?
+
+**Principle 3 - Show multivariate data**.
+
+The world is inherently multivariate (more than two variables), so you need to show the real picture of what is going on.
+
+**Principle 4 - Integrate the evidence**.
+
+- Completely integrate words, numbers, images, diagrams. Don't let the tools you use drive the analysis.
+
+**Principle 5 - Describe and document the evidence with appropriate labels, scales, sources, etc**
+
+The graphic should tell a complete story and be credible.
+
+**Principle 6 - Content is king**.
+
+Analytical presentations ultimately stand or fall depending on the quality, relevance, and integrity of their content.
+
+What's the content, what's the story? Then think about how to present it.
+
+# Exploratory Graphs
+
+These are graphs for yourself to explore the data. We want to understand data properties, find patterns, suggest modeling strategies and 'debug' analyses.
+
+## Characteristics
+
+- Made quickly
+- Large number
+- Goal is for personal understanding of the data set. How does it look? What are the problems?
+- Axis/legends are cleaned up later.
+- Colour/size are primarily used for information.
+
+## One Dimensional Summaries
+
+- Five number summary - not really a graph
+
+```{r five_number}
+summary(mtcars$mpg)
+```
+
+Boxplot
+
+```{r boxplot}
+mtcars %>%
+    ggplot() +
+    geom_boxplot(aes(x = "Miles per Gallon", y = mpg))
+```
+
+Histogram - a rug underneath can aid in interpretation. 
+
+```{r histogram}
+mtcars %>%
+    ggplot(aes(mpg)) +
+    geom_histogram(binwidth = 5) +
+    geom_rug()
+```
+
+Overlaying features can help interpretation - for example on the boxplot a horizonal bar could be added to designate some specific value. This could be a govenment mandated fuel efficiency.
+
+Barplot can be used for categorical values:
+
+```{r barplot}
+mtcars %>%
+    ggplot(aes(gear)) +
+    geom_bar(fill = 'grey')
+```
+
+## Two Dimensional Summaries
+
+Multiple boxplots can be used, with factors across the x-axis:
+
+```{r 2d_boxplot}
+mtcars %>%
+    ggplot(aes(as.factor(cyl), mpg)) +
+    geom_boxplot(fill = 'grey') +
+    geom_rug()
+```
+
+Multiple histograms can be achieved with a facet
+
+```{r multiple_histogram}
+mtcars %>%
+    ggplot() +
+    geom_histogram(aes(mpg), fill = 'grey', binwidth = 5) +
+    facet_grid(rows = vars(cyl))
+```
+
+Scatterplot is an obvious go to.
+
+```{r scatterplot}
+mtcars %>%
+    ggplot() +
+    geom_point(aes(mpg, disp))
+```
+
+Can use colour to view different categories within the scatterplot:
+
+```{r scatter_colour}
+mtcars %>%
+    ggplot(aes(mpg, disp)) +
+    geom_point(aes(colour = as.factor(cyl)))
+```
+
+Exploratory plots are 'quick and dirty'. You summarise the data and explore basic questions and hypothesis, or rule some out.
+
+# Plotting Systems
+
+## Base
+
+'Artists palette model' - theres a blank canvas and you add things one-by-one. Uses annotation functions to add/modify (`text()`, `lines()`, `points()`, `axis()`).
+
+It's convenient and intuiitive, but you can't take items away once added. There's no 'language' so it's difficult to 'translate' to others.
+
+```{r base}
+with(cars, plot(speed, dist))
+```
+
+## Lattice System
+
+Plots are created with a singple function call. (`xyplot()`, `bwplot()`). Most useful for conditioning types of plots: looking at how y changes with x across different levels of z,
+
+Margins and spacing are set automatically because the plot is specified at once. Good for putting many many plots on screen quickly and easily.
+
+However it's awkward to specify a plot using a single function call, and annotation is not intuitive.
+
+```{r lattice}
+library(lattice)
+state <- data.frame(state.x77, region = state.region)
+head(state)
+xyplot(Life.Exp ~ Income | region, data = state, layout = c(4, 1))
+```
+
+## ggplot2
+
+Splits the difference between base and lattice. Automatically deals with spacings and text, but allows for annotation. Makes decisions for you, but you can customise.
+
+# Base Plotting System
+
+Core plotting and graphics is encapsulated in:
+
+- *graphics*, which contains plotting functions for the 'base' graphing systems.
+- *grDevices*, which contains all the code implementing the various graphics devices: X11, PDF, PostScript, PNG, etce
+
+The lattice plotting system is implemented using:
+
+- *lattice*, which contains the code for producing **Trellis** graphics, which are independent of the 'base' graphics system.
+- *grid*, which implements a different graphing system independent of the base system. Lattice builds upon grid.
+
+## Process 
+
+- Where will it be made?
+    - Screen
+    - File
+- How will it be used?
+    - Temporarily on the screen?
+    - Web browser?
+    - Printed academic paper?
+    - Presentation
+- Is it a large amount of data or a few points?
+- Does it need to be dynamically resized? e.g. vector format rather than a raster.
+
+## Base Graphics
+
+There are two phases: initialising the new plot, then annotating (adding to) the plot.
+
+Calling `plot(x, y)` or `hist(x)` will launch a graphics device and draw a new plot.
+
+`plot()` is generic, so if the arguments are not of some special class, the *default* method for plot is called. This has many arguments.
+
+The base graphics system has *many* parameters, these are documented in `?par`.
+
+### Histogram
+
+```{r base_histo}
+library(datasets)
+hist(airquality$Ozone)
+```
+
+### Scatterplot
+ 
+```{r base_scatter}
+with(airquality, plot(Wind, Ozone))
+```
+
+### Boxplot
+
+```{r base_box}
+airquality %>%
+    mutate(Month = as.factor(Month)) %>%
+    boxplot(Ozone ~ Month, data = .)
+```
+
+## Important Parameters
+
+- **pch** - the plotting symbol (default is open circle)
+- **lty** - the line type (default is solid line).
+- **lwd** - the line width, specified as an integer multiple.
+- **col** - the plotting colour, specified as a number, string, or hex code.
+    - The `colors()` function gives you a vector of colours by name.
+- **xlab / ylab** - character string for the X/Y axis label.
+
+The `par()` function is used to specify global graphics parameters. These are overridden when specified as arguments to specific plotting functions.
+
+- **las** - the orientation of the axis labels on the plot.
+- **bg** - the background colour.
+- **mar** - the margin size.
+- **oma** - the outer margin size.
+- **mfrow** - the number of plots per row, column.
+    - Plots are filled row wise.
+- **mfcol** - the number of plots per row, column.
+    - Plots are filled column-wise.
+
+## Defaults
+
+```{r base_defaults}
+parameters <- c('lty', 'col', 'pch', 'bg', 'mar', 'mfrow')
+names(parameters) <- parameters
+map(parameters, par)
+```
+
+## Functions
+
+- `plot()` makes a scatterplot, or other type depending on the class of the object.
+- `lines()` adds lines to a plot.
+- `points()` adds points to a plot.
+- `text()` adds text labels to a plot using x,y coordinates.
+- `title()` adds annotations to x/y axis, title, subtitle, outer margin.
+- `mtext()` adds arbitrary text to the margins.
+- `axis()` addin axis ticks or labels.
+
+## Base Plot with Annotation
+Scatterplot with a title
+```{r base_plot_annotate}
+with(airquality, plot(Wind, Ozone))
+title(main = "Ozone and Wind in New York City")
+```
+
+Placing the title directly in the call to plot, then changing the colour for a subset of points.
+```{r base_plot_annotate_2}
+with(airquality, plot(Wind, Ozone, main = "Ozone and Wind in New York City"))
+with(subset(airquality, Month ==5), points(Wind, Ozone, col = 'blue'))
+```
+
+We've added the `type = 'n'`, which initialises the plot but doesn't place anything in it.
+
+```{r base_plot_annotate_3}
+with(airquality, plot(Wind, Ozone, type = 'n', main = "Ozone and Wind in New York City"))
+with(subset(airquality, Month == 5), points(Wind, Ozone, col = 'blue'))
+with(subset(airquality, Month != 5), points(Wind, Ozone, col = 'red'))
+legend('topright', pch = 1, col = c('blue', 'red'), legend = c('May', 'Not May'))
+```
+
+Adding regression line:
+
+```{r regline}
+air_lm <- lm(Ozone ~ Wind, data = airquality)
+with(airquality, plot(Wind, Ozone, pch = 20, main = "Ozone and Wind in New York City"))
+abline(air_lm, lwd = 2)
+```
+
+## Multiple Base Plots
+
+```{r multi_row}
+par(mfrow = c(1,2))
+with(airquality, {
+    plot(Wind, Ozone, pch = 20, main = 'Wind and Ozone')
+    plot(Ozone, Solar.R, pch = 20, main = 'Ozone and Solar Radiation')
+})
+```
+
+# Graphics Devices
+
+These are 'a place where you can make a plot appear'. Screen, PDF, PNG, etc. A plot must be 'sent' to a graphics device.
+
+The screen device on a Mac is `quartz()`, on Windows it's `windows()`, and on Linux/Unix it's `x11()`.
+
+For devices that may be printed out or incorporated into a document, a *file* device is most appropriate.
+
+## Plot Creation
+
+There are two basic plotting approaches. The first is calling `plot()` etc and it just appearing on the screen device.
+
+The second is explicity launching a device and calling the plotting function.
+
+```
+pdf(file = 'plot.pdf')
+with(data, plot(x, y))
+title(main = 'A Plot')
+dev.off()
+```
+
+## Graphics Devices
+
+Two formats of file devices: *vector* and *bitmap* devices.
+
+Vector formats:
+
+- pdf
+- svg
+- win.metafile
+- postscript
+
+Bitmap formats
+
+- png
+- jpeg
+- tiff
+- bmp
+
+It is possible to open multiple graphics devices, however you can only plot to one device at a time.
+
+The **currently active** device is `dev.cur()`. Every open graphics device gets an integer handle.
+
+You set the actice device with `dev.set(<int>).
+
+You can use `dev.copy()` to copy from one plot device to another, or use `dev.copy2pdf()` to specifically copy to a PDF. Copying is not an exact operation and the result may not be identical to the original.
+
