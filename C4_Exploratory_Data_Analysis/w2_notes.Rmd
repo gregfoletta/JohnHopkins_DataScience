@@ -14,4 +14,125 @@ library(tidyverse)
 library(kableExtra)
 ```
 
-# Principles of Analytic Graphics
+# Lattice Plotting System
+
+Useful for plotting high-dimensional data. Doesn't have atwo phase plotting - everything is in one call.
+
+## Functions
+
+- `xyplot()` for scatterplots.
+- `bwplot()` for boxplots.
+- `histogram()` for histograms.
+- `stripplot()` like a boxplot but with actual points.
+- `dotplot()` to plot does on 'violin strings'.
+- `splom()` for a scatterplot matrix - like `pairs()` in the base system.
+- `levelplot()`, `contourplot()` for plotting 'image' data.
+
+The functions generally takes a formula with some conditioning variables. e.g.
+
+```
+# We have <y-axis ~ x-axis> on the left.
+# f and g are conditioning variables - they are optional.
+xyplot(y ~ x | f * g, data)
+```
+
+If no data frame is supplied, it will look in the parent environment frame for those variables.
+
+## Simple Plot
+
+```{r simple_lattice}
+library(lattice)
+library(datasets)
+xyplot(Ozone ~ Wind, airquality)
+```
+
+Can separate into different plots based on a categorical variable:
+
+```{r split}
+airquality <- airquality %>% mutate(Month = as.factor(Month))
+xyplot(Ozone ~ Wind | Month, airquality, layout = c(5,1))
+```
+
+## Behaviour
+
+The lattice functions behave differently from base in one important way:
+
+- Base plots data directly to a graphics device.
+- Lattice returns an object of class `trellis`.
+- The print methods for lattice functions actually plot the data on the graphics device.
+- On the command line, the trellis objects are auto-printed.
+
+## Panel Functions
+
+The lattice functions have a panel function which controls what happens inside each panel of the plot. It comes with default functions, but these can be overridden.
+
+The panel functions receive x/y coordinates of the data points in their panel along with optional arguments.
+
+Each panel represents a subset of the data based on the conditioning variable passed to the function.
+
+We can plot with two panels:
+
+```{r panels}
+set.seed(1)
+raw <- tibble(
+    x = rnorm(100),
+    f = rep(0:1, each = 50),
+    y = x + f - f * x + rnorm(100, sd = 0.5)
+) %>%
+    mutate(f = factor(f, labels = c('G1', 'G2')))
+
+xyplot(y ~ x | f, raw, layout = c(2,1)) 
+```
+
+Now we provide a custom panel function. It first calls the default panel function, then adds a horizontal line at the median.
+
+```{r panel_custom}
+xyplot(y ~ x | f, data = raw, panel = function(x,y, ...) {
+    panel.xyplot(x,y,...)
+    panel.abline(h = median(y), lty = 2)
+})
+```
+
+We could also add a regression line. The `col` arugment specifies the colour.
+
+```{r panel_regression}
+xyplot(y ~ x | f, data = raw, panel = function(x,y, ...) {
+    panel.xyplot(x,y,...)
+    panel.lmline(x, y, col = 2)
+})
+```
+
+## Summary
+
+- Single function call.
+- Aspects like margins and spacing are automatically handled.
+- Ideal for creating plots where the same plot is viewed under many conditions.
+- Panel functions are used to customise what is plotted in each panel.
+
+# ggplot2
+
+An implementation of *Grammar of Graphics* by Leland Wilkinson. Written by Hadley Wickham.
+
+> ... the grammar tells us that a statistical graphic is a **mapping** from the data to **aesthetic** attributes (colour, shape, size) of **geometric** objects (points, lines). The plot may also contain statistical transformations of the data, and is drawn on a specific coordinate system.
+
+## Basics
+
+The `qplot()` function works much like `plot()` in base. Looks for data in a data frame, or parent environment. Plots are made up of *aesthetics* and *geoms*.
+
+`ggplot()` is the core function and very flexible for doing things `qplot()` cannot do.
+
+The components are:
+
+- A data frame.
+- Aesthetic mappings: how data are mapped to colour, size.
+- Geoms: geometric objects like points, lines, shapes.
+- Facets: for conditional plots.
+- Stats: statistical transformations like binning, quantiles, smoothing.
+- Scales: what scale an aesthetic map uses.
+- Coordinate system.
+
+## Outliers
+
+If you use `+ ylim()`, the outlier will be missing. If you use `+ coord_cartesian(ylim = c(min, max))`, the outlier will be included.
+
+
