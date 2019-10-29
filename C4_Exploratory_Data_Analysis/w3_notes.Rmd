@@ -1,5 +1,5 @@
 ---
-title: "Course 3 - Getting and Cleaning Data - Week 1 - Notes"
+title: "Course 3 - Getting and Cleaning Data - Week 3 - Notes"
 author: "Greg Foletta"
 date: "`r Sys.Date()`"
 output:
@@ -14,4 +14,332 @@ library(tidyverse)
 library(readxl)
 library(kableExtra)
 ```
+
+# Hierarchical Clustering
+
+An agglomerative approach - find the closest two things, put them together, find the next closest.
+
+We need to define distance, and a merging approach. We get a tree showing how close things are to each other.
+
+## Defining Closeness
+
+Most important step - "garbage in -> garbage out".
+
+- Distance or similarity
+ - Continuous - euclidean distanc.e
+ - Continuous - correlation similarity.
+ - Binary - manhattan distance.
+
+Need to pick a distance metrix that makes sense to your problem.
+
+## Distances
+
+Euclidean is your standard $ \sqrt{(A_1 - A_2)^2 + (B_1 - B_2)^2 + \ldots + (Z_1 - Z_2)^2} $. This is the L2 norm.
+
+The Manhattan distance comes from taxis in New York city traversing the grid. In general it is $ |A_1 - A_2| + |B_1 - B_2| + \ldots + |Z_1 - Z_2| $. It is the L1 norm.
+
+## Example
+
+```{r clustering}
+library(ggdendro)
+set.seed(1)
+tibble(
+    x = rnorm(12, mean = rep(1:3, each = 4), sd = 0.2),
+    y = rnorm(12, mean = rep(c(1,2,3), each = 4), sd = 0.2)
+) -> cluster_data
+
+cluster_data %>%
+    ggplot(aes(x,y)) +
+    geom_point()
+
+# Distance matrix - defaults to Euclidean distance.
+dist(cluster_data)
+
+# The dendrogram
+dist(cluster_data) %>%
+    hclust() %>%
+    ggdendrogram(theme_dendro = F)
+```
+
+You can then cut at different points to get differnt number of clusters.
+
+How do we merge points together?
+- Average linkage - average of the components
+- Complete linkage - furthest points away from each other.
+
+The other type of visualisation to consider is a heatmap:
+
+```{r heatmap}
+cluster_data %>%
+    as.matrix() %>%
+    heatmap()
+```
+It runs a hierarchical analysis on the rows and the columns of the data. Very useful for quickly visualising high dimensional table data.
+
+## Considerations
+
+- The picture may be unstable
+    - Change a few points.
+    - Have different missing values.
+    - Pick a different distance.
+    - Change the merging strategy.
+    - Change the scale of points for one variable.
+- However it is deterministic.
+- Choosing where to cut isn't always obvious.
+- Primarily used for exploration.
+
+# K-Means Clustering
+
+A partitioning approach:
+
+- Fix a number of clusters
+- Get *centroids* of each cluster.
+- Assign things to the closest centroid.
+- Recalculate centroids.
+
+Required a defined distance metric, a number of clusters, and an initial guess as to the cluster centroids.
+
+It produces the final estimate of cluster centroids and an assignment of each point to clusters.
+
+Let's use the same cluster data as before:
+
+```{r kmeans}
+set.seed(1)
+tibble(
+    x = rnorm(12, mean = rep(1:3, each = 4), sd = 0.2),
+    y = rnorm(12, mean = rep(c(1,2,1), each = 4), sd = 0.2)
+) -> kmeans_data
+
+kmeans_data %>%
+    ggplot(aes(x,y)) +
+    geom_point()
+
+# Calculate the kmeans
+km <- kmeans(kmeans_data, centers = 3)
+
+# We can see the group allocations
+km$cluster
+
+# We can also see the centroids
+km$centers
+
+kmeans_data %>%
+    ggplot(aes(x,y)) +
+    geom_point(aes(colour = as.factor(km$cluster))) +
+    geom_point(data = as_tibble(km$centers), shape = 'cross')
+```
+
+## Heatmaps
+
+Another way of viewing the K-means data is with heatmaps. 
+
+```{r kmeans_heatmap}
+image(t(cluster_data)[, order(km$cluster)])
+```
+In this image, the rows have been reordered in the data frame so that the clusters have been put together.
+
+## Considerations
+
+- K-means requires a number of clusters.
+    - Pick by eye/intuition
+    - No easy rule
+    - Can use cross-validation
+- K-means is not deterministic.
+
+
+# Dimension Reduction
+
+Consider having multivariate variables $ X_1 \ldots X_n $ so $ X_1 = (X_{11}, \ldots, X_{1m}) $
+
+- Find a new set of multivariate variables that are uncorrelated and explain as much variable as possible.
+    - This can be done using *principal component analysis*.
+- If you putall the variables together in one matrix, find the best matrix created with fewer variables (lower rank) that explains the original data.
+    - This can be done using *singular value decomposition*.
+
+The first goal is **statistical**, the second goal is **data compression.
+
+
+**SVD**
+
+If $X$ is a matrix then the SVD is a matrix decomposition:
+
+$$ X = UDV^T $$
+where the columns of $U$ are orthogonal (left singular vectors), and the columns of $V$ are orthogonal (right singular vectors) and $D$ is a diagonal matrix.
+
+**PCA**
+
+The principal components are qual to the right singular values if you first scale the variables.
+
+## SVD
+
+We create some random data ($n = 10,\ p = 40$), then we shift some of the data to create a skew in some of the columns.
+
+```{r rand_data}
+set.seed(2349234)
+# Generate the matrix
+rand_data <- matrix(rnorm(400), ncol = 40)
+heatmap(t(rand_data))
+
+# Create a shift in some of the rows
+rand_shift <- apply(rand_data, 2, function(x) {
+    if(rbinom(1,1,.5)) {
+        x + rep(c(0,3), each = 5)
+    } else {
+        x
+    }
+})
+
+heatmap(t(rand_shift))
+```
+
+We can no apply SVD to the data.
+
+```{r svd}
+rand_svd <- svd(scale(rand_shift))
+tibble(
+    n = 1:length(rand_svd$u[,1]),
+    u = rand_svd$u[,1]
+) %>%
+    ggplot(aes(n,u)) +
+    geom_point()
+```
+
+We can see that the left singular vector picked up on the shift in an unsupervised manner.
+
+The $D$ matrix can be used to calculate the variance explained:
+
+```{r svd_variance_explained}
+tibble(
+    x = 1:length(rand_svd$d),
+    y = rand_svd$d^2 / sum(rand_svd$d^2) * 100
+) %>%
+    ggplot(aes(x,y)) +
+    geom_point() +
+    labs(x = 'SVD Raw Singular Values', y = 'Proportion of Variance Explained (%)')
+```
+
+### SVD vs PCA
+
+The SVD and the PCA are essentially the same thing. Below we calculate the PCA and then plot the first principal component on the X-axis, and the first right singular value on the Y-axis:
+
+```{r svd_vs_pca}
+rand_pca <- prcomp(scale(rand_shift))
+tibble(
+    pca_first_comp = rand_pca$rotation[ , 1],
+    svd_first_right_singular = rand_svd$v[ , 1]
+) %>%
+    ggplot(aes(pca_first_comp, svd_first_right_singular)) +
+    geom_point() +
+    geom_line()
+```
+
+We can see that they fall exactly on a line.
+
+## Missing Values
+
+One of the issues with both `svd()` and `prcomp()` is that you can't run it on data with missing values.
+
+One option is to impute the missing values. For example you can use the `impute` library to impute the missing data points. The code below uses `impute.knn()` to take a missin row and imputes by the K-nearest neighbours to that row.
+
+```{r imputing}
+missing_matrix <- rand_shift
+missing_matrix[sample(1:100, size = 10, replace = F)] <- NA
+try( svd(scale(missing_matrix)) )
+
+library(impute)
+fixed_matrix <- impute.knn(missing_matrix, k = 5)$data
+
+fixed_svd <- svd(scale(fixed_matrix))
+summary(fixed_svd)
+```
+
+## Summary
+
+- Scale matters
+- PCA / SVD may mix real patterns.
+
+# Working with Colour
+
+The main problem that comes out is that the standard colours are not very good, and the colours don't align with the data that they're representing.
+
+The `grDevices` package has two functions that can assist:
+- `colorRamp()` - takes a palette of colours and returns a *function* that takes values between 0 and 1, indicating the extremes of the colour palette.
+  - Similar to the `gray()` function.
+- `colorRampPalette()` - takes a palette of colours and returns a function that takes integer arguments and returns a vector of colours interpolating the palette.
+ 
+```{r gray}
+gray(c(0, 0.1, 0.2, 0.8, 1))
+```
+ 
+```{r colorRamp}
+# Create our pallete of two colours
+pal <- colorRamp(c('red', 'blue'))
+
+# RGB values, all red.
+pal(0)
+# RGB values, all green
+pal(1)
+# Halfway between
+pal(.5)
+```
+
+```{r colorRampPalette}
+pal <- colorRampPalette(c('red', 'yellow'))
+
+# Returns the two colours in the palette
+pal(2)
+
+# Returns 10 colours, interpolating between the two palette colours
+pal(1)
+```
+
+THe `RColorBrewer` package that contains interesting palettes.
+
+There are three types of palettes:
+
+- Sequential - ordered data.
+- Diverging - deviate from something, think deviations from the mean.
+- Qualitative - data that are not ordered.
+
+The data from this package can be passed to the `colorRamp*()` functions.
+
+```{r colorbrewer}
+library(RColorBrewer)
+
+cols <- brewer.pal(3, 'BuGn')
+cols
+
+pal <- colorRampPalette(cols)
+
+image(volcano, col = pal(20))
+```
+
+Another function  that uses colour brewer is the `smoothScatter()` function.
+
+```{r smoothscatter}
+set.seed(1)
+x <- rnorm(1000)
+y <- rnorm(1000)
+smoothScatter(x,y)
+```
+
+## RGB Function
+
+The RGB function can be used to produce any colour via RGB proportions. There's also an alpha parameter to add transparency.
+
+```{r rgb}
+# RGB function returns a hexadecimal string.
+rgb(.5, .5, 0, .5)
+# Normal plot
+plot(x,y, pch = 16)
+# Plot with different colour and transparency
+plot(x,y, pch = 16, col = rgb(.5,.5,0,.1))
+```
+
+## Summary
+
+- Use of colours can make it easier to interpret graphs / visualisations.
+- The `RColorBrewer` package provides additional color palettes for sequential, divergent and categorical data.
+- `colorRamp()` and `colorRampPalette()` can be used in conjunction with palettes to connect data to colors.
+- Tansparency can help clarify plots with many overlapping points.
 
