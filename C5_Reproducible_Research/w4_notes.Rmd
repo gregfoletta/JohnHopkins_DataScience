@@ -1,0 +1,47 @@
+---
+title: "Course 5 - Reproducable Research - Week 4 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+```
+
+# Caching Computations
+
+The `cacher` package for R evaluates code written in files and stores intermediate  results in a key-value database. 
+
+R expressions are given a SHA-1 hash value so that changes can be tracked and code reevaluated if necessary.
+
+Others can 'clone' analysis and evaluate subsets of code or inspect data objects.
+
+TO use as an author, the package parses the source file and creates the necessary cache directories and sub-directories.
+
+It then cycles through each expression in the source file and:
+
+- If an expression has never been evaluated, evaluate and store in the cache DB.
+- If a cache result exists, lazy-load the results from the cache DB.
+- If an expression does not create any R objects, add the expression to a list of expressions where evaluation needs to be forced.
+- Write out metadata for this expression.
+
+The `cachepackage()` function creates a `cacher` package storing:
+
+- Source file
+- Cached data objects
+- Metadata
+
+Package file is zipped and can be distributed, readers can unzip the file and immediately investigate its contents.
+
+## Running Code
+
+The `runcode()` function executes code in the source file. By default, expressions that result in an object being created *are not* run. Expressions not results in objects are evaluated.
+
+The `checkcode()` function evaluates all expressions from scratch - no lazy loading. Results are compared against the stored results to see if they are the same.

@@ -1,0 +1,137 @@
+---
+title: "Course 5 - Reproducable Research - Week 3 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+```
+
+
+# Communicating Results
+
+When you present data, you're going to have a hierarchy of data that you need to present. People are busy, especially managers and leaders.
+
+It is often useful to break down results into different different formats depending on the situation
+
+## Research Paper
+
+- Title, Author list
+- Abstract: couple of hundred words, what the paper is about, what was done.
+- Body / Results: the method, detailed results, much longer discussion.
+- Supplemental Materials: even more details
+- Code / Data: reproducible research.
+
+## Email Presentation
+
+- Subject, Sender Info
+- Email Body
+    - Brief description of the problem, context. What was proposed? What was executed?
+    - If action needs to be taken, suggest some options. Make them as concerete as possible.
+    - If questions need to be addressed, try to make them yes / no.
+    
+## Email Presentation
+
+Attachments, could be an R Markdown file, knitr report, etc.
+
+Stay concise, don't generate pages and pages of code. Link to the supplementary materials.
+
+# RPubs
+
+Allows for the easy sharing of R Markdown documents.
+
+# Reproducible Research Checklist
+
+**Start with good science**. It's the age old garbage in = garbage out equation. Make it coherent and focused on a question. If it's something that's interesting to you it will help to motivate you.
+
+**Don't do things by hand:**: for example, editing spreadsheets to 'clean it up', editing tables or figures, downloading data. These items in the pipeline are then not reproducible. All these th
+ings can be automated very easily.
+
+**Don't point and click**: Many data processing packages have GUIs. They're convenient, but the actions you perform are difficult for others to reproduce.
+
+In general, be careful with data analysis software that is highly interactive.
+
+**Teach a computer**: if something needs to be done, try to 'teach' your computer to do it, even if you're only doing it once. May be less convenient in the short term, but will pay off in the medium to long term.
+
+**Use version control**: Slow things down, add and commit changes in small, related chunks.
+
+**Keep track of your software environment:**: if you work on a complex project, the software and computing environment can be criticial for reproducing you analysis:
+
+- Computer architecture, but this is less relevant now.
+- OS.
+- Software toolchain.
+- Supporting libraries, packages, and other dependencies.
+- External dependencies, including web sites, remote databases, software repositories.
+- Version numbers.
+
+The `sessionInfo()` function can help with this.
+
+**Don't save output**: avoid saving output directly, save the data and code that generated the output. Intermediate files are OK as long as how they were created is documented.
+
+**Set your seed**: this allows the random numbers to be reproducible.
+
+**Think about the entire pipeline**: data analysis is a lengthy process, it's not just tables, figures and reports. How you got to the end is important as the end itself. The more of the data analysis pipeline that be can reproducible, the better for everyone.
+
+# Evidence Based Data Analysis
+
+- **Replication** - focuses on the validity of the scientific claim. "Is this claim true?"
+- **Reproducibility** - focuses on the validity of the data analysis. "Can we trust this analysis?"
+
+## What Problems Does This Solve?
+
+- Transparency
+- Data Availailability
+- Improved Transfer of Knowledge
+
+We don't get validation of the analysis itself. An analysis can be reproducible and wrong.
+
+## Problems With Reproducibility
+
+The premise is that with the data and code available, people can check each other's work and the whole system SHOULD be self-correcting.
+
+It assumes everyone plays by the same rules and wants to achieve the same goals. It addresses *downstream* (publication) affects, but that's it.
+
+## Who Reproduces Research?
+
+For reproducibility to be effective, someone needs to do something. Who is this someone and what are there goals?
+
+There are three groups of people who may interfae in to an authors work:
+
+- The author who believes the truth is A
+- The general public who don't care.
+- Scientists
+    - Some who think the truth is A.
+    - Some who think the trust is B.
+- Others who simply think the trust is *not A*.
+
+## Standardisation
+
+- Create analytic pipelines from evidence based components.
+- One the evidence-based pipeline is in place, it shouldn't be messed with.
+    - It should be a transparent box.
+- The analogy is to a pre-specified clinical trial protocol.
+
+## Deterministic Statistical Machine
+
+Dataset -> Preprocessing -> Model Selection -> Sensitivity Analysis -> Report
+
+### Pipeline
+
+1. Check for outliers, high leverage, [overdispersion](https://en.wikipedia.org/wiki/Overdispersion)
+1. Do not fill in any missing data.
+1. Model selection: Estimate degrees of freedom to adjust for [unmeasured confounders](https://en.wikipedia.org/wiki/Confounding)
+    - Other aspects of model not as critical.
+1. Multiple lag analysis
+5. Sensitivity analysis wrt:
+    - Unmeasured confounder adjustment.
+    - Influential points
+    
+

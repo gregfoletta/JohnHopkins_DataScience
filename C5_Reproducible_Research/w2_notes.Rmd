@@ -1,0 +1,78 @@
+---
+title: "Course 5 - Reproducable Research - Week 2 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+```
+
+# Coding Standards in R
+
+There a couple of basic, minimal standards to adhere to.
+
+1. A text format.
+1. Indent your code.
+1. Limit the width of your code.
+1. Limit the size of functions.
+
+# Markdown
+
+Text to HTML conversion tool.
+
+Advanced Linking:
+
+[Some Link][1] and [Another Link][2]
+
+then in a central spot you can put:
+
+```markdown
+[1]: http://google.com "Some Link"
+[2]: http://theage.com.au "Another Link"
+```
+
+[1]: http://google.com "Some Link"
+[2]: http://theage.com.au "Another Link"
+
+Newlines require a double space and the end of the line.
+
+One Line
+Two Lines
+
+One Line  
+Two Lines
+
+# R Markdown
+
+R code integrated with the markdown language. R code is evaluated as part of the processing of the markdown. Core tool in literate statistical programming.
+
+- R markdown converted to standard markdown using the `knitr` package.
+- Markdown can be converted to HTML using the `markdown` package`.
+- Create slides using the `slidify` package.
+
+# How To Make Work Reproducible
+
+- Decide to do it from the start.
+- Use version control.
+- Don't save output - generate it.
+- Save data in non-proprietary formats.
+
+# knitr
+
+- R package
+- Supports RMarkdown, LaTeX, and HTML as documentation languages.
+- Can export to PDF, HTML.
+- Built right into RStudio.
+
+
+
+
+
