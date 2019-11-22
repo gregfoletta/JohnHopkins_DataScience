@@ -6,6 +6,7 @@ output:
   prettydoc::html_pretty:
     theme: architect
     highlight: github
+    toc: true
 ---
 
 ## Course 1 - The Data Scientist's Toolbox
@@ -29,3 +30,16 @@ output:
 ## Course 4 - Exploratory Data Analysis
 
 * [Week 1 Notes](C4_Exploratory_Data_Analysis/w1_notes.html)
+* [Week 2 Notes](C4_Exploratory_Data_Analysis/w2_notes.html)
+* [Week 3 Notes](C4_Exploratory_Data_Analysis/w3_notes.html)
+
+## Course 5 - Reproducible Research
+
+* [Week 1 Notes](C5_Reproducible_Research/w1_notes.html)
+* [Week 2 Notes](C5_Reproducible_Research/w2_notes.html)
+* [Week 3 Notes](C5_Reproducible_Research/w3_notes.html)
+* [Week 4 Notes](C5_Reproducible_Research/w4_notes.html)
+
+## Course 6 - Statistical Inference
+
+* [Week 1 Notes](C6_Statistical_Inference/w1_notes.html)

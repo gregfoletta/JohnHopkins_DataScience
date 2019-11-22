@@ -13,12 +13,98 @@
 
 <meta name="author" content="Greg Foletta" />
 
-<meta name="date" content="2019-11-18" />
+<meta name="date" content="2019-11-22" />
 
-<title>Coursera - Data Science - John Hopkins</title>
+<title>Course 6 - Statistical Inference - Week 1 - Notes</title>
 
 
 
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
 
 
 
@@ -47,66 +133,282 @@ code span.ot { color: #007020; }
 
 <header>
 <div class="inner">
-<h1 class="title toc-ignore">Coursera - Data Science - John Hopkins</h1>
+<h1 class="title toc-ignore">Course 6 - Statistical Inference - Week 1 - Notes</h1>
 <h3 class="author">Greg Foletta</h3>
-<h3 class="date">2019-11-18</h3>
+<h3 class="date">2019-11-22</h3>
 </div>
 </header>
 
 
 <div id="TOC" class="toc">
 <ul>
-<li><a href="#course-1---the-data-scientists-toolbox">Course 1 - The Data Scientist’s Toolbox</a></li>
-<li><a href="#course-2---the-r-language">Course 2 - The R Language</a></li>
-<li><a href="#course-3---getting-and-cleaning-data">Course 3 - Getting and Cleaning Data</a></li>
-<li><a href="#course-4---exploratory-data-analysis">Course 4 - Exploratory Data Analysis</a></li>
-<li><a href="#course-5---reproducible-research">Course 5 - Reproducible Research</a></li>
+<li><a href="#intro">Intro</a></li>
+<li><a href="#probability">Probability</a><ul>
+<li><a href="#probability-mass-functions">Probability Mass Functions</a><ul>
+<li><a href="#bernoulli-distribution">Bernoulli Distribution</a></li>
+</ul></li>
+<li><a href="#probability-density-functions">Probability Density Functions</a></li>
+</ul></li>
+<li><a href="#cdf-and-survival-function">CDF and Survival Function</a></li>
+<li><a href="#quantiles">Quantiles</a></li>
+<li><a href="#conditional-probability">Conditional Probability</a><ul>
+<li><a href="#bayes-rule">Bayes’ Rule</a><ul>
+<li><a href="#diagnostic-tests">Diagnostic Tests</a></li>
+<li><a href="#likelyhood-ratios">Likelyhood Ratios</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#independence">Independence</a><ul>
+<li><a href="#independent-identically-distributed-random-variables">Independent Identically Distributed Random Variables</a></li>
+</ul></li>
+<li><a href="#expected-values">Expected Values</a><ul>
+<li><a href="#population-mean">Population Mean</a></li>
+<li><a href="#summary">Summary</a></li>
+</ul></li>
 </ul>
 </div>
 
 <div id="content-wrapper">
   <div class="inner clearfix">
     <section id="main-content">
-<div id="course-1---the-data-scientists-toolbox" class="section level2">
-<h2>Course 1 - The Data Scientist’s Toolbox</h2>
+<div id="intro" class="section level1">
+<h1>Intro</h1>
+<p>Statistical inference is:</p>
+<blockquote>
+<p>The generation of conclusions about a population from a noisy sample</p>
+</blockquote>
+<p>This class is focussed on frequentist styles of statistics.</p>
+<p>Full course information is located at <a href="https://github.com/bcaffo/courses/tree/master/06_StatisticalInference">on GitHub</a>. Videos are on <a href="https://www.youtube.com/playlist?list=PLpl-gQkQivXiBmGyzLrUjzsblmQsLtkzJ">YouTube</a>.</p>
+</div>
+<div id="probability" class="section level1">
+<h1>Probability</h1>
+<p>Given a random experiment, a probability measure is a population quantity that summarises the randomness.</p>
+<p>Probability takes a possible outcome from an experiment and:</p>
 <ul>
-<li><a href="C1_Data_Scientist_Toolbox/notes.html">Notes</a></li>
+<li>Assigns it a number between 0 and 1.</li>
+<li>The probability that <strong>something</strong> occurs is 1.</li>
+<li><p>The probability of the union of any two sets of outcomes that have nothing in common is the <strong>sum</strong> of their respective probabilities.</p></li>
+<li>The probability that nothing occurs is 0.</li>
+<li>The probability that something occurs is 1.</li>
+<li>The probability that something is 1 minus the probability that the opposite occurs.</li>
+<li>The probability of at least one of two (or more) things that cannnot simulaneously occur (mutually exclusive) is the sum of their respective probabilities.</li>
+<li>If an event A <strong>implies</strong> the occurence of event B, then the probability of A occurring is less than the probability that B occurs.</li>
+<li>For any two events the probability that <em>at least</em> one occurs is the sum of their probabilities minus their intersection:
+<ul>
+<li>You can’t just add probabilities if they have a non-trivial interaction.</li>
+<li>You’re adding the intersection twice.</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[ P(A \cup B) = P(A) + P(B) - P(A \cap B) \]</span></p>
+<div id="probability-mass-functions" class="section level2">
+<h2>Probability Mass Functions</h2>
+<p>Densities and mass functions for random variables are the best starting point.</p>
+<p><strong>Random variable</strong>: the numerical outcome of an experiment, can be <strong>discrete</strong> or <strong>continuous</strong>. Discrete variables have values, continuous variables have ranges.</p>
+<p>A <em>probability mass function</em> (PMF) evaluated at a value corresponds to the probability that a random variable takes that value. To be a valid PMF:</p>
+<ul>
+<li>It must always be larger than or equal to 0.</li>
+<li>The sum of the possible values the random variable can take has to add up to one.</li>
+</ul>
+<p>It is used for discrete values.</p>
+<div id="bernoulli-distribution" class="section level3">
+<h3>Bernoulli Distribution</h3>
+<p><span class="math inline">\(X = 0\)</span> represents tails and <span class="math inline">\(X = 1\)</span> represents heads.</p>
+<p><span class="math display">\[ p(x) = (\frac{1}{2})^x(\frac{1}{2})^{1-x} \text{ for } x=0,1 \]</span></p>
+<p>This is for a for a fair coin. Let<span class="math inline">\(be the probability of a head, and1-\theta\)</span>be the probability of a tail. We now have:</p>
+<p><span class="math display">\[ p(x) = \theta^x (1-\theta)^{1-x} \text{ for } x=0,1 \]</span></p>
+</div>
+</div>
+<div id="probability-density-functions" class="section level2">
+<h2>Probability Density Functions</h2>
+<p>The probabilit density function is associated with continuous variables.</p>
+<p>TO be valid density function:</p>
+<ul>
+<li>It must be larger than or equal to zero everywhere.</li>
+<li>The total area under it must be one.</li>
+</ul>
+<p>Areas under a PDF correspond to probabilities for that random variable. The probability of a <em>specific</em> value is zero, because the area of a single line through the density function is zero. The bell curve is initially difficult to work with, so we’ll try a simpler version:</p>
+<p><span class="math display">\[
+f(x) = 
+\Bigg\{
+\begin{array}{ll}
+    2x \text{ for } 0 &lt; x &lt; 1\\
+    0 \text{ otherwise}
+\end{array}
+\]</span></p>
+<p>Imagine this is the proportion of help calls that get addressed by a help line on any given day. So the probability that between 20% and 60% of calls get addressed that day is given by the area between .2 and .6 on the x-axis, bounded by the slope of the line on the y-axis.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">tibble</span>(</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">    <span class="dt">x =</span> <span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.1</span>),</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">    <span class="dt">y =</span> <span class="dv">2</span><span class="op">*</span>x</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(x,y)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="st">    </span><span class="kw">geom_line</span>()</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>Is this a mathematically valid density? It’s always bigger than 0, and its area is</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fl">.5</span> <span class="op">*</span><span class="st"> </span><span class="dv">1</span> <span class="op">*</span><span class="st"> </span><span class="dv">2</span></a></code></pre></div>
+<pre><code>## [1] 1</code></pre>
+<p>So it is valid.</p>
+<p>Back to our example, what’s the probability that 75% or fewer ([0%, 75%]) of calls are answered? That’s the area under the density function between 0 and .75.</p>
+<p>This is the area of a smaller right angle triangle, so it’s:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="fl">.5</span> <span class="op">*</span><span class="st"> </span><span class="fl">.75</span> <span class="op">*</span><span class="st"> </span><span class="fl">1.5</span></a></code></pre></div>
+<pre><code>## [1] 0.5625</code></pre>
+<p>This is actually a special case of a beta distribution:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="kw">pbeta</span>(.<span class="dv">75</span>, <span class="dv">2</span>, <span class="dv">1</span>)</a></code></pre></div>
+<pre><code>## [1] 0.5625</code></pre>
+</div>
+</div>
+<div id="cdf-and-survival-function" class="section level1">
+<h1>CDF and Survival Function</h1>
+<p>The <strong>cumulative distribution function</strong> of a random variable, <span class="math inline">\(X\)</span>, returns the probability that the random variable is less that or equal to the valuex$:</p>
+<p><span class="math display">\[F(x) = P(X \le x)\]</span></p>
+<p>This applied whether the variable is discrete or continuous.</p>
+<p>The <strong>survival function</strong> of a random variable <span class="math inline">\(X\)</span> is defined as the probability that the random variable is greater than the value <span class="math inline">\(x\)</span>:</p>
+<p><span class="math display">\[S(x) = P(X &gt; x)\]</span></p>
+<p>Notice that:</p>
+<p><span class="math display">\[S(x) = 1 - F(x)\]</span></p>
+</div>
+<div id="quantiles" class="section level1">
+<h1>Quantiles</h1>
+<p>The<span class="math inline">\(\alpha\)</span>th quantile of a distribution function <span class="math inline">\(F\)</span> is the point <span class="math inline">\(x_\alpha\)</span>so that <span class="math inline">\(F(x_\alpha) = \alpha\)</span>.</p>
+<p>A percentile is simply a quantile with <span class="math inline">\(\alpha\)</span> expressed as a percent. The median is the 50th percentile.</p>
+<p>Let’s find the median for our previous example:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">qbeta</span>(.<span class="dv">5</span>, <span class="dv">2</span>, <span class="dv">1</span>)</a></code></pre></div>
+<pre><code>## [1] 0.7071068</code></pre>
+<p>This tells us that on - On 50% of the days, 70% or less of phone calls are answered. - On 50% of the days, 70% or more of phone calls are answered.</p>
+<p>It’s important to note that here we’re talking about the <strong>population quantiles</strong>, therefore the median being discussed is the <strong>population median</strong>.</p>
+<p>The median most people think of is the <strong>sample median</strong>, taking a sample, ordering them and taking the middle observation.</p>
+<p>We need to look at estimators and estimands. Sample median estimating the population median. There’s assumptions that connect the sample to the population but we’re going to formally develop them.</p>
+<p><strong>This is the formal process of statistical inference</strong>. Linking the sample to a population.</p>
+</div>
+<div id="conditional-probability" class="section level1">
+<h1>Conditional Probability</h1>
+<p>The probability of rolling a one on a die is one in six. If you’re given extra information that someone rolled the die and it was a one, three or five, conditional on this new information you’d now say the probability is one in three.</p>
+<p>The definition:</p>
+<ul>
+<li>Let <span class="math inline">\(B\)</span> be an event so that <span class="math inline">\(P(B) &gt; 0\)</span>.</li>
+<li>Then the probability of A given the event B has ocurred is the probability of the intersection of A and B, divided by the probability of B</li>
+</ul>
+<p><span class="math display">\[P(A|B) = \frac{ P(A \cap B) }{ P(B) }\]</span></p>
+<p>In the event that A and B are unrelated, thenP(A|B) = P(A)$.</p>
+<p>Taking our previous die roll example, <span class="math inline">\(A = \{1\}, B = \{1,3,5\}\)</span></p>
+<p><span class="math display">\[
+P(\text{one given roll is odd}) = P(A|B) \\
+= \frac{P(A \cap B)}{P(B)} \\
+= \frac{P(A)}{P(B)} \\
+= \frac{1/6}{1/3} \\
+= \frac{1}{3}
+\]</span> Remembering that A is containted within B, hence the intersection is simply A.</p>
+<div id="bayes-rule" class="section level2">
+<h2>Bayes’ Rule</h2>
+<p>Bayes’ Rule allows us to reverse the role of the conditioning set and the set we want the probability of. We want P(B|A) when we have or easily can calculate P(A|B). Bayess rule can do it:</p>
+<p><span class="math display">\[P(B|A) = \frac{
+    P(A|B)P(B)
+}{
+    P(A|B)P(B) + P(A|B^C)P(B^C)
+}\]</span></p>
+<p>Where <span class="math inline">\(P(A|B^c)\)</span> is the probability of B <strong>marginalised</strong> over A.</p>
+<div id="diagnostic-tests" class="section level3">
+<h3>Diagnostic Tests</h3>
+<ul>
+<li>Let <span class="math inline">\(+\)</span> and <span class="math inline">\(-\)</span> be the events that the results of a diagnostic test is positive or negative.</li>
+<li>Let <span class="math inline">\(D\)</span>and <span class="math inline">\(D^c\)</span> be the event that the subject of the test has or does not have the disease respectively.</li>
+</ul>
+<p><span class="math display">\[Sensitivity = P(+ | D)\]</span></p>
+<p>This is the marker of a good test, you want the sensitivity to be high.</p>
+<p><span class="math display">\[Specificity = P(-|D^c)\]</span></p>
+<p>The specificity is the probability the test is negative given that the subject does not have the disease. Again you want the specificity to be high for the test to be good.</p>
+<p>If you have a positive test, the number that is of most concern to you is</p>
+<p><span class="math display">\[P(D|+)\]</span></p>
+<p>This is the positive predictive value.</p>
+<p>If you have a negative test, you are interested in:</p>
+<p><span class="math display">\[P(D^c|-)\]</span></p>
+<p>This is the negative predictive value.</p>
+<p>In the absenve of a test</p>
+<p><span class="math display">\[P(D)\]</span></p>
+<p>is the prevalence of the disease.</p>
+<p>Let’s take a made up example:</p>
+<ul>
+<li>Sensitivity of a test: 99.7%</li>
+<li>Specificity of a test: 98.5%</li>
+<li>Prevalence of disease: .01%</li>
+</ul>
+<p>We can plug directly into Bayes’ rule. We note that the probability of a postive result, given that the person does not have the disease, is one minus the probability of a negative result given that the person doesn’t have the disease:P(+|D^c) = 1 - P(-|D^c)<span class="math inline">\(. SimilarlyP(D^c) = 1 - P(D)\)</span></p>
+<p>$$P(D|+) =  \ =  \</p>
+<p>$$</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">(.<span class="dv">997</span> <span class="op">*</span><span class="st"> </span><span class="fl">.001</span>) <span class="op">/</span><span class="st"> </span>((.<span class="dv">997</span> <span class="op">*</span><span class="st"> </span><span class="fl">.001</span>) <span class="op">+</span><span class="st"> </span>(.<span class="dv">015</span> <span class="op">*</span><span class="st"> </span><span class="fl">.999</span>))</a></code></pre></div>
+<pre><code>## [1] 0.06238268</code></pre>
+<p>So the positive predictive value is 6% for this test. The low positive predicive value is largely due to the low prevalence of the disease.</p>
+<p>However imagine if there were other factors about the person the test was conducted on. The relevant prevalence may then be raised or lowered based on these factors. An example would be in an HIV test that the person let it be known they were an intravenous drug user. The prevalance has changed from the entire population to intravenous drug users.</p>
+</div>
+<div id="likelyhood-ratios" class="section level3">
+<h3>Likelyhood Ratios</h3>
+<p>Note that in both <span class="math inline">\(P(D|+)\)</span> and <span class="math inline">\(P(D^c|+)\)</span>, the denominator is exactly the same. If we divide the two equations we get:</p>
+<p><span class="math display">\[\frac{ P(D|+) }{ P(D^c|+) } = \frac{ P(+|D) }{ P(+|D^c) } \times \frac{ P(D) }{ P(D^c) }\]</span></p>
+<p>Whenever you take a probability and divide it by one minus that probability you get the odds (this is the first item above).</p>
+<p>On the left most side we have the odds of disease given a positive test result. On the right we have the odds of disease in the absence of the test result.</p>
+<p>The factor in the middle is the diagnostic likelihood ratio of a positive test result. It is <em>the factor by which you multiply your odds in the presence of a positive test to obtain your post-test odds.</em>.</p>
+</div>
+</div>
+</div>
+<div id="independence" class="section level1">
+<h1>Independence</h1>
+<p>Event <span class="math inline">\(A\)</span> is independent of event B if</p>
+<p><span class="math display">\[ P(A|B) = P(A) \text{ where } P(B) &gt; 0 \]</span></p>
+<p><span class="math inline">\(A\)</span> is also independent of <span class="math inline">\(B\)</span> if:</p>
+<p><span class="math display">\[ P(A \cap B) = P(A)P(B) \]</span></p>
+<p>You can’t just mulitply probabilities ‘willy-nilly’ - you can only multiply independent probabilities.</p>
+<div id="independent-identically-distributed-random-variables" class="section level2">
+<h2>Independent Identically Distributed Random Variables</h2>
+<p>Random variables are said to be IID if they are statistically unrelated from each other, and are all drawn from the same distribution.</p>
+<p>An example is coin flips: independent, and drawn from the Bernoulli distribution.</p>
+</div>
+</div>
+<div id="expected-values" class="section level1">
+<h1>Expected Values</h1>
+<p>The expected value or mean of a random variable is the centre of its distribution.</p>
+<p>For a discrete random variable <span class="math inline">\(x\)</span> with a probability mass function <span class="math inline">\(p(x)\)</span>, it’s the sum of the possible values <span class="math inline">\(x\)</span> can take times the probability that it takes them:</p>
+<p><span class="math display">\[ E[X] = \sum_x xp(x) \]</span></p>
+<p>The ‘centre of mass’ is a useful analogy in defining the sample mean. The sample mean estimates the population mean. If we treat each data point as equally likely, i.e. the probability is <span class="math inline">\(\frac{1/N}\)</span>, and each data point <span class="math inline">\(x_i\)</span> has that probability, then the ‘centre of mass’ for the data is:</p>
+<p><span class="math display">\[ \bar{X} = \sum_{i = 1}^n x_i p(x_i) \]</span></p>
+<div id="population-mean" class="section level2">
+<h2>Population Mean</h2>
+<p>Suppose a coin is flipped and <span class="math inline">\(X\)</span> is declared <span class="math inline">\(0\)</span> or <span class="math inline">\(1\)</span> corresponding to a head or tail. What is the expected value of <span class="math inline">\(X\)</span>?</p>
+<p><span class="math display">\[ E[X] = .5 \times 0 + .5 \times 1 = .5 \]</span> ## Facts About Expected Values</p>
+<ul>
+<li>Properties of the distribution</li>
+<li>Note that the average of random variables is itself a random variable.</li>
+<li>Because it’s a random variable, <strong>it too</strong> has a distribution and that distribution has an expected value.</li>
+<li>The centre of this distribution is the same as the original distribution.</li>
+</ul>
+<p>The conclusion is that the expected value of the sample mean is exactly the population mean that it’s trying to estimate.</p>
+<p>The sample mean is <strong>unbiased</strong> because its distribution is centered at what it’s trying to estimate.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="co"># Sample from a population</span></a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">population &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">10000</span>, <span class="dt">mean =</span> <span class="dv">32</span>)</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3"><span class="kw">mean</span>(population)</a></code></pre></div>
+<pre><code>## [1] 32.01863</code></pre>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="co"># Sample means</span></a>
+<a class="sourceLine" id="cb14-2" data-line-number="2">sample_means &lt;-<span class="st"> </span><span class="kw">map_dbl</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10000</span>, <span class="op">~</span><span class="kw">mean</span>(<span class="kw">sample</span>(population, <span class="dt">size =</span> <span class="dv">5</span>, <span class="dt">replace =</span> F)))</a>
+<a class="sourceLine" id="cb14-3" data-line-number="3"><span class="kw">mean</span>(sample_means)</a></code></pre></div>
+<pre><code>## [1] 32.02188</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="co"># Graph the histograms</span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="kw">ggplot</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="st">    </span><span class="kw">geom_histogram</span>(<span class="kw">aes</span>(<span class="dt">x =</span> sample_means), <span class="dt">bins =</span> <span class="dv">100</span>, <span class="dt">fill=</span> <span class="st">'lightgreen'</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb16-4" data-line-number="4"><span class="st">    </span><span class="kw">geom_histogram</span>(<span class="kw">aes</span>(<span class="dt">x =</span> population), <span class="dt">bins =</span> <span class="dv">100</span>, <span class="dt">fill =</span> <span class="st">'lightblue'</span>)</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="co"># We can do it d</span></a></code></pre></div>
+</div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<ul>
+<li>Expected values are properties of distributions.</li>
+<li>The population mean is the center of mass of population.</li>
+<li>The sample mean is the centre of mass of the observed data.</li>
+<li>The sample mean is an estimate of the population mean.</li>
+<li>The sample mean is unbiased
+<ul>
+<li>The population mean of its distribution is the mean it’s trying to estimate.</li>
+</ul></li>
+<li>The more data that goes into the sample mean, the more concentrated its density/mass function is around the population mean.</li>
 </ul>
 </div>
-<div id="course-2---the-r-language" class="section level2">
-<h2>Course 2 - The R Language</h2>
-<ul>
-<li><a href="C2_R_Programming/w1_notes.html">Week 1 Notes</a></li>
-<li><a href="C2_R_Programming/w2_notes.html">Week 2 Notes</a></li>
-<li><a href="C2_R_Programming/w3_notes.html">Week 3 Notes</a></li>
-<li><a href="C2_R_Programming/w4_notes.html">Week 4 Notes</a></li>
-</ul>
-</div>
-<div id="course-3---getting-and-cleaning-data" class="section level2">
-<h2>Course 3 - Getting and Cleaning Data</h2>
-<ul>
-<li><a href="C3_Getting_and_Cleaning_Data/w1_notes.html">Week 1 Notes</a></li>
-<li><a href="C3_Getting_and_Cleaning_Data/w2_notes.html">Week 2 Notes</a></li>
-<li><a href="C3_Getting_and_Cleaning_Data/w3_notes.html">Week 3 Notes</a></li>
-<li><a href="C3_Getting_and_Cleaning_Data/w4_notes.html">Week 4 Notes</a></li>
-</ul>
-</div>
-<div id="course-4---exploratory-data-analysis" class="section level2">
-<h2>Course 4 - Exploratory Data Analysis</h2>
-<ul>
-<li><a href="C4_Exploratory_Data_Analysis/w1_notes.html">Week 1 Notes</a></li>
-<li><a href="C4_Exploratory_Data_Analysis/w2_notes.html">Week 2 Notes</a></li>
-<li><a href="C4_Exploratory_Data_Analysis/w3_notes.html">Week 3 Notes</a></li>
-</ul>
-</div>
-<div id="course-5---reproducible-research" class="section level2">
-<h2>Course 5 - Reproducible Research</h2>
-<ul>
-<li><a href="C5_Reproducible_Research/w1_notes.html">Week 1 Notes</a></li>
-<li><a href="C5_Reproducible_Research/w2_notes.html">Week 2 Notes</a></li>
-<li><a href="C5_Reproducible_Research/w3_notes.html">Week 3 Notes</a></li>
-<li><a href="C5_Reproducible_Research/w4_notes.html">Week 4 Notes</a></li>
-</ul>
 </div>
     </section>
   </div>

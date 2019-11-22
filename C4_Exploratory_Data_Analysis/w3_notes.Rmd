@@ -323,7 +323,7 @@ y <- rnorm(1000)
 smoothScatter(x,y)
 ```
 
-## RGB Function
+<!-- ## RGB Function -->
 
 The RGB function can be used to produce any colour via RGB proportions. There's also an alpha parameter to add transparency.
 

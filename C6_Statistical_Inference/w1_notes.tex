@@ -1,0 +1,559 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Course 6 - Statistical Inference - Week 1 - Notes},
+            pdfauthor={Greg Foletta},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Course 6 - Statistical Inference - Week 1 - Notes}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Greg Foletta}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{2019-11-22}
+
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+
+\begin{document}
+\maketitle
+
+\hypertarget{intro}{%
+\section{Intro}\label{intro}}
+
+Statistical inference is:
+
+\begin{quote}
+The generation of conclusions about a population from a noisy sample
+\end{quote}
+
+This class is focussed on frequentist styles of statistics.
+
+Full course information is located at
+\href{https://github.com/bcaffo/courses/tree/master/06_StatisticalInference}{on
+GitHub}. Videos are on
+\href{https://www.youtube.com/playlist?list=PLpl-gQkQivXiBmGyzLrUjzsblmQsLtkzJ}{YouTube}.
+
+\hypertarget{probability}{%
+\section{Probability}\label{probability}}
+
+Given a random experiment, a probability measure is a population
+quantity that summarises the randomness.
+
+Probability takes a possible outcome from an experiment and:
+
+\begin{itemize}
+\item
+  Assigns it a number between 0 and 1.
+\item
+  The probability that \textbf{something} occurs is 1.
+\item
+  The probability of the union of any two sets of outcomes that have
+  nothing in common is the \textbf{sum} of their respective
+  probabilities.
+\item
+  The probability that nothing occurs is 0.
+\item
+  The probability that something occurs is 1.
+\item
+  The probability that something is 1 minus the probability that the
+  opposite occurs.
+\item
+  The probability of at least one of two (or more) things that cannnot
+  simulaneously occur (mutually exclusive) is the sum of their
+  respective probabilities.
+\item
+  If an event A \textbf{implies} the occurence of event B, then the
+  probability of A occurring is less than the probability that B occurs.
+\item
+  For any two events the probability that \emph{at least} one occurs is
+  the sum of their probabilities minus their intersection:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    You can't just add probabilities if they have a non-trivial
+    interaction.
+  \item
+    You're adding the intersection twice.
+  \end{itemize}
+\end{itemize}
+
+\[ P(A \cup B) = P(A) + P(B) - P(A \cap B) \]
+
+\hypertarget{probability-mass-functions}{%
+\subsection{Probability Mass
+Functions}\label{probability-mass-functions}}
+
+Densities and mass functions for random variables are the best starting
+point.
+
+\textbf{Random variable}: the numerical outcome of an experiment, can be
+\textbf{discrete} or \textbf{continuous}. Discrete variables have
+values, continuous variables have ranges.
+
+A \emph{probability mass function} (PMF) evaluated at a value
+corresponds to the probability that a random variable takes that value.
+To be a valid PMF:
+
+\begin{itemize}
+\tightlist
+\item
+  It must always be larger than or equal to 0.
+\item
+  The sum of the possible values the random variable can take has to add
+  up to one.
+\end{itemize}
+
+It is used for discrete values.
+
+\hypertarget{bernoulli-distribution}{%
+\subsubsection{Bernoulli Distribution}\label{bernoulli-distribution}}
+
+\$ X = 0 \$ represents tails and \$ X = 1 \$ represents heads.
+
+\[ p(x) = (\frac{1}{2})^x(\frac{1}{2})^{1-x} \text{ for } x=0,1 \]
+
+This is for a for a fair coin. Let \(\theta\) be the probability of a
+head, and \(1-\theta\) be the probability of a tail. We now have:
+
+\[ p(x) = \theta^x (1-\theta)^{1-x} \text{ for } x=0,1 \]
+
+\hypertarget{probability-density-functions}{%
+\subsection{Probability Density
+Functions}\label{probability-density-functions}}
+
+The probabilit density function is associated with continuous variables.
+
+TO be valid density function:
+
+\begin{itemize}
+\tightlist
+\item
+  It must be larger than or equal to zero everywhere.
+\item
+  The total area under it must be one.
+\end{itemize}
+
+Areas under a PDF correspond to probabilities for that random variable.
+The probability of a \emph{specific} value is zero, because the area of
+a single line through the density function is zero. The bell curve is
+initially difficult to work with, so we'll try a simpler version:
+
+\[ 
+f(x) = 
+\Bigg\{
+\begin{array}{ll}
+    2x \text{ for } 0 < x < 1\\
+    0 \text{ otherwise}
+\end{array}
+\]
+
+Imagine this is the proportion of help calls that get addressed by a
+help line on any given day. So the probability that between 20\% and
+60\% of calls get addressed that day is given by the area between .2 and
+.6 on the x-axis, bounded by the slope of the line on the y-axis.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{tibble}\NormalTok{(}
+    \DataTypeTok{x =} \KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\FloatTok{0.1}\NormalTok{),}
+    \DataTypeTok{y =} \DecValTok{2}\OperatorTok{*}\NormalTok{x}
+\NormalTok{) }\OperatorTok{%>%}
+\StringTok{    }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(x,y)) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{geom_line}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{w1_notes_files/figure-latex/pdf-1.pdf}
+
+Is this a mathematically valid density? It's always bigger than 0, and
+its area is
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FloatTok{.5} \OperatorTok{*}\StringTok{ }\DecValTok{1} \OperatorTok{*}\StringTok{ }\DecValTok{2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1
+\end{verbatim}
+
+So it is valid.
+
+Back to our example, what's the probability that 75\% or fewer ({[}0\%,
+75\%{]}) of calls are answered? That's the area under the density
+function between 0 and .75.
+
+This is the area of a smaller right angle triangle, so it's:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FloatTok{.5} \OperatorTok{*}\StringTok{ }\FloatTok{.75} \OperatorTok{*}\StringTok{ }\FloatTok{1.5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.5625
+\end{verbatim}
+
+This is actually a special case of a beta distribution:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{pbeta}\NormalTok{(.}\DecValTok{75}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.5625
+\end{verbatim}
+
+\hypertarget{cdf-and-survival-function}{%
+\section{CDF and Survival Function}\label{cdf-and-survival-function}}
+
+The \textbf{cumulative distribution function} of a random variable,
+\(X\), returns the probability that the random variable is less that or
+equal to the value \(x\):
+
+\[ F(x) = P(X \le x) \]
+
+This applied whether the variable is discrete or continuous.
+
+The \textbf{survival function} of a random variable \(X\) is defined as
+the probability that the random variable is greater than the value
+\(x\):
+
+\[ S(x) = P(X > x) \]
+
+Notice that:
+
+\[ S(x) = 1 - F(x) \]
+
+\hypertarget{quantiles}{%
+\section{Quantiles}\label{quantiles}}
+
+The \(\alpha\)th quantile of a distribution function \(F\) is the point
+\(x_\alpha\) so that \(F(x_\alpha) = \alpha\).
+
+A percentile is simply a quantile with \(\alpha\) expressed as a
+percent. The median is the 50th percentile.
+
+Let's find the median for our previous example:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{qbeta}\NormalTok{(.}\DecValTok{5}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.7071068
+\end{verbatim}
+
+This tells us that on - On 50\% of the days, 70\% or less of phone calls
+are answered. - On 50\% of the days, 70\% or more of phone calls are
+answered.
+
+It's important to note that here we're talking about the
+\textbf{population quantiles}, therefore the median being discussed is
+the \textbf{population median}.
+
+The median most people think of is the \textbf{sample median}, taking a
+sample, ordering them and taking the middle observation.
+
+We need to look at estimators and estimands. Sample median estimating
+the population median. There's assumptions that connect the sample to
+the population but we're going to formally develop them.
+
+\textbf{This is the formal process of statistical inference}. Linking
+the sample to a population.
+
+\hypertarget{conditional-probability}{%
+\section{Conditional Probability}\label{conditional-probability}}
+
+The probability of rolling a one on a die is one in six. If you're given
+extra information that someone rolled the die and it was a one, three or
+five, conditional on this new information you'd now say the probability
+is one in three.
+
+The definition:
+
+\begin{itemize}
+\tightlist
+\item
+  Let \(B\) be an event so that \(P(B) > 0\).
+\item
+  Then the probability of A given the event B has ocurred is the
+  probability of the intersection of A and B, divided by the probability
+  of B
+\end{itemize}
+
+\[ P(A|B) = \frac{ P(A \cap B) }{ P(B) }\]
+
+In the event that A and B are unrelated, then \(P(A|B) = P(A)\).
+
+Taking our previous die roll example, \(A = \{1\}, B = \{1,3,5\}\)
+
+\[
+P(\text{one given roll is odd}) = P(A|B) \\
+= \frac{P(A \cap B)}{P(B)} \\
+= \frac{P(A)}{P(B)} \\
+= \frac{1/6}{1/3} \\
+= \frac{1}{3}
+\] Remembering that A is containted within B, hence the intersection is
+simply A.
+
+\hypertarget{bayes-rule}{%
+\subsection{Bayes' Rule}\label{bayes-rule}}
+
+Bayes' Rule allows us to reverse the role of the conditioning set and
+the set we want the probability of. We want P(B\textbar{}A) when we have
+or easily can calculate P(A\textbar{}B). Bayess rule can do it:
+
+\[ P(B|A) = \frac{
+    P(A|B)P(B)
+}{
+    P(A|B)P(B) + P(A|B^C)P(B^C)
+}\]
+
+Where \(P(A|B^c)\) is the probability of B \textbf{marginalised} over A.
+
+\hypertarget{diagnostic-tests}{%
+\subsubsection{Diagnostic Tests}\label{diagnostic-tests}}
+
+\begin{itemize}
+\tightlist
+\item
+  Let \(+\) and \(-\) be the events that the results of a diagnostic
+  test is positive or negative.
+\item
+  Let \(D\) and \(D^c\) be the event that the subject of the test has or
+  does not have the disease respectively.
+\end{itemize}
+
+\[ Sensitivity = P(+ | D) \] This is the marker of a good test, you want
+the sensitivity to be high.
+
+\[ Specificity = P(-|D^c) \]
+
+The specificity is the probability the test is negative given that the
+subject does not have the disease. Again you want the specificity to be
+high for the test to be good.
+
+If you have a positive test, the number that is of most concern to you
+is
+
+\[ P(D|+) \]
+
+This is the positive predictive value.
+
+If you have a negative test, you are interested in:
+
+\[ P(D^c|-) \] This is the negative predictive value.
+
+In the absenve of a test
+
+\[ P(D) \]
+
+is the prevalence of the disease.
+
+Let's take a made up example:
+
+\begin{itemize}
+\tightlist
+\item
+  Sensitivity of a test: 99.7\%
+\item
+  Specificity of a test: 98.5\%
+\item
+  Prevalence of disease: .01\%
+\end{itemize}
+
+We can plug directly into Bayes' rule. We note that the probability of a
+postive result, given that the person does not have the disease, is one
+minus the probability of a negative result given that the person doesn't
+have the disease: \(P(+|D^c) = 1 - P(-|D^c)\). Similarly
+\(P(D^c) = 1 - P(D)\)
+
+\$\$ P(D\textbar{}+) = \frac{
+    P(+|D) P(D)
+}{
+    P(+|D)P(D) + P(+|D^c)P(D^c)
+} \textbackslash{} = \frac{
+    .997 * .001
+}{
+    .997 * .001 + .015 * .999
+} \textbackslash{}
+
+\$\$
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(.}\DecValTok{997} \OperatorTok{*}\StringTok{ }\FloatTok{.001}\NormalTok{) }\OperatorTok{/}\StringTok{ }\NormalTok{((.}\DecValTok{997} \OperatorTok{*}\StringTok{ }\FloatTok{.001}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(.}\DecValTok{015} \OperatorTok{*}\StringTok{ }\FloatTok{.999}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.06238268
+\end{verbatim}
+
+So the positive predictive value is 6\% for this test. The low positive
+predicive value is largely due to the low prevalence of the disease.
+
+However imagine if there were other factors about the person the test
+was conducted on. The relevant prevalence may then be raised or lowered
+based on these factors. An example would be in an HIV test that the
+person let it be known they were an intravenous drug user. The
+prevalance has changed from the entire population to intravenous drug
+users.
+
+\hypertarget{likelyhood-ratios}{%
+\subsubsection{Likelyhood Ratios}\label{likelyhood-ratios}}
+
+Note that in both \(P(D|+)\) and \(P(D^c|+)\), the denominator is
+exactly the same. If we divide the two equations we get:
+
+\[ \frac{ P(D|+) }{ P(D^c|+) } = \frac{ P(+|D) }{ P(+|D^c) } \times \frac{ P(D) }{ P(D^c) }\]
+
+Whenever you take a probability and divide it by one minus that
+probability you get the odds (this is the first item above).
+
+On the left most side we have the odds of disease given a positive test
+result. On the right we have the odds of disease in the absence of the
+test result.
+
+The factor in the middle is the diagnostic likelihood ratio of a
+positive test result. It is \emph{the factor by which you multiply your
+odds in the presence of a positive test to obtain your post-test odds.}.
+
+\hypertarget{independence}{%
+\section{Independence}\label{independence}}
+
+
+\end{document}

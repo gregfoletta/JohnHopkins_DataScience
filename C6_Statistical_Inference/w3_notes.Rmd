@@ -1,0 +1,285 @@
+---
+title: "Course 6 - Statistical Inference - Week 3 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+```
+
+
+# Introduction
+
+Important you can communicate what you've done, and that others can reproduce what you've done.
+
+How do you develop the 'musical score' for data analysis. Fundamental problem is that there is no detailed notation system for performing data analysis.
+
+Some people may describe what happened, some people may provide the code.
+
+# Concepts and Ideas
+
+The ultimate standard for strengthening scientific evidence is replication of findings. Particularly important in studies that can impact broad policy or regulatory impacts.
+
+**What's wrong with replication?**:
+
+- No time, opportunistic
+- No money
+- Unique
+
+How can we bridge the gap between replication of a study and nothing? This is where reproducability comes in.
+
+## Why Do We Need Reproducable Research?
+
+- New technologies increasing data collection throughput.
+- Existing databases can be merged into new 'megadatabases'.
+- Computing power is greatly increased allowing more sophisticated analyses.
+- For every field 'X' there is a field 'computational X'.
+
+## Research Pipeline
+
+What you generally see at the end of research is the article. However behind the scences there is large research pipeline that has fed into this article.
+
+1. Measured Data
+    - Processing code
+1. Analytic Data
+    - Analytic code
+1. Computational Results
+    - Presentation code
+        1. Figures
+        1. Tables
+        1. Numerical Summaries
+1. Article
+
+## IOM Report
+
+> Following a recent case involving premature use of omics-based tests in cancer clinical trials at Duke University, the National Cancer Institute requested that the IOM establish a committee to recommend ways to strengthen omics-based test development and evaluation. The IOM’s recommendations speak to the many parties responsible for discovery and development of omics-based tests, including investigators, their institutions, sponsors of research, the FDA, and journals. The report identifies best practices to enhance development, evaluation, and translation of omics-based tests while simultaneously reinforcing steps to ensure that these tests are appropriately assessed for scientific validity before they are used to guide patient treatment in clinical trials.
+
+"In the discovery/test validation stage of omics-based tests:"
+
+- Data/metadata used to develop tests should be made publically available.
+- The *computer code* and fully specified computational procedures used for development of the candidate omics-based test should be made sustainably available.
+- Ideally, the computer code that is released will *encompass all of the steps of computational analysis*, including all data preprocessing steps.
+
+## What Do We Need?
+
+- Analytic data are available.
+- Analytic code are available.
+- Documentation of code and data.
+- Standard means of distribution.
+
+## Who are the Players?
+
+- Authors
+    - Want to make the research reproducible.
+    - Want tools for RR to make their lives easier.
+- Readers
+    - Want to reproduce.
+    - Want tools as well.
+
+## Challenges
+
+Authors must undertake considerable effort to put data/results on the web, then the readers have to piece the data together. Readers may not have the tools or resources as the authors.
+
+In reality, authors just put stuff up on the web. The onus is on readers to download the data and try to figure out how to run it.
+
+## Literate Programming
+
+Consider the article as a stream of text and code. Literate programs can be weaved toghether to produce human readable documents, or tangled to produce machine readable code.
+
+The first package to do this was `sweave`, which used Latex as the documentation language and R as the programming language. However there are limitations.
+
+- Latex
+- Lacks caching, multiple plots per page
+
+`knitr` is an alternative. It uses R, but you can bring it a number of other programming languages.
+
+# Structure of Data Analysis
+
+1. Define the question.
+1. Define the ideal data set.
+1. Determine what data you can access.
+1. Obtain the data.
+1. Clean the data.
+1. Exploratory data analysis.
+1. Statistical prediction/modeling.
+1. Interpret results.
+1. Challenge results.
+1. Synthesise/write up results.
+1. Create reproducible code.
+
+## Defining a Question
+
+Defining the question can be the most powerful dimension reduction tool available. By narrowing the question, you can remove variables that are not required.
+
+You can define three areas when defining a question:
+
+1. Raw statistical methods development, requires a large amount of knowledge.
+1. Application of statistical methods without any knowledge of the underlying science. This is the danger zone. What happens here is that different statistical methods are applied to the data until something interesting is found. It is likely you'll find something 'interesting', but it is unlikely to be reproducible or meaningful.
+1. Proper data analysis has a scientific conext, has a general question that is trying to be answered, and appropriate statistical methods can then be applied.
+
+### Example
+
+**Start with a general question**
+
+> Can I automatically detect emails that are SPAM and those that are not?
+
+**Make it concrete**
+
+> Can I use quantitative characteristics of the emails to classify them as SPAM/HAM
+
+## Define the Ideal Data Set
+
+The data set may depend on your goal:
+
+- Descriptive: the whole population.
+- Exploratory; a random sample with many varaibles measured.
+- Inferential: the right population, randomly sampled. Need to consider your sampling mechanism.
+- Prediction: training set and test set from the same population.
+- Causal: data from a randomised study, experimental data.
+- Mechanistic: data about all components of the system.
+
+## Determine What Data You Can Access
+
+Wwe need to determine the data we can access. Sometimes this can be found on the web, other times it might need to be purchased. If the data doesn't exist you may need to generate it yourself.
+
+If you're obtaining data from the internet, remember to note the URI, time and date that it was retrieved.
+
+## Clean the Data
+
+Raw data often needs to be processed. If it's pre-processed, make sure you understand how.
+
+Understand the source of the data: was it census, sample, convenience sample (sample being drawn from that part of the population that is close to hand.)
+
+May need reformatting or sub-sampling, but remember to record down the steps.
+
+**Determine if the data are good enough** - if not, quit or change data. You may not have enough data, you may not have enough variables, or the sampling may not be suitable for the question at hand.
+
+You can't just push on with the data at hand as it may lead to inappropriate inferences.
+
+## Exploratory Data Analysis
+
+- Look at the summaries.
+- Check for missing data, ask 'why is it missing?'
+- Create exploratory plots.
+- Perform exploratory analyses (e.g. clustering, PCA).
+
+
+## Statistical Modeling / Prediction
+
+- Should be informed by the results of your exploratory analysis.
+- Exact methods depend on the quesion of interest.
+- Transformations/procesing should be accounted for when necessary.
+- Measures of uncertainty should be reported.
+
+## Interpret Results
+
+- Use the appropriate lanaguage.
+    - Describes
+    - Correlates with/associated with
+    - Leads to/causes
+    - Predicts
+- Give and explanation - why you think the a particular model was effective.
+- Interpret coefficients.
+- Interpret measures of uncertainty to help calibrate your results.
+
+## Challenge Results
+
+- Challenge all steps:
+    - Question
+    - Data source
+    - Processing
+    - Analysis
+    - Conclusions
+- Challenge measures of uncertainty - are they appropraite?
+- Challenge choices of terms to include in models.
+- Think of potential alternative analyses.
+
+## Synthesise / Write-Up Results
+
+- Lead with the question.
+- Summarise analyses into the story.
+- Don't include every analysis, include the ones that:
+    - Are required for the story.
+    - Are required to address a challenge.
+- Order analyses according to the story, rather than chronologically.
+    - The order that you did the analysis is generally ad-hoc in retrospect.
+- Include 'pretty' figures that contribute to the story.
+
+# Organising a Data Analysis
+
+At a high level you will generally have these files:
+
+- Data
+    - Raw
+    - Processed
+- Figures
+    - Exploratory
+    - Final
+- R Code
+    - Raw / unused
+    - Final
+    - R markdown
+- Text
+    - README
+    - Analysis / report
+    
+## Raw Data
+
+Generally comes in a record format. 
+
+Should be stored in the analysis folder. If accessed from the web, include the URL, description, and date accessed in README. If the data set is not too big you should add it to your source control repository as well.
+
+## Processed Data
+
+Cleaner than the raw data, generally in a table format. Should be named so it is easy to see which script generated the data. The processing script/processed data mapping should occur in the README.
+
+The processed data should be **tidy**.
+
+## Expploratory Figures
+
+Simple figures made when exploring the data, but not necessarily part of the final report. They don't need to be 'pretty'.
+
+## Final Figures
+
+- Usually a small subset of the original figures.
+- Much more readible.
+- Axes/colours set to make the figure clear.
+- Possibly multiple panels.
+- Don't inundate people with huge amounts of visualisations.
+
+## Scripts
+
+- **Raw**: multiple version, may include analyses that are later discarded.
+- **Final**: clearly commented, includes processing details, and only analyses that appear in the final write-up. Important for people to see that chain of events that went into the final report.
+
+## R Markdown
+
+Text and code are integrated, very easy to create. May not be required, but can be useful. Can be an intermediate step between the code and the final report.
+
+## README Files
+
+Not necessary if using R markdown. Should contain a step-by-step process for the analysis.
+
+## Document Text
+
+- Should include a title, introduction (motivation), methods (statistics used), results (including measures of uncertainty), and conclusions (including potential problems).
+- Should tell a story - needs to be coherent.
+- Should include every analysis that was performed.
+- References should be included for statistical methods.
+    - Software, implementation, versions, etc.
+    
+    
+
+
+
+
+
+
