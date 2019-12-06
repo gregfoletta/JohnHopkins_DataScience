@@ -15,4 +15,375 @@ library(tidyverse)
 library(kableExtra)
 ```
 
+# Variability
+
+The variance of a random variable is a measure of *spread* 
+
+$$ Var(X) = E[(X - \mu)^2] = E[X^2] - E[X]^2 $$
+The square root of the variance is the **standard deviation**. The variance is expressed in $units^2$ whereas the standard deviation is in the units of $X$.
+
+What is the variance from the result of a toss of a coin with probability of heads $p$?
+
+$$
+E[X] = 0 \times (1 - p) + 1 \times p = p \\
+E[X^2] = E[X] = p \\
+Var(X) = E[X^2] - E[X] = p - p^2 = p(1-p)
+$$
+
+## Sample Variance
+
+Just like the sample mean and population mean were analogous, the population variance and the sample variance are also analogous.
+
+The population variance is the formulas discussed in the previous section.
+
+The sample variance is the average squared distance of the the observed observations, minus the sample mean, divided by the number of observations minus one.
+
+$$
+S^2 = \frac{
+    \sum_{i=1}(X_i - \bar{X})^2
+}{
+    n - 1
+}
+$$
+We can also talk about the *variance of the sample variance*. The sample variance itself is a function of the data, so it is a random variable, and thus has a population distribution.
+
+The distribution has an expected value and that expected value is the population variance that the sample variance is trying to estimate.
+
+As you collect more data, the sample variance is going to get more concentrated around the population variance it's trying to estimate.
+
+### Unbiased Estimator
+
+We divide by $n-1$ because it gives you an unbiased estimator of the population variance.
+
+Why? The sample mean is always going to sit within your sample, and it *could* be quite far away from the population mean $\mu$
+
+Therefore when you're calculating the sample mean $S^2$ as the distance of each observation from the sample mean, it's going to be a much lower estimate than the true population variance. You're likely to be underestimating.
+
+By dividing by $n-1$, you're estimate is going to be larger (dividing by a smaller number) and closer to the true variance.
+
+
+# Standard Error of the Mean
+
+We know that the average of a random sample from a population is itself a random variable.
+
+$$ E[\bar{X}] = \mu $$
+
+We have a result that relates its variance back to the variance of the original population:
+
+$$ Var(\bar{X}) = \sigma^2/n $$
+
+The variance of the sample mean decreases to zero as it accumulates more data.
+
+This is called the standard error of the mean.
+
+- The variance of the sample mean is $\sigma^2/n$.
+- Its logical estimate is $\sigma^2/n$.
+- The logical estimate of the standard error is $S/\sqrt{n}$.
+
+# Distributions
+
+## Bernoulli
+
+The Bernoulli distribution arises as the result of a binary outcome.
+
+$$ P(X = x) = p^x(1-p)^{1-x} $$
+The mean of a Bernoulli random variable is $p$ and the variance is $p(1-p)$.
+
+## Binomial
+
+A binomial random variable is obtained as the sum of a bunch of IID Bernoulli random variables.
+
+If $X_1, \ldots, X^n$ be IID Bernoulli(p) then $X = \sum_{i=1}^n X_i$ is a binomial random variable.
+
+The binomial mass function looks like the Bernoulli, but with n choose x out the front:
+
+$$ P(X = x) = {n \choose x } p^x(1-p)^{n-x} $$
+
+Remembering that:
+
+$$
+{n \choose x} = \frac{
+    n!
+}{
+    k!(n-k)!
+}
+$$
+which is the number of ways to choose an unordered subset of $k$ elements from a fixed set of $n$ elements:
+
+```{r}
+choose(2, 0)
+choose(2, 1)
+choose(4, 2)
+```
+
+### Example
+
+A couple have 8 children, 7 of which are girls. If each gender has an independent 50% probability for each birth, what's the probability of getting 7 or more girls out of 8 births?
+
+$$ {8 \choose 7}.5^7(1-.5)^.1 + {8 \choose 8} .5^8(1-.5)^0 \approx 0.04 $$
+```{r}
+dbinom(8, 7, .5) + dbinom(8, 8, .5)
+```
+
+## Normal / Gaussian Distribution
+
+Distribution with mean $\mu$ and variance $\sigma^2$ with the formula:
+
+$$ (2\pi\sigma^2)^{-\frac{1}{2}} e^{-(x-\mu)^2/2\sigma^2} $$ 
+If $X$ is a random variance with this density, $E[X] = \mu$ and $Var(X) = \sigma^2$ or as shorthand:
+
+$$ X \sim N(\mu, \sigma^2) $$
+When $\mu = 0$ and $\sigma = 1$, it is called the **standard normal distribution**. Standard normal random variables are often labeled $Z$.
+
+**Probabilities** within the normal:
+- $\mu \pm \sigma$ = 68%
+- $\mu \pm 2\sigma$ = 95%
+- $\mu \pm 3\sigma$ - 99%
+
+**Quantiles**:
+- -1.28 is the 10th percentile
+- -1.645 is the 5th percentile
+- -1.96 is the 2.5th percentile
+- -2.33 is the 1st percentile
+
+By symmetry, 1.28, 1.645, 1.96, 2.33 are the 90th, 95th, 97.5th and 99th percentiles.
+
+
+### Conversion
+
+If $X \sim N(\mu, \sigma^2)$ and we convert to units of standard deviations from the mean, the resulting $Z$ is a standard normal:
+
+$$ Z = \frac{X - \mu}{\sigma} \sim N(0,1) $$
+Conversely to convert from a standard normal back to units of the original variable:
+
+$$ X = Z\sigma + \mu \sim N(\mu, \sigma^2) $$
+
+### Examples
+
+*What is the probability that a $N(\mu, \sigma^2)$ random variable is larger than $x$?*
+
+In R we can use `pnorm()`:
+
+```{r}
+# P(X > 15)
+1 - pnorm(q = 15, mean = 10, sd = 20)
+
+# You can also use lower.tail to simplify this
+pnorm(q = 15, mean = 10, sd = 20, lower.tail = F)
+```
+
+We can also convert $x$ into how many SDs from the mean it is using $\frac{x - \mu}{\sigma}$. If $x$ was around 2 we would know that the area above it is around 2.5%.
+
+## Poisson
+
+This distribution is used to model 'counts'. 
+
+$$
+P(X = x; \lambda) = \frac{
+    \lambda^x e^{-\lambda}
+}{
+    x!
+}
+$$
+The mean of a Poisson distribution is $\lambda$ and the variance is also $\lambda$.
+
+Some uses:
+
+- Modeling count data
+- Modeling event-time or survival data
+- Modeling contingency tables
+- Approximating binomials when $n$ is large and $p$ is small
+
+Whenever you take a sample of people, classify them according to a characteristic, then take the count, this is a contingency table. The Poisson distribution is the default distribution for modeling contingency table data.
+
+### Rates
+
+Can be used to model rates. If we let $X \sim Poisson(Xt)$ where: 
+
+- $\lambda = E[X/t]$, the average number of events per unit of time.
+- $t$ is the total monitoring time.
+
+**Example**: the number of people that show up to a bus stop is Poisson with a mean of 2.5 per hour. If we watch the bus stop for 4 hours, what is the probability that 3 or fewer people show up for the whole time?
+
+```{r}
+# P(x < 3)
+ppois(3, lambda = 2.5 * 4)
+```
+
+### Poisson Binomial Approximation
+
+- $X \sim Binomial(n,p)$
+- $\lambda = np$
+- $n$ gets large
+- $p$ gets small
+
+```{r}
+# Flip a coin with success probability 0.01 five hundred times
+# What's the probability of 2 or fewer successes?
+
+pbinom(2, size = 500, prob = 0.01)
+ppois(2, 500 * 0.01)
+```
+
+## Asymptotics
+
+These refer to behaviour of estimators as the sample size goes to infinity. We can use asumptotics to figure out things about distributions without knowing much about them to begin with.
+
+A profound idea about this is the **central limit theorem** which states that the distribution of averages is often normal, even if the source is not distributed normally.
+
+Asymptotics form the basis for frequency interpretation of probabilities - e.g the long run proportion of flipping 'heads' on a fair coin is 0.5.
+
+### Limits of Random Variables
+
+- The **law of large numbers**:
+    - The average limits to what it's estimating, the population mean.
+    - $\bar{X}_n$ could be the average resultof $n$ coin flips.
+    - As we flipover and over, it eventually converges to the true probability of a head.
+    
+```{r law_of_large_numbers}
+set.seed(1)
+tibble(
+    x = 1:4000,
+    means = cumsum(rnorm(x))/(x)
+) %>%
+    ggplot(aes(x, means)) +
+    geom_line() +
+    labs(x = 'Cumulative Means', y = 'Number of Observations')
+```
+
+We see we get closer and closer to the true population mean 0.
+
+We can do the same thing with coin flips:
+
+```{r law_of_binomial}
+set.seed(1)
+tibble(
+    n = 1:4000,
+    means = cumsum(sample(0:1, max(n), replace = T))/(n)
+) %>%
+    ggplot(aes(n, means)) +
+    geom_line() +
+    labs(x = 'Cumulative Means', y = 'Number of Observations')
+```
+
+We see it converging on 0.5.
+
+An estimator is **consistent** if it converges to what you want to estimate. 
+
+The law of large numbers (LLN) says that the sample mean of IID samples is consistent wit the population mean. The sample variance and sample standard deviation are consistent as well.
+
+# The Central Limit Theorem
+
+**THe distribution of averages of IID variables (properly normalised) becomes that of a standard normal as the sample size increases.**
+
+The most useful way to think about the CLT is that $\bar{X}_n$ is approximately $N(\mu,\sigma^2\n)$.
+
+## Coin CLT
+
+Let $X_i$ be the $\{0,1\}$ result of the $i^{th}$ flip of a possibly unfair coin.
+
+- The sample proportion, $\hat{p}$, is the average of the coing flips.
+- $E[X_i] = p$ and $Var(X_i)$ - $p(1-p)$
+- Standard error of the mean is $\sqrt{p(1-p)/n}$
+
+Then the following equation:
+
+$$
+\frac{
+    \hat{p} - p
+}{
+    \sqrt{ p(1-p) / n}
+}
+$$
+
+should be approximately normally distributed if $n$ is large enough.
+
+The speed of which it converges to the Gaussian is goverend by how biased the coin is. If $p = 0.9$, it will take much longer for the bell curve shape to appear.
+
+In the real world: [Galton's Quincunx](https://www.youtube.com/watch?v=6YDHBFVIvIs).
+
+# Confidence Intervals
+
+We recall the sample mean $\bar{X}$ is normally distributed with population mean $\mu$ and standard deviation $\sigma/\sqrt{n}$.
+
+The probability that $\bar{X} \pm 2\sigma/\sqrt{n}$ is 95%.
+
+So if we took samples of size $n$ from a population, 95% of the time the real $/mu$ would be contained within the confidence interval.
+
+## Coin Flip
+
+In the event that $\bar{X}$ is 0 or 1 with a common success probability $p$, then $\sigma^2 = p(1-p)$.
+
+The interval takes the form:
+
+$$ \hat{p} \pm z_{1-\alpha/2}\sqrt{ \frac{ p(1-p) }{ n } } $$
+
+The $z_{1-\alpha/2}$ is known as the probit. So for a 95% confidence interval, $\alpha = 1 - .95$, $1-\frac{\alpha}{2} = 0.975$, and $z = 1.96$, the inverse of the cumulative distribution.
+
+```{r}
+round(qnorm(.975), 2)
+```
+
+
+We don't know $p$, but we can replace it by $\hat{p}$ in the standard error. This is called the [Wald confidence interval]{https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval}.
+
+For 95% intervals:
+
+$$ \hat{p} \pm \frac{ 1 }{ \sqrt{n} } $$
+
+is a quick estimate.
+
+## Bernoulli with Different p
+
+When $p$ is not .5 in a Bernoulli trial, $n$ needs to be larger for the CLT to apply.
+
+The quick fix is to form the interval with:
+
+$$
+\hat{p} = \frac{
+    X + 2
+}{
+    n + 4
+}
+$$
+then churn through the confidence interval procedure as usual. This is called the [Agresti/Coull Interval](https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Agresti%E2%80%93Coull_interval).
+
+## Poisson Interval
+
+> A nuclear pump failed 5 times out of 94.32 days. Give a 95% confidence interval for the failure rate.
+
+We assume the failures are Poisson distributed.
+
+- $X \sim Poisson(\lambda t)$
+    - Where $\lambda$ is the failure rate and $t$ is the number of days.
+- Estimate $\hat{\lambda} = X/t$
+- $Var(\hat{\lambda}) = \lambda/t$
+- $\hat{\lambda} / t$ is our variance estimate.
+
+```{r}
+# Confidence interval estimate for the rate
+x <- 5
+t <- 94.32
+lambda <- x/t
+round( lambda + c(-1,1) * qnorm(0.975) * sqrt(lambda/t), 3)
+
+# Guarantees the 95% coverage, which may be conservative
+poisson.test(x, T = t)$conf
+```
+
+# Summary
+
+- The law of large numbers state that averages of IID samples converge to the population means they are estimating.
+    - Poisson rates also converge to the rates they're estimating.
+- The CLT states that averages are approximately normal with distributions:
+    - Centered at the population mean.
+    - With standard deviation equal to the standard error of the mean.
+    - CLT gives no guarantee that $n$ is large enough.
+- Taking the mean and adding and subtracting the relevant normal quantile times the SE yields a confidence interval for the mean.
+    - Adding and subtracting 2 SEs works for 95% intervals
+- Confidence intervals get wider as the coverage increases.
+    - Why? The more sure you want to be that the interval contains the parameter, the wider you make the interval.
+- The Poisson and binomial cases have exact intervals that don't requirethe CLT.
+    - There are quick fixes available for the binomial.
+    
 
