@@ -43,3 +43,5 @@ output:
 ## Course 6 - Statistical Inference
 
 * [Week 1 Notes](C6_Statistical_Inference/w1_notes.html)
+* [Week 2 Notes](C6_Statistical_Inference/w2_notes.html)
+* [Week 3 Notes](C6_Statistical_Inference/w3_notes.html)

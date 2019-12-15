@@ -16,268 +16,258 @@ library(kableExtra)
 ```
 
 
-# Introduction
+# T Confidence Intervals
 
-Important you can communicate what you've done, and that others can reproduce what you've done.
+We previously discussed confidence intervals of the form $Estimate \pm ZQ \times StdErr_{Est}$.
 
-How do you develop the 'musical score' for data analysis. Fundamental problem is that there is no detailed notation system for performing data analysis.
+Where $ZQ$ is a standard distribution quantile.
 
-Some people may describe what happened, some people may provide the code.
+We'll now look at methods for small samples, which will use $Estimate \pm TQ \times StdErr_{Est}$, where $TQ$ is a T-distribution quantile.
 
-# Concepts and Ideas
+## Gosset's t distribution
 
-The ultimate standard for strengthening scientific evidence is replication of findings. Particularly important in studies that can impact broad policy or regulatory impacts.
+Invented by William Gosset under the pseudonym 'Student'. Hence "Student's t-distribution".
 
-**What's wrong with replication?**:
+Thicker tails, and indexed by degrees of freedom, rather than mean and variance.
 
-- No time, opportunistic
-- No money
-- Unique
+It assumes the underlying data are IID Gaussian with the result that
 
-How can we bridge the gap between replication of a study and nothing? This is where reproducability comes in.
+$$
+\frac{
+    \bar{X} - \mu
+}{
+    S / \sqrt{n}
+}
+$$
 
-## Why Do We Need Reproducable Research?
+follows Gosset's t distribution with $n-1$ degrees of freedom.
 
-- New technologies increasing data collection throughput.
-- Existing databases can be merged into new 'megadatabases'.
-- Computing power is greatly increased allowing more sophisticated analyses.
-- For every field 'X' there is a field 'computational X'.
+When we replace $\sigma$ with $S$, it turns into a t-distribution. When $n$ increases, the distinction becomes irrelevant, but with small $n$ the distinction can be quite wide. If you use the standard normal with small sample sizes you get confidence intervals that are too narrow.
 
-## Research Pipeline
+Interval is $\bar{X} \pm t_{n-1} S / \sqrt{n}$, where $t_{n-1}$ is the relevant quantile.
 
-What you generally see at the end of research is the article. However behind the scences there is large research pipeline that has fed into this article.
+We take a look at the t-distribution versus a standard normal with 3 degrees of freedom:
 
-1. Measured Data
-    - Processing code
-1. Analytic Data
-    - Analytic code
-1. Computational Results
-    - Presentation code
-        1. Figures
-        1. Tables
-        1. Numerical Summaries
-1. Article
+```{r t_vs_gaussian}
+tibble(
+    x = seq(-4, 4, 0.01),
+    z = dnorm(x),
+    t = dt(x, 3)
+) %>%
+    gather('dist', 'y', c('z', 't')) %>%
+    ggplot() +
+    geom_line(aes(x, y, colour = dist))
+```
 
-## IOM Report
+We can see the tails are much fatter.
 
-> Following a recent case involving premature use of omics-based tests in cancer clinical trials at Duke University, the National Cancer Institute requested that the IOM establish a committee to recommend ways to strengthen omics-based test development and evaluation. The IOM’s recommendations speak to the many parties responsible for discovery and development of omics-based tests, including investigators, their institutions, sponsors of research, the FDA, and journals. The report identifies best practices to enhance development, evaluation, and translation of omics-based tests while simultaneously reinforcing steps to ensure that these tests are appropriately assessed for scientific validity before they are used to guide patient treatment in clinical trials.
+## Notes
 
-"In the discovery/test validation stage of omics-based tests:"
+- Technically assumes the data are IID normal, though it is robust in this assumption.
+- Works well whenever the disibutrion is roughly symmetric and mound shaped.
+- Paired observations are often analysed using the t interval by taking differences.
+    - For example measuring something once, then measuring it again a day later.
+- For large degrees of freedom, the t quantiles become the same as standard normal quantiles.
+    - Suggest always use the t-interval.
+- For skewed distributions, the spirit of the t interval assumptions are violated.
+    - Consider taking logs or using a different summary like the median.
+- For discrete data, other intevals such as the Poisson are available.
 
-- Data/metadata used to develop tests should be made publically available.
-- The *computer code* and fully specified computational procedures used for development of the candidate omics-based test should be made sustainably available.
-- Ideally, the computer code that is released will *encompass all of the steps of computational analysis*, including all data preprocessing steps.
+## Example
 
-## What Do We Need?
+Looking at the sleep data that was originally used in Gosset's paper:
 
-- Analytic data are available.
-- Analytic code are available.
-- Documentation of code and data.
-- Standard means of distribution.
+```{r sleep_data}
+head(sleep)
 
-## Who are the Players?
+sleep %>%
+    ggplot(aes(as.numeric(group), extra)) +
+    geom_line(aes(colour = ID)) +
+    geom_point(size = 4, colour = 'lightblue', shape = 21) +
+    labs(x = 'Group', y = 'Extra')
 
-- Authors
-    - Want to make the research reproducible.
-    - Want tools for RR to make their lives easier.
-- Readers
-    - Want to reproduce.
-    - Want tools as well.
+# Confidence intervals
+sleep %>%
+    t.test(extra ~ I(relevel(group, 2)), paired = T, data = .) %>%
+    .$conf.int
+```
 
-## Challenges
+```{r sleep_diff}
+sleep %>%
+    group_by(group) %>%
+    mutate(diff =  extra - extra)
+```
 
-Authors must undertake considerable effort to put data/results on the web, then the readers have to piece the data together. Readers may not have the tools or resources as the authors.
+## Independent Group t Confidence Intervals
 
-In reality, authors just put stuff up on the web. The onus is on readers to download the data and try to figure out how to run it.
+- Suppose we want to compare the mean bloud pressure between two groups in a randomised trial: those who received the treatment and those who received a placebo.
+- We cannot use the paired t test because groups are independent and may have different sample sizes.
 
-## Literate Programming
+The confidence interval is:
 
-Consider the article as a stream of text and code. Literate programs can be weaved toghether to produce human readable documents, or tangled to produce machine readable code.
+$$
+\bar{Y} - \bar{X} \pm 
+t_{n_x + n_y-2,1-\alpha/2}
+S_p
+\bigg(\frac{1}{n_x} + \frac{1}{n_y}\bigg) ^ {1/2}
+$$
 
-The first package to do this was `sweave`, which used Latex as the documentation language and R as the programming language. However there are limitations.
-
-- Latex
-- Lacks caching, multiple plots per page
-
-`knitr` is an alternative. It uses R, but you can bring it a number of other programming languages.
-
-# Structure of Data Analysis
-
-1. Define the question.
-1. Define the ideal data set.
-1. Determine what data you can access.
-1. Obtain the data.
-1. Clean the data.
-1. Exploratory data analysis.
-1. Statistical prediction/modeling.
-1. Interpret results.
-1. Challenge results.
-1. Synthesise/write up results.
-1. Create reproducible code.
-
-## Defining a Question
-
-Defining the question can be the most powerful dimension reduction tool available. By narrowing the question, you can remove variables that are not required.
-
-You can define three areas when defining a question:
-
-1. Raw statistical methods development, requires a large amount of knowledge.
-1. Application of statistical methods without any knowledge of the underlying science. This is the danger zone. What happens here is that different statistical methods are applied to the data until something interesting is found. It is likely you'll find something 'interesting', but it is unlikely to be reproducible or meaningful.
-1. Proper data analysis has a scientific conext, has a general question that is trying to be answered, and appropriate statistical methods can then be applied.
-
-### Example
-
-**Start with a general question**
-
-> Can I automatically detect emails that are SPAM and those that are not?
-
-**Make it concrete**
-
-> Can I use quantitative characteristics of the emails to classify them as SPAM/HAM
-
-## Define the Ideal Data Set
-
-The data set may depend on your goal:
-
-- Descriptive: the whole population.
-- Exploratory; a random sample with many varaibles measured.
-- Inferential: the right population, randomly sampled. Need to consider your sampling mechanism.
-- Prediction: training set and test set from the same population.
-- Causal: data from a randomised study, experimental data.
-- Mechanistic: data about all components of the system.
-
-## Determine What Data You Can Access
-
-Wwe need to determine the data we can access. Sometimes this can be found on the web, other times it might need to be purchased. If the data doesn't exist you may need to generate it yourself.
-
-If you're obtaining data from the internet, remember to note the URI, time and date that it was retrieved.
-
-## Clean the Data
-
-Raw data often needs to be processed. If it's pre-processed, make sure you understand how.
-
-Understand the source of the data: was it census, sample, convenience sample (sample being drawn from that part of the population that is close to hand.)
-
-May need reformatting or sub-sampling, but remember to record down the steps.
-
-**Determine if the data are good enough** - if not, quit or change data. You may not have enough data, you may not have enough variables, or the sampling may not be suitable for the question at hand.
-
-You can't just push on with the data at hand as it may lead to inappropriate inferences.
-
-## Exploratory Data Analysis
-
-- Look at the summaries.
-- Check for missing data, ask 'why is it missing?'
-- Create exploratory plots.
-- Perform exploratory analyses (e.g. clustering, PCA).
-
-
-## Statistical Modeling / Prediction
-
-- Should be informed by the results of your exploratory analysis.
-- Exact methods depend on the quesion of interest.
-- Transformations/procesing should be accounted for when necessary.
-- Measures of uncertainty should be reported.
-
-## Interpret Results
-
-- Use the appropriate lanaguage.
-    - Describes
-    - Correlates with/associated with
-    - Leads to/causes
-    - Predicts
-- Give and explanation - why you think the a particular model was effective.
-- Interpret coefficients.
-- Interpret measures of uncertainty to help calibrate your results.
-
-## Challenge Results
-
-- Challenge all steps:
-    - Question
-    - Data source
-    - Processing
-    - Analysis
-    - Conclusions
-- Challenge measures of uncertainty - are they appropraite?
-- Challenge choices of terms to include in models.
-- Think of potential alternative analyses.
-
-## Synthesise / Write-Up Results
-
-- Lead with the question.
-- Summarise analyses into the story.
-- Don't include every analysis, include the ones that:
-    - Are required for the story.
-    - Are required to address a challenge.
-- Order analyses according to the story, rather than chronologically.
-    - The order that you did the analysis is generally ad-hoc in retrospect.
-- Include 'pretty' figures that contribute to the story.
-
-# Organising a Data Analysis
-
-At a high level you will generally have these files:
-
-- Data
-    - Raw
-    - Processed
-- Figures
-    - Exploratory
-    - Final
-- R Code
-    - Raw / unused
-    - Final
-    - R markdown
-- Text
-    - README
-    - Analysis / report
+- The mean of group $Y$ minus the mean of group $X$
+- Times the relevant t quantile
+    - The degrees of freedom are $n_x + n_y - 2$, where $n_{foo}$ is the number of observations in a group.
+- The entire $S_p$ section is the standard error of the difference.
+    - Notice that as the number observations grows, $n$ gets large and so this entire section gets smaller.
     
-## Raw Data
+The $S_p^2$ is the pooled variance:
 
-Generally comes in a record format. 
+$$
+S^2_p = \frac{
+    (n_x-1)S^2_x + (n_y-1)S^2_y
+}{
+    n_x + n_y -2
+}
+$$
+If we're willing to assume that the variance is the same in each group - which is reasonable given they're randomised. However the sample sizes are differnet, so we need to weight the variances.
 
-Should be stored in the analysis folder. If accessed from the web, include the URL, description, and date accessed in README. If the data set is not too big you should add it to your source control repository as well.
+Remember this assumes the same variance.
 
-## Processed Data
+# Unequal Variances
 
-Cleaner than the raw data, generally in a table format. Should be named so it is easy to see which script generated the data. The processing script/processed data mapping should occur in the README.
+$$
+\bar{Y} - \bar{X} \pm t_{df} \times
+\bigg(
+\frac{ s^2_x }{ n_x } +
+\frac{ s^2_y }{ n_y } 
+\bigg)^{1/2}
+$$
 
-The processed data should be **tidy**.
+If the $x$ oservations and the $y$ observations are IID normal, potentially with different means and different variances, the relevant normalised statistic does not follow a t-distribution.
 
-## Expploratory Figures
+It can be approximated by a rather elaborate formula for the degrees of freedom:
 
-Simple figures made when exploring the data, but not necessarily part of the final report. They don't need to be 'pretty'.
+$$
+df = \frac{
+(S^2_x/n_x + S^2_y/n_y)^2
+}{
+\bigg(\frac{S^2_x}{n_x}\bigg)^2 / (n_x - 1) +
+\bigg(\frac{S^2_y}{n_y}\bigg)^2 / (n_y - 1)
+}
+$$
 
-## Final Figures
+When you're in doubt, use the unequal variance.
 
-- Usually a small subset of the original figures.
-- Much more readible.
-- Axes/colours set to make the figure clear.
-- Possibly multiple panels.
-- Don't inundate people with huge amounts of visualisations.
+## Other Kinds of Data
 
-## Scripts
+For binomial data there's lots of ways to compare two groups:
 
-- **Raw**: multiple version, may include analyses that are later discarded.
-- **Final**: clearly commented, includes processing details, and only analyses that appear in the final write-up. Important for people to see that chain of events that went into the final report.
+- Relative risk, risk difference, odds ratio.
+- Chi-squared tests, normal approximations, exact tests.
 
-## R Markdown
+For count data, there's also chi-squared tests and exact tests.
 
-Text and code are integrated, very easy to create. May not be required, but can be useful. Can be an intermediate step between the code and the final report.
+# Hypothesis Testing
 
-## README Files
+Starts with the null hypothesis represents the status quo, and is usually labeled $H_0$. The null hypothesis is assumed to be true and statistical evidence is required to reject it.
 
-Not necessary if using R markdown. Should contain a step-by-step process for the analysis.
+Four scenarios:
 
-## Document Text
+- Accept the null
+- Type I error (false positive)
+- Reject the null
+- Type II error (false negative)
 
-- Should include a title, introduction (motivation), methods (statistics used), results (including measures of uncertainty), and conclusions (including potential problems).
-- Should tell a story - needs to be coherent.
-- Should include every analysis that was performed.
-- References should be included for statistical methods.
-    - Software, implementation, versions, etc.
+Consider a court of law, the null hypothesis is that the defendant is innocent. We require a standard on the available evidence to reject the null hypothesis and convict.
+
+If we set a low standard, we increase the amount of people convicted (type I errors). However we would increase the percentage of guilty people convicted (correctly rejecting the null).
+
+If we set a high standard, we increase the percentage of people let free (correctly accepting the null) while we would also increase the percentage of guilty people let free.
+
+## Rejection
+
+We reject the null hypothesis if $\bar{X}$ was larger than some constant, $C$. $C$ is chosen so that the probability of a type I error, $\alpha$, is 0.05. $\alpha = \text{Type I error rate}$, which is the probability of rejecting the NH when in fact the hypothesis is correct.
+
+The standard of the error is $\sigma^2/\sqrt{n}$. Under $H_0 \bar{X} \sim N(\mu, \sigma)$. We want to chose C so that $P(\bar{X} \gt C; H_0)$ is 5%.
+
+The 95th percentile of a standard deviation is 1.645, so $C = \mu + 1 \times 1.645$.
+
+In general we don't convert $C$ back to the original scale, we can just reject because of the **Z-score**, which is how many standard errors the sample mean is above the hypothesised mean.
+
+Formally, whenever:
+
+$$ \frac{ \sqrt{n}(\bar{X} - \mu_0) }{ s } \gt Z_{1-\alpha} $$
+
+# T Tests
+
+When $n$ is small (e.g. 16) the test statistic, how many estimated standard errors from the hypothesised mean the sample mena is, follows a T-distribution with $n-1$ (e.g. 15) degrees of freedom.
+
+ We then calculate the 95th percentile of the T-distribution rather than the normal (`qw(.95, x)`).
+ 
+ The two sided tests rejects the null if it's too big *or* too small. Often used even if it doesn't make sense in the scientific setting.
+
+In order to get the 5% probability of rejecting the null, we've got 2.5% on each tail. We thus use `qt(0.975, 15)`.
+
+## Example
+
+We want to test whether the population of son's heights is equivalent to the population of father's heights - i.e. the population mean is 0.
+
+```{r father_son, message = F}
+library(UsingR)
+
+t.test(father.son$fheight - father.son$sheight)
+```
+
+Remembering the t-statistic is the ratio of the departure of the estimated value of a parameter from its hypothesised value to the standard error.
+
+$$ t_{\hat{\beta}} = \frac{ \hat{\beta} - \beta_0 }{ SE(\hat{\beta} ) } $$
+
+Here our $\beta_0 = 0$.
+
+In our case we have a t-statistic of 11, which is large, so we reject the null hypothesis.
+
+## Two Group Intervals
+
+We know how to do two group T tests: we have covered independent group T intervals. The rejection rules are the same.
+
+- Test $H_0 : \mu_1 = \mu_2$
+
+# P-Values
+
+P-values are a conveinient way to communicate the results of a hypothesis test. Formally the p-value is the probability of getting data as or more extreme than the observed data in favor of the alternative. The calculation is done assuming the null is true.
+
+**Approach**:
+
+- Define the hypothetical distribution of a data summary (statistic) when "nothing is going on" - the *null hypothesis*.
+- Calculate the summary/statistic with the data we have - *test statistic*.
+- Compare what we calculated to our hyptothetical distribution and see if the value is "extreme" - *p-value*.
+
+If the P-value is small, then either $H_0$ is true and we have observed a rare event, or $H_0$ is false.
+
+## Example
+
+We get a t-statistic of 2.5 for 15 degrees of freedom testing $H_0 : \mu = \mu_0$ versus $H_a : \mu \gt \mu_0$
+
+What's the probability of getting a T-statistic as large as 2.5?
+
+```{r}
+pt(q = 2.5, df = 15, lower.tail = F)
+```
+We see the probabilit is 1.2%.
+
+For a two sided hypothesis test where the critical area is on both tails of the distribution, double the smaller of the two one-sided hypothesis test values to take into account the tails. Most times software that reports the p-value is performing a two-tailed test.
+
+## Poisson Example
+
+    > Suppose that a hospital has an infection rate of 10 infections per 100 person/days at a risk (rate) of 0.1 during the last monitoring period. Assume that an infection rate of 0.05 is an important benchmark. Given the model, could the observed rate being larger than 0.05 be attributed to chance?
+
+- Under $H_0 : \lambda = 0.05$ so that $\lambda_0 \times 100 = 5$.
+- Consider $H_a : \lambda \gt 0.05$
+
+```{r}
+# The 9 is (10 - 1) so that we're getting the upper tail or "10 or more"
+ppois(9, 5, lower.tail = F)
+```
     
     
-
 
 
 
