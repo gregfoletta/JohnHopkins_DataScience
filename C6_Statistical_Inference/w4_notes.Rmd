@@ -16,3 +16,287 @@ library(kableExtra)
 ```
 
 
+# Power
+
+Power is the probability of rejecting the null hypothesis when it is false - therefore it's a good thing and you want more of it.
+
+Consider testing a treatment with 3 people in each group (active / placebo). You wouldn't be surprised to get a null result, as you don't have much power. However if you have 300 people in each group, you would be surprised.
+
+A type II error is failing to reject the null hypothesis when it is in fact false. I'ts usually called $\beta$, remembering the type I error rate is $\alpha$.
+
+$$ Power = 1 / \beta $$
+
+## Example
+
+Consider: a test where $H_0 : \mu = 30$ versus $H_a : \mu \gt 30$
+
+We have a t-statistic $t_{stat} = \frac{ X - 30\ }{ s / \sqrt{n} }$. We're going to assume that this statistic follows the t-distribution under the null hypothesis.
+
+We calculate the probability that this t-statistic is greater than the $t_{1 - \alpha}$ quantile of the t-distribution. So if a 5% type I error eate is acceptable, we're looking at $t_{.95, n - 1}$.
+
+That probability is $\alpha$ if we calculate under the null hypothesis.
+
+$$ P\bigg( \frac{ X - 30\ }{ s / \sqrt{n} } \gt t_{1 - \alpha,n - 1} \text{ ; } \mu_a = 30 \bigg) = \alpha$$
+
+Power is the same calculation, but we're plug in a $\mu_a$ for some value greater than 30.
+
+$$ P\bigg( \frac{ X - 30\ }{ s / \sqrt{n} } \gt t_{1 - \alpha,n - 1} \text{ ; } \mu = \mu_a \bigg)$$
+
+Imagine wanting to conduct a test whether $\mu_0 = 30$ or larger for a population. They were interested in a difference as large as $\mu_a = 32$. They were hoping to get an $n = 16$ and they knew $\sigma = 4$.
+
+```{r}
+mu_0 <- 30
+mu_a <- 32
+sigma <- 4
+n <- 16
+
+z <- qnorm(1 - .95)
+
+# Plugging in mu = mu_0, we get the 1 - alpha
+pnorm(
+    q = mu_0 + z * sigma / sqrt(n),
+    mean = mu_0,
+    sd = sigma/sqrt(n)
+)
+
+# Plugging in mu_a
+pnorm(
+    q = mu_a + z * sigma / sqrt(n),
+    mean = mu_0,
+    sd = sigma/sqrt(n)
+)
+```
+
+It jumps up to 64% - so there's a 64% probability of detecting $\mu_a \ge 32$ if we conduct this experiment.
+
+In the following grapghs we can see the power of $\mu_a$ in the previous scenario for different values of $n$. We can see that for each one we have the same value at $\mu_a = 30$. As our $\mu_a$ increases, so does our probability of detecting it. Also if we have a larger $n$, our probability increases.
+
+```{r}
+rm(mu_a)
+
+mu_0 <- 30
+sigma <- 4
+n <- 16
+z <- qnorm(1 - .95)
+
+tibble(
+    mu_a = seq(30, 35, .1),
+    n = list(2^(4:8))
+) %>%
+    unnest() %>%
+    mutate(power = pnorm(
+            q = mu_a + z * sigma / sqrt(n),
+            mean = mu_0,
+            sd = sigma/sqrt(n)
+        )
+    ) %>%
+    ggplot() +
+    geom_line(aes(mu_a, power, colour = as.factor(n))) +
+    labs(x = expression(mu[a]), y = 'Power')
+```
+
+The best way to describe power is with this graph:
+
+```{r}
+tibble(
+    x = seq(25, 35, by = .1),
+    mu_0 = 30,
+    mu_a = 32,
+    n = 16,
+    sigma = 4
+) %>% 
+    gather(hypothesis, mu, mu_0, mu_a) %>%
+    mutate(p = dnorm(x, mu, sigma / sqrt(n))) %>%
+    ggplot() +
+    geom_line(aes(x, p, colour = hypothesis)) +
+    geom_vline(xintercept = qnorm(.95, 30, sigma/sqrt(n)))
+```
+
+The red curve shows us, **under the null hypothesis**, the distribution of the sample mean. The blue curve shows us the distribution **under the alternative hypothesis**.
+
+We've set a critical value so that, if we get a sample mean larger than a specific threshold, we reject the null hyopthesis; that's the line. We set the line so that if the null hypothesis is true, the probability is 5%, which is the area under the *red curve to the right the line*.
+
+Power is the probability of rejecting the null hypothesis if the alternative is true, which is the area under the *blue curve to the right of the line. One minus the power, or the type II error rate, is the area under the blue curve to the left of the line. 
+
+If we move the line to the right, we're specifying a requirement of having more evidence before rejecting the null hypothesis, and thus this results in less power.
+
+## Equation
+
+When testing $H_a \text{ : } \mu \gt \mu_0$, if power is $1 - \beta$ then
+
+$$
+1 - \beta = P(X \gt \mu_0 + z_{1-\alpha} \frac{\sigma}{\sqrt{b}} \text{ ; } \mu = \mu_a)
+$$
+Where $X \sim N(\mu_a, \sigma^2/n)$
+
+Unknowns : $\mu_a, \sigma, n, \beta$
+Knowns: $\mu_a, \alpha$
+
+Specify three of the unknowns and solve for the remainder.
+
+When planning a study, you're usually concerned with $n$ and $\beta$, knowing what power you want out of the study.
+
+The calculation for $\mu \lt \mu_0$ is similar. When doing $\mu \ne \mu_0$, calculate one sided power using $\alpha/2$, although this is an approximation.
+
+Power can be thought of as depending on a function of the parameters: the difference of the means divided by the standard error:
+
+$$ \frac{ \sqrt{n}(\mu_a - \mu_0 )}{ \sigma } $$
+This is called the **effect size**. It is unitless, so can be interpreted across settings.
+
+# T Test Power
+
+The power is
+
+$$ P\Bigg( \frac{ X - \mu_0 }{ S / \sqrt{n} } \gt t_{1-\alpha, n - 1} \text{ ; } \mu = \mu_a\Bigg) $$
+So we're going to reject if out t-statistic is bigger than a t quantile, calculated under the hypothesis that $\mu = \mu_a$.
+
+It turns out that the t-statistic *does not follow a t-distribution* if the true mean is not $\mu_0$. It follows a **non-central t-distribution*. Use `power.t.test()` to evaluate. Omit one of the parmeters and it will solve for it.
+
+
+```{r}
+# 'delta' is the difference in the means
+power.t.test(n = 16, delta = 2, sd = 4, type = 'one.sample', alternative = 'one.sided')$power
+
+power.t.test(power = .8, delta = 2, sd = 4, type = 'one.sample', alternative = 'one.sided')$n
+```
+
+
+# Multiple Testing
+
+Hypothesis testing is commonly overused. Correcting for multiple testing avoids false positives.
+
+There are a number of different error rates with multiple tests:
+
+- False positive: the rate at which false results are called significant.
+    - $E\Big[\frac{ V }{ M_0 }\Big]$
+- Family wise error rate (FWER): the probability of at least one false positive.
+    - $Pr(V \ge 1)$
+- False dicovery rate: the rate at which claims of significance are false.
+    - $E\Big[ \frac{ V }{ R } \Big]$
+
+|                     | $\beta = 0$ | $\beta \ne 0$ | Hypothesis |
+|---------------------|-------------|---------------|------------|
+| Claim $\beta = 0$   | $U$         | $T$           | $m - R$    |
+| Claim $\beta \ne 0$ | $V$         | $S$           | $R$        |
+| Claims              | $m_0$       | $m - m_0$     | $m$        |
+
+- The type I error or false positive ($V$) says the parameter does not equal zero when it does.
+- The type II error rate of false negative ($T$) says the parameter equals zero when it doesn't.
+
+
+
+## Controlling the False Positive Rate
+
+If p-values are correctly calculated calling all $p \lt \alpha$ significant will control the false positive rate at a levle $\alpha$ on average.
+
+If we perform 10,000 hypothesis tests and $\beta = 0$ for all of them, and $p \lt 0.05$ as significant, we are expected to get 500 false positives (10,000 * 0.05).
+
+## Controling Family-wise Error Rate (FWER)
+
+The **Bonferroni correction** is the oldest multiple testing correction. The idea is:
+
+- Perform $m$ tests
+- You want to control FWER so that $Pr(V \ge 1) \lt \alpha$.
+- Calculate p-values normally.
+- Set $\alpa_{fwer} = \alpha / m
+- Call all pvalues less that $\alpha_{fwer}$ significant.
+
+It's easy to calculate, however it's very conservative.
+
+## Controlling the False Discovery Rate
+
+- Suppose you perform $m$ tests
+- You want to control FDR at a level $\alpha$ so $E\Big[ \frac{ V }{ R } \Big]$
+- Calculate p-values normally
+- Order the p-values from smallest to largest $P_{(1)}, \ldots, P_{(m)}$
+- Call any $P_i \le \alpha \times \frac{i}{m}$ significant.
+
+Still easy, less conservative (maybe much less).
+
+It allows for more false positives, and may behave strangely under dependence.
+
+## Adjusted p-values
+
+- You can calculate 'adjusted p-values'.
+- These are not p-values anymore
+- Can be used directly without adjusting $\alpha$.
+- Example:
+    - P-values are $P_1, \ldots, P_m$
+    - Adjust them by taking $P_i^{fwer} = max(m \times P_i, 1)$
+    - Then if you call all $P_i^{fwer} \lt \alpha$ significant you will control the FWER.
+    
+## Notes
+
+Multiple testing is an entire sub-field, but a basic Bonferroni/BH correction is usually enough.
+
+If there is strong dependence between the tests there may be problems - consider using the 'BY' method.
+
+A good resource is [Multiple Testing Procedures andApplications to Genomics](https://pdfs.semanticscholar.org/8e35/f07f67e23a37e9a6da04d5c0565c54fcfcbc.pdf).
+
+# Resampling
+
+Resampling based procedures are ways to perform population based statistical inferences while living within our data.
+
+## Bootstrapping
+
+The bootstrap is a useful tool for constructing confidence intervals and calculating standard errors for difficult statistics. For example, how would one derive a confidence interval for the median?
+
+Bootstrapping says: let's repeatedly sample from our empirical distribution. It's sampling **with** replacement.
+
+In practice the bootstrap is always carried out using simulation.
+
+The procedure:
+
+- Sample $n$ observations with replacement from the observed data.
+- Take the median (or statistic) of the simulated dataset.
+- Repeat these two steps $B$ times.
+- These medians are approximately drawn from the sampling distribution of the median of $n$ observations, therefore we can:
+    - Draw a histogram
+    - Calculate the standard deviation and standard error.
+    - Take the 2.5% and 97.5th% percentiles to get a confidence interval.
+    
+```{r population_a}
+set.seed(1)
+population <- rnorm(20000, sd = 10)
+median(population)
+sample <- population %>% sample(30)
+median(sample)
+```
+```{r bootstrap}
+library(modelr)
+set.seed(1)
+boot <- 
+    tibble(
+        resample = map(1:40000, ~resample_bootstrap(tibble(d = sample)))
+    ) %>%
+    mutate(
+        median = map_dbl(resample, ~median( as_tibble(.x)$d ))
+    )
+
+boot %>%
+    ggplot() +
+    geom_histogram(aes(median), binwidth = 1)
+
+boot %>%
+    summarise(
+        mean = mean(median),
+        se = sd(median)
+    )
+```
+
+## Permutation Tests
+
+- We have a trial with a number of groups.
+- We're looking to see if there is a certain trait that is different among the groups.
+    - Could be testing a new drug.
+- We consider the null hypothesis that there is no different in the trait amongst the groups.
+- **The group labels then become irrelevant.**
+- Consider a data frame with the considered metric and group.
+- We permute the group labels.
+- Recalculate the statistic, could be:
+    - Mean difference in the metric
+    - Geometric means
+    - T-statistic
+- Calculate the percentage of suimulations where the simulated statistic was more extreme (toward the alternative) than the observed.
+
+This will yield a permutation based p-value. If this value is low (or almost 0) it means that we could not find a reconfiguration of the data that had a test statistic **lower** than our original configuration of data, and thus we reject the null hypothesis.
