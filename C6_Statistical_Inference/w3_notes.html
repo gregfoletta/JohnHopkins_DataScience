@@ -13,7 +13,7 @@
 
 <meta name="author" content="Greg Foletta" />
 
-<meta name="date" content="2019-12-16" />
+<meta name="date" content="2019-12-30" />
 
 <title>Course 6 - Statistical Inference - Week 3 - Notes</title>
 
@@ -135,7 +135,7 @@ code span.ot { color: #007020; }
 <div class="inner">
 <h1 class="title toc-ignore">Course 6 - Statistical Inference - Week 3 - Notes</h1>
 <h3 class="author">Greg Foletta</h3>
-<h3 class="date">2019-12-16</h3>
+<h3 class="date">2019-12-30</h3>
 </div>
 </header>
 
@@ -145,21 +145,21 @@ code span.ot { color: #007020; }
 <li><a href="#t-confidence-intervals">T Confidence Intervals</a><ul>
 <li><a href="#gossets-t-distribution">Gosset’s t distribution</a></li>
 <li><a href="#notes">Notes</a></li>
-<li><a href="#example">Example</a></li>
 <li><a href="#independent-group-t-confidence-intervals">Independent Group t Confidence Intervals</a></li>
 </ul></li>
-<li><a href="#unequal-variances">Unequal Variances</a><ul>
+<li><a href="#two-group-unequal-variance-test">Two Group Unequal Variance Test</a><ul>
 <li><a href="#other-kinds-of-data">Other Kinds of Data</a></li>
 </ul></li>
 <li><a href="#hypothesis-testing">Hypothesis Testing</a><ul>
 <li><a href="#rejection">Rejection</a></li>
 </ul></li>
 <li><a href="#t-tests">T Tests</a><ul>
-<li><a href="#example-1">Example</a></li>
+<li><a href="#single-group-t-test">Single Group T-Test</a></li>
+<li><a href="#paired-t-test">Paired T-Test</a></li>
 <li><a href="#two-group-intervals">Two Group Intervals</a></li>
 </ul></li>
 <li><a href="#p-values">P-Values</a><ul>
-<li><a href="#example-2">Example</a></li>
+<li><a href="#example">Example</a></li>
 <li><a href="#poisson-example">Poisson Example</a></li>
 </ul></li>
 </ul>
@@ -186,7 +186,7 @@ code span.ot { color: #007020; }
 }
 \]</span></p>
 <p>follows Gosset’s t distribution with <span class="math inline">\(n-1\)</span> degrees of freedom.</p>
-<p>When we replace <span class="math inline">\(\sigma\)</span> with <span class="math inline">\(S\)</span>, it turns into a t-distribution. When <span class="math inline">\(n\)</span> increases, the distinction becomes irrelevant, but with small <span class="math inline">\(n\)</span> the distinction can be quite wide. If you use the standard normal with small sample sizes you get confidence intervals that are too narrow.</p>
+<p>When we replace <span class="math inline">\(\sigma\)</span> with <span class="math inline">\(S\)</span>, the sample standard deviation, it turns into a t-distribution. When <span class="math inline">\(n\)</span> increases, the distinction becomes irrelevant, but with small <span class="math inline">\(n\)</span> the distinction can be quite wide. If you use the standard normal with small sample sizes you get confidence intervals that are too narrow.</p>
 <p>Interval is <span class="math inline">\(\bar{X} \pm t_{n-1} S / \sqrt{n}\)</span>, where <span class="math inline">\(t_{n-1}\)</span> is the relevant quantile.</p>
 <p>We take a look at the t-distribution versus a standard normal with 3 degrees of freedom:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">tibble</span>(</a>
@@ -220,62 +220,10 @@ code span.ot { color: #007020; }
 <li>For discrete data, other intevals such as the Poisson are available.</li>
 </ul>
 </div>
-<div id="example" class="section level2">
-<h2>Example</h2>
-<p>Looking at the sleep data that was originally used in Gosset’s paper:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">head</span>(sleep)</a></code></pre></div>
-<pre><code>##   extra group ID
-## 1   0.7     1  1
-## 2  -1.6     1  2
-## 3  -0.2     1  3
-## 4  -1.2     1  4
-## 5  -0.1     1  5
-## 6   3.4     1  6</code></pre>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">sleep <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="kw">as.numeric</span>(group), extra)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="st">    </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">colour =</span> ID)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">'lightblue'</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="st">    </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">'Group'</span>, <span class="dt">y =</span> <span class="st">'Extra'</span>)</a></code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="co"># Confidence intervals</span></a>
-<a class="sourceLine" id="cb5-2" data-line-number="2">sleep <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="st">    </span><span class="kw">t.test</span>(extra <span class="op">~</span><span class="st"> </span><span class="kw">I</span>(<span class="kw">relevel</span>(group, <span class="dv">2</span>)), <span class="dt">paired =</span> T, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="st">    </span>.<span class="op">$</span>conf.int</a></code></pre></div>
-<pre><code>## [1] 0.7001142 2.4598858
-## attr(,&quot;conf.level&quot;)
-## [1] 0.95</code></pre>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">sleep <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="st">    </span><span class="kw">group_by</span>(group) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">diff =</span>  extra <span class="op">-</span><span class="st"> </span>extra)</a></code></pre></div>
-<pre><code>## # A tibble: 20 x 4
-## # Groups:   group [2]
-##    extra group ID     diff
-##    &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt; &lt;dbl&gt;
-##  1   0.7 1     1         0
-##  2  -1.6 1     2         0
-##  3  -0.2 1     3         0
-##  4  -1.2 1     4         0
-##  5  -0.1 1     5         0
-##  6   3.4 1     6         0
-##  7   3.7 1     7         0
-##  8   0.8 1     8         0
-##  9   0   1     9         0
-## 10   2   1     10        0
-## 11   1.9 2     1         0
-## 12   0.8 2     2         0
-## 13   1.1 2     3         0
-## 14   0.1 2     4         0
-## 15  -0.1 2     5         0
-## 16   4.4 2     6         0
-## 17   5.5 2     7         0
-## 18   1.6 2     8         0
-## 19   4.6 2     9         0
-## 20   3.4 2     10        0</code></pre>
-</div>
 <div id="independent-group-t-confidence-intervals" class="section level2">
 <h2>Independent Group t Confidence Intervals</h2>
 <ul>
-<li>Suppose we want to compare the mean bloud pressure between two groups in a randomised trial: those who received the treatment and those who received a placebo.</li>
+<li>Suppose we want to compare the mean blood pressure between two groups in a randomised trial: those who received the treatment and those who received a placebo.</li>
 <li>We cannot use the paired t test because groups are independent and may have different sample sizes.</li>
 </ul>
 <p>The confidence interval is:</p>
@@ -307,23 +255,32 @@ S^2_p = \frac{
 <p>Remember this assumes the same variance.</p>
 </div>
 </div>
-<div id="unequal-variances" class="section level1">
-<h1>Unequal Variances</h1>
+<div id="two-group-unequal-variance-test" class="section level1">
+<h1>Two Group Unequal Variance Test</h1>
+<p>If the <span class="math inline">\(x\)</span> oservations and the <span class="math inline">\(y\)</span> observations are IID normal, potentially with different means and different variances, the relevant normalised statistic does not follow a t-distribution.</p>
+<p>When there are unequal variances between the groups, a <strong>Welch’s t-test</strong> should be used.</p>
+<p>The confidence interval is:</p>
 <p><span class="math display">\[
 \bar{Y} - \bar{X} \pm t_{df} \times
 \bigg(
 \frac{ s^2_x }{ n_x } +
 \frac{ s^2_y }{ n_y } 
 \bigg)^{1/2}
-\]</span></p>
-<p>If the <span class="math inline">\(x\)</span> oservations and the <span class="math inline">\(y\)</span> observations are IID normal, potentially with different means and different variances, the relevant normalised statistic does not follow a t-distribution.</p>
-<p>It can be approximated by a rather elaborate formula for the degrees of freedom:</p>
+\]</span> It can be approximated by a rather elaborate formula for the degrees of freedom:</p>
 <p><span class="math display">\[
 df = \frac{
 (S^2_x/n_x + S^2_y/n_y)^2
 }{
 \bigg(\frac{S^2_x}{n_x}\bigg)^2 / (n_x - 1) +
 \bigg(\frac{S^2_y}{n_y}\bigg)^2 / (n_y - 1)
+}
+\]</span></p>
+<p>Shifting around, the t-statistic is:</p>
+<p><span class="math display">\[
+t = \frac{
+    \bar{Y} - \bar{X}
+}{
+    \sqrt{ \frac{ s_x^2 }{ n_x } + \frac{ s_y^2 }{ n_y } }
 }
 \]</span></p>
 <p>When you’re in doubt, use the unequal variance.</p>
@@ -366,34 +323,106 @@ df = \frac{
 <p>We then calculate the 95th percentile of the T-distribution rather than the normal (<code>qw(.95, x)</code>).</p>
 <p>The two sided tests rejects the null if it’s too big <em>or</em> too small. Often used even if it doesn’t make sense in the scientific setting.</p>
 <p>In order to get the 5% probability of rejecting the null, we’ve got 2.5% on each tail. We thus use <code>qt(0.975, 15)</code>.</p>
-<div id="example-1" class="section level2">
-<h2>Example</h2>
-<p>We want to test whether the population of son’s heights is equivalent to the population of father’s heights - i.e. the population mean is 0.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw">library</span>(UsingR)</a>
-<a class="sourceLine" id="cb9-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="kw">t.test</span>(father.son<span class="op">$</span>fheight <span class="op">-</span><span class="st"> </span>father.son<span class="op">$</span>sheight)</a></code></pre></div>
+<div id="single-group-t-test" class="section level2">
+<h2>Single Group T-Test</h2>
+<p>Let’s consider we have a sample from a single group. In our case it’s 10 random normal observations. Let our null hypothesis be that the true mean is 0. We then run a t.test on it:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="kw">t.test</span>(<span class="kw">rnorm</span>(<span class="dv">10</span>))</a></code></pre></div>
 <pre><code>## 
 ##  One Sample t-test
 ## 
-## data:  father.son$fheight - father.son$sheight
-## t = -11.789, df = 1077, p-value &lt; 2.2e-16
+## data:  rnorm(10)
+## t = 0.53557, df = 9, p-value = 0.6052
 ## alternative hypothesis: true mean is not equal to 0
 ## 95 percent confidence interval:
-##  -1.1629160 -0.8310296
+##  -0.4261948  0.6906003
 ## sample estimates:
-##  mean of x 
-## -0.9969728</code></pre>
-<p>Remembering the t-statistic is the ratio of the departure of the estimated value of a parameter from its hypothesised value to the standard error.</p>
-<p><span class="math display">\[ t_{\hat{\beta}} = \frac{ \hat{\beta} - \beta_0 }{ SE(\hat{\beta} ) } \]</span></p>
-<p>Here our <span class="math inline">\(\beta_0 = 0\)</span>.</p>
-<p>In our case we have a t-statistic of 11, which is large, so we reject the null hypothesis.</p>
+## mean of x 
+## 0.1322028</code></pre>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw">t.test</span>(<span class="kw">rnorm</span>(<span class="dv">10</span>, <span class="dt">mean =</span> <span class="dv">2</span>))</a></code></pre></div>
+<pre><code>## 
+##  One Sample t-test
+## 
+## data:  rnorm(10, mean = 2)
+## t = 6.6493, df = 9, p-value = 9.382e-05
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  1.48376 3.01393
+## sample estimates:
+## mean of x 
+##  2.248845</code></pre>
+<p>The t-statistic is the ratio of the departure of the estimated value from its hypothesised value to the standard error.</p>
+<p><span class="math display">\[ t_{\hat{\beta}} = \frac{ \hat{\beta} - \beta_0 }{ SE(\hat{\beta} ) } \]</span> where <span class="math inline">\(\beta_0 = 0\)</span></p>
+<p>In the first test, the t-statistic is small, so we <strong>cannot</strong> reject the null hypothesis.</p>
+<p>In the second the t-statistic is larger, so we can be confident in rejecting the null hypothesis.</p>
+</div>
+<div id="paired-t-test" class="section level2">
+<h2>Paired T-Test</h2>
+<p>The paired t-test is the same as a single group, except we’re taking the differences between two observations.</p>
+<p>Note below that the outcomes are the same:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">sample_a &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">10</span>)</a>
+<a class="sourceLine" id="cb6-2" data-line-number="2">sample_b &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">10</span>, <span class="dt">mean =</span> <span class="dv">10</span>)</a>
+<a class="sourceLine" id="cb6-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="kw">t.test</span>(sample_a, sample_b, <span class="dt">paired =</span> T)</a></code></pre></div>
+<pre><code>## 
+##  Paired t-test
+## 
+## data:  sample_a and sample_b
+## t = -27.034, df = 9, p-value = 6.279e-10
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -11.112461  -9.396346
+## sample estimates:
+## mean of the differences 
+##                -10.2544</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">t.test</span>(sample_a <span class="op">-</span><span class="st"> </span>sample_b)</a></code></pre></div>
+<pre><code>## 
+##  One Sample t-test
+## 
+## data:  sample_a - sample_b
+## t = -27.034, df = 9, p-value = 6.279e-10
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -11.112461  -9.396346
+## sample estimates:
+## mean of x 
+##  -10.2544</code></pre>
 </div>
 <div id="two-group-intervals" class="section level2">
 <h2>Two Group Intervals</h2>
-<p>We know how to do two group T tests: we have covered independent group T intervals. The rejection rules are the same.</p>
-<ul>
-<li>Test <span class="math inline">\(H_0 : \mu_1 = \mu_2\)</span></li>
-</ul>
+<p>We know how to do two group T tests: we have covered independent group T intervals. The rejection rules are the same, except we’re testing <span class="math inline">\(H_0 : \mu_1 = \mu_2\)</span></p>
+<p>We can do tests where the variance is the same or different in both groups. By default <code>t.test()</code> does an unequal variance Welch test.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">group_a &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">10</span>)</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">group_b &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">10</span>, <span class="dt">mean =</span> <span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4">group_c &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">10</span>, <span class="dt">mean =</span> <span class="dv">3</span>, <span class="dt">sd =</span> <span class="dv">4</span>)</a>
+<a class="sourceLine" id="cb10-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb10-6" data-line-number="6"><span class="kw">t.test</span>(group_a, group_b, <span class="dt">var.equal =</span> T)</a></code></pre></div>
+<pre><code>## 
+##  Two Sample t-test
+## 
+## data:  group_a and group_b
+## t = -7.4434, df = 18, p-value = 6.737e-07
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -3.996318 -2.236966
+## sample estimates:
+## mean of x mean of y 
+## 0.1322028 3.2488450</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw">t.test</span>(group_a, group_c)</a></code></pre></div>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  group_a and group_c
+## t = -1.8911, df = 9.7493, p-value = 0.08865
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -5.0915810  0.4253725
+## sample estimates:
+## mean of x mean of y 
+## 0.1322028 2.4653070</code></pre>
+<p>Notice the fractional degrees of freedom in the second test, and that the t-statistic is low due to the variability in the second group which adds ‘noise’.1</p>
 </div>
 </div>
 <div id="p-values" class="section level1">
@@ -406,24 +435,25 @@ df = \frac{
 <li>Compare what we calculated to our hyptothetical distribution and see if the value is “extreme” - <em>p-value</em>.</li>
 </ul>
 <p>If the P-value is small, then either <span class="math inline">\(H_0\)</span> is true and we have observed a rare event, or <span class="math inline">\(H_0\)</span> is false.</p>
-<div id="example-2" class="section level2">
+<div id="example" class="section level2">
 <h2>Example</h2>
 <p>We get a t-statistic of 2.5 for 15 degrees of freedom testing <span class="math inline">\(H_0 : \mu = \mu_0\)</span> versus <span class="math inline">\(H_a : \mu \gt \mu_0\)</span></p>
 <p>What’s the probability of getting a T-statistic as large as 2.5?</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="kw">pt</span>(<span class="dt">q =</span> <span class="fl">2.5</span>, <span class="dt">df =</span> <span class="dv">15</span>, <span class="dt">lower.tail =</span> F)</a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="kw">pt</span>(<span class="dt">q =</span> <span class="fl">2.5</span>, <span class="dt">df =</span> <span class="dv">15</span>, <span class="dt">lower.tail =</span> F)</a></code></pre></div>
 <pre><code>## [1] 0.0122529</code></pre>
 <p>We see the probabilit is 1.2%.</p>
 <p>For a two sided hypothesis test where the critical area is on both tails of the distribution, double the smaller of the two one-sided hypothesis test values to take into account the tails. Most times software that reports the p-value is performing a two-tailed test.</p>
 </div>
 <div id="poisson-example" class="section level2">
 <h2>Poisson Example</h2>
-<pre><code>&gt; Suppose that a hospital has an infection rate of 10 infections per 100 person/days at a risk (rate) of 0.1 during the last monitoring period. Assume that an infection rate of 0.05 is an important benchmark. Given the model, could the observed rate being larger than 0.05 be attributed to chance?</code></pre>
+<p><em>Suppose that a hospital has an infection rate of 10 infections per 100 person/days at a risk (rate) of 0.1 during the last monitoring period.</em></p>
+<p><em>Assume that an infection rate of 0.05 is an important benchmark. Given the model, could the observed rate being larger than 0.05 be attributed to chance?</em></p>
 <ul>
 <li>Under <span class="math inline">\(H_0 : \lambda = 0.05\)</span> so that <span class="math inline">\(\lambda_0 \times 100 = 5\)</span>.</li>
 <li>Consider <span class="math inline">\(H_a : \lambda \gt 0.05\)</span></li>
 </ul>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="co"># The 9 is (10 - 1) so that we're getting the upper tail or &quot;10 or more&quot;</span></a>
-<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="kw">ppois</span>(<span class="dv">9</span>, <span class="dv">5</span>, <span class="dt">lower.tail =</span> F)</a></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="co"># The 9 is (10 - 1) so that we're getting the upper tail or &quot;10 or more&quot;</span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="kw">ppois</span>(<span class="dv">9</span>, <span class="dv">5</span>, <span class="dt">lower.tail =</span> F)</a></code></pre></div>
 <pre><code>## [1] 0.03182806</code></pre>
 </div>
 </div>

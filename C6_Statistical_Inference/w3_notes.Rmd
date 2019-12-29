@@ -42,7 +42,7 @@ $$
 
 follows Gosset's t distribution with $n-1$ degrees of freedom.
 
-When we replace $\sigma$ with $S$, it turns into a t-distribution. When $n$ increases, the distinction becomes irrelevant, but with small $n$ the distinction can be quite wide. If you use the standard normal with small sample sizes you get confidence intervals that are too narrow.
+When we replace $\sigma$ with $S$, the sample standard deviation, it turns into a t-distribution. When $n$ increases, the distinction becomes irrelevant, but with small $n$ the distinction can be quite wide. If you use the standard normal with small sample sizes you get confidence intervals that are too narrow.
 
 Interval is $\bar{X} \pm t_{n-1} S / \sqrt{n}$, where $t_{n-1}$ is the relevant quantile.
 
@@ -73,34 +73,11 @@ We can see the tails are much fatter.
     - Consider taking logs or using a different summary like the median.
 - For discrete data, other intevals such as the Poisson are available.
 
-## Example
 
-Looking at the sleep data that was originally used in Gosset's paper:
-
-```{r sleep_data}
-head(sleep)
-
-sleep %>%
-    ggplot(aes(as.numeric(group), extra)) +
-    geom_line(aes(colour = ID)) +
-    geom_point(size = 4, colour = 'lightblue', shape = 21) +
-    labs(x = 'Group', y = 'Extra')
-
-# Confidence intervals
-sleep %>%
-    t.test(extra ~ I(relevel(group, 2)), paired = T, data = .) %>%
-    .$conf.int
-```
-
-```{r sleep_diff}
-sleep %>%
-    group_by(group) %>%
-    mutate(diff =  extra - extra)
-```
 
 ## Independent Group t Confidence Intervals
 
-- Suppose we want to compare the mean bloud pressure between two groups in a randomised trial: those who received the treatment and those who received a placebo.
+- Suppose we want to compare the mean blood pressure between two groups in a randomised trial: those who received the treatment and those who received a placebo.
 - We cannot use the paired t test because groups are independent and may have different sample sizes.
 
 The confidence interval is:
@@ -131,7 +108,13 @@ If we're willing to assume that the variance is the same in each group - which i
 
 Remember this assumes the same variance.
 
-# Unequal Variances
+# Two Group Unequal Variance Test
+
+If the $x$ oservations and the $y$ observations are IID normal, potentially with different means and different variances, the relevant normalised statistic does not follow a t-distribution.
+
+When there are unequal variances between the groups, a **Welch's t-test** should be used.
+
+The confidence interval is:
 
 $$
 \bar{Y} - \bar{X} \pm t_{df} \times
@@ -140,9 +123,6 @@ $$
 \frac{ s^2_y }{ n_y } 
 \bigg)^{1/2}
 $$
-
-If the $x$ oservations and the $y$ observations are IID normal, potentially with different means and different variances, the relevant normalised statistic does not follow a t-distribution.
-
 It can be approximated by a rather elaborate formula for the degrees of freedom:
 
 $$
@@ -151,6 +131,17 @@ df = \frac{
 }{
 \bigg(\frac{S^2_x}{n_x}\bigg)^2 / (n_x - 1) +
 \bigg(\frac{S^2_y}{n_y}\bigg)^2 / (n_y - 1)
+}
+$$
+
+
+Shifting around, the t-statistic is:
+
+$$
+t = \frac{
+    \bar{Y} - \bar{X}
+}{
+    \sqrt{ \frac{ s_x^2 }{ n_x } + \frac{ s_y^2 }{ n_y } }
 }
 $$
 
@@ -200,35 +191,63 @@ $$ \frac{ \sqrt{n}(\bar{X} - \mu_0) }{ s } \gt Z_{1-\alpha} $$
 
 When $n$ is small (e.g. 16) the test statistic, how many estimated standard errors from the hypothesised mean the sample mena is, follows a T-distribution with $n-1$ (e.g. 15) degrees of freedom.
 
- We then calculate the 95th percentile of the T-distribution rather than the normal (`qw(.95, x)`).
+We then calculate the 95th percentile of the T-distribution rather than the normal (`qw(.95, x)`).
  
- The two sided tests rejects the null if it's too big *or* too small. Often used even if it doesn't make sense in the scientific setting.
+The two sided tests rejects the null if it's too big *or* too small. Often used even if it doesn't make sense in the scientific setting.
 
 In order to get the 5% probability of rejecting the null, we've got 2.5% on each tail. We thus use `qt(0.975, 15)`.
 
-## Example
+## Single Group T-Test
 
-We want to test whether the population of son's heights is equivalent to the population of father's heights - i.e. the population mean is 0.
+Let's consider we have a sample from a single group. In our case it's 10 random normal observations. Let our null hypothesis be that the true mean is 0. We then run a t.test on it:
 
-```{r father_son, message = F}
-library(UsingR)
+```{r single_group_true}
+set.seed(1)
 
-t.test(father.son$fheight - father.son$sheight)
+t.test(rnorm(10))
+t.test(rnorm(10, mean = 2))
 ```
 
-Remembering the t-statistic is the ratio of the departure of the estimated value of a parameter from its hypothesised value to the standard error.
+The t-statistic is the ratio of the departure of the estimated value from its hypothesised value to the standard error. 
 
 $$ t_{\hat{\beta}} = \frac{ \hat{\beta} - \beta_0 }{ SE(\hat{\beta} ) } $$
+where $\beta_0 = 0$
 
-Here our $\beta_0 = 0$.
+In the first test, the t-statistic is small, so we **cannot** reject the null hypothesis.
 
-In our case we have a t-statistic of 11, which is large, so we reject the null hypothesis.
+In the second the t-statistic is larger, so we can be confident in rejecting the null hypothesis.
+
+## Paired T-Test
+
+The paired t-test is the same as a single group, except we're taking the differences between two observations.
+
+Note below that the outcomes are the same:
+
+```{r paired_t_test}
+sample_a <- rnorm(10)
+sample_b <- rnorm(10, mean = 10)
+
+t.test(sample_a, sample_b, paired = T)
+t.test(sample_a - sample_b)
+```
 
 ## Two Group Intervals
 
-We know how to do two group T tests: we have covered independent group T intervals. The rejection rules are the same.
+We know how to do two group T tests: we have covered independent group T intervals. The rejection rules are the same, except we're testing  $H_0 : \mu_1 = \mu_2$
 
-- Test $H_0 : \mu_1 = \mu_2$
+We can do tests where the variance is the same or different in both groups. By default `t.test()` does an unequal variance Welch test.
+
+```{r two_group}
+set.seed(1)
+group_a <- rnorm(10)
+group_b <- rnorm(10, mean = 3)
+group_c <- rnorm(10, mean = 3, sd = 4)
+
+t.test(group_a, group_b, var.equal = T)
+t.test(group_a, group_c)
+```
+
+Notice the fractional degrees of freedom in the second test, and that the t-statistic is low due to the variability in the second group which adds 'noise'.1
 
 # P-Values
 
@@ -257,7 +276,9 @@ For a two sided hypothesis test where the critical area is on both tails of the 
 
 ## Poisson Example
 
-    > Suppose that a hospital has an infection rate of 10 infections per 100 person/days at a risk (rate) of 0.1 during the last monitoring period. Assume that an infection rate of 0.05 is an important benchmark. Given the model, could the observed rate being larger than 0.05 be attributed to chance?
+*Suppose that a hospital has an infection rate of 10 infections per 100 person/days at a risk (rate) of 0.1 during the last monitoring period.*
+
+*Assume that an infection rate of 0.05 is an important benchmark. Given the model, could the observed rate being larger than 0.05 be attributed to chance?*
 
 - Under $H_0 : \lambda = 0.05$ so that $\lambda_0 \times 100 = 5$.
 - Consider $H_a : \lambda \gt 0.05$
