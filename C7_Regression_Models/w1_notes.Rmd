@@ -1,0 +1,268 @@
+---
+title: "Course 7 - Regression Models - Week 1 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+```
+
+# Introduction
+
+Regression models are the workhorse of data science. The key insight for regression models is that they produce highly interpretable fits. This is unlike machine learning algorithms which often sacrifice interpretability for improved prediction or automation.
+
+# Basic Least Squares
+
+Let's look at Francis Galton's data on parents and children's heights:
+
+```{r galton_data}
+library(UsingR, include.only = 'galton')
+
+galton %>%
+    gather(person, height, c(child, parent)) %>%
+    ggplot() +
+    geom_histogram(aes(height, fill = person), colour = 'black', binwidth = 1) +
+    facet_wrap(vars(person)) +
+    labs(x = 'Height', y = 'Count')
+```
+
+Let's consider only the children's heights. How do we describe "the middle"?
+
+One way is to let $Y_i$ be the height of child $i$ for $i = 1, \ldots, n = 928$, then define the middle as the value of minimises:
+
+$$
+\sum_{i = 1}^n (Y_i - \mu)^2
+$$
+
+This is the physical centre of mass of the histogram. The anwer is $\mu  = \bar{Y}$ - the mean of the data.
+
+## Parent vs Child Scatter Plots
+
+If we produce a pure scatter plot, we get overplotting as the precision is only to a single decimal point:
+
+```{r galton_overplot}
+galton %>%
+    ggplot(aes(parent, child)) +
+    geom_point() +
+    labs(x = 'Parent Height', y = 'Child Height')
+```
+
+We can modify the size of each point to show the count of the data points:
+
+```{r galton_scatter_count}
+galton %>%
+    ggplot(aes(parent, child)) +
+    geom_count(colour = 'black', fill = 'lightblue', shape = 'circle filled') +
+    labs(x = 'Parent Height', y = 'Child Height')
+```
+
+## Regression Through the Origin
+
+Suppose that $X_i$ are the parents heights. We want to pick a slope that minimises 
+
+$$ \sum_{i = 1}^n (Y_i - X_i\beta)^2 $$
+
+This is using the origin as a pivot point. We pick a gradient $\beta$ that minimises the sum of the squared vertical distances of the points to the line.
+
+If the x and y values are reoriented by subtracting the mean. We end up with the origin sitting in the middle of our observations. Then we can perform the regression without calculating the intercept. This is equivalent to calculating the slope and intercept with the original data.
+
+Let's look at the solution - the $-1$ tells lm to not calculate the intercept.
+
+```{r galton_regression}
+lm(I(child - mean(child)) ~ I(parent - mean(parent)) - 1, data = galton)
+```
+
+# Least Squares
+
+## Notation
+
+- $X_1, X_2, \ldots, X_n$ represents $n$ data points.
+    - If we have ${1,2,3}$, then $X_1 = 1,\ X_2 = 2,\ X_3 = 3$.
+
+
+## Mean
+
+The empirical mean is $\frac{1}{n} \sum_{i=1}^n X_i$.
+
+If we subtract the mean from the data points, we get data that has mean 0. 
+
+$\tilde{X} = X_i - \bar{X}$. The mean of $\tilde{X}$ is 0
+
+## Variance
+
+The empirical variance is:
+
+$$
+S^2 = \frac{1}{n - 1} \sum_{i=1}^n (X_i - \bar{X})^2 \\
+= \frac{1}{n-1} \bigg( \sum_{i=1}^n X_i^2 - n\bar{X}^2 \bigg)
+$$
+
+The empirical standard deviation is defined as $S = \sqrt{S^2}$
+
+
+The data defined by $X_i / s$ have empirical standard deviation 1. The is called 'scaling' the data.
+
+Normalised data is calculated using:
+
+$$
+Z_i = \frac{X_i - \bar{X}}{s}
+$$
+
+## Covariance
+
+Consider pairs of data $(X_i, Y_i)$. The empirical covariance is:
+
+$$
+Cov(X,Y) = \frac{1}{n-1} \sum_{i=1}^n (X_i - \bar{X})(Y_i - \bar{Y}) \\
+= \frac{1}{n - 1} \bigg( \sum_{i=1}^n X_iY_i - n\bar{X}\bar{Y}\bigg)
+$$
+
+## Correlation
+
+The correlation is the covariance standardised into a unitless quantity:
+
+$$
+Cor(X,Y) = \frac{ Cov(X,Y) }{ S_x S_y }
+$$
+Some facts about correlation:
+
+- $Cor(X,Y) = Cor(Y,X)$
+- $-1 \le Cor(X,Y) \le 1$
+- $Cor(X,Y) = 1$ and $Cor(X,Y) = -1$ only when the $X$ or $Y$ observations fall perfectly on a positive or negative sloped line respectively.
+- $Cor(X,Y)$ measures the strength of the linear relationship between the $X$ and $Y$ data.
+- $Cor(X,Y) = 0$ implies no linear relationship.
+
+
+## Linear Least Squares
+
+Using the Galton data discussed previously, we let $Y_i$ be the $i^{th}$ childs height and $X_i$ be the $i^{th}$ (average over the pair of) parents' heights.
+
+We want to find the best line where $\text{Childs Height } = \beta_0 + \text{ Parents' Height } \times \beta_1$
+
+What is the criteria for 'best'? We'll use least squares. We want to minimise the sum of the squared vertical distances between the data points and the points on the fitted line.
+
+$$
+\sum_{i_1}^n \{ Y_i - (\beta_0 + \beta_1X_i) \}^2
+$$
+
+The least squares model fit to the line $Y = \beta_0 + \beta_1 X$ through the data pairs $(X_i,Y_i)$ obtains the line $Y = \hat{\beta_0} + \hat{\beta_1}X where
+
+$$
+\hat{\beta_1} = Cor(X,Y) \frac{ \sigma_Y }{ \sigma_X } \\
+\hat{\beta_0} = \bar{Y} - \hat{\beta_1}\bar{X}
+$$
+
+The $\hat{\beta_1}$ coefficient has the units of $Y/X$ as the $Cor()$ is a unitless quantity, so the units come from the division of the standard deviation.
+
+The $\hat{\beta_0}$ coefficient has the units of $Y$.
+
+The line always passes through the point $(\bar{X}, \bar{Y})$. We see this if we re-arrange the second formula to $\bar{Y} = \hat{\beta_0} + \hat{\beta_1} \bar{X}$
+
+The slope is the same one you would get if you centered the data and did the regression through the origin.
+
+If you normalised the data, $Cor(X_i - \bar{X},Y_i - \bar{X}) \times \frac{1}{1} = Cor(X,Y)$.
+
+Let's do a comparison:
+
+```{r manual_least_squares}
+galton %>%
+    summarise(
+        beta_1 = cor(parent, child) * sd(child) / sd(parent),
+        beta_0 = mean(child) - beta_1 * mean(parent)
+    ) %>%
+    dplyr::select(beta_0, beta_1)
+
+galton %>%
+    lm(child ~ parent, data = .) %>%
+    coef()
+```
+
+## B1-Hat Derivation
+
+We are fitting the line $y = x\beta$ with $y_1, \ldots, y_n$ and $x_1, \ldots, x_n$.
+
+We want to minimuse the quantity $\sum_{i=1}^n (y_i - x_i\beta)^2$. Let $\hat{\beta}$ be the solution.
+
+We can add in a zero:
+
+$$
+= \sum_{i=1}^n (y_i - x_i\hat{\beta} + x_i\hat{\beta} - x_i\beta)^2
+$$
+
+Expand this out:
+
+$$ 
+= \sum_{i=1}^n (y_i - x_i\hat{\beta})^2 - 
+2\sum_{i=1}^n (y_i - x_i\hat{\beta})(x_i\hat{\beta} - x_i\beta) +
+\sum_{i=1}^n (x_i\hat{\beta} - x_i\beta)^2
+$$
+
+The last term is removed as it is only adding up a number of positive things, so by removing it we know we're getting smaller and can ignore it.
+
+$$ 
+\ge \sum_{i=1}^n (y_i - x_i\hat{\beta})^2 - 
+2\sum_{i=1}^n (y_i - x_i\hat{\beta})(x_i\hat{\beta} - x_i\beta)
+$$
+
+Looking at the second summation: if beta hat forces this term to be zero, then the least squared criteria **for any beta** is larger than what we get when we plug in beta hat specifically. So that beta hat would have to be the minimiser, because every other beta creates a least squares criteria at least as large or larger.
+
+$$ 
+\ge \sum_{i=1}^n (y_i - x_i\hat{\beta})^2
+$$
+
+So what we need to do is make that second term equal to zero.
+
+$$
+\sum_{i=1}^n (y_i - x_i\hat{\beta}) x_i (\hat{\beta} - \beta) = 0
+$$
+
+The last term doesn't depend on i, so it can be divided out of both sides:
+
+$$
+\sum_{i=1}^n (y_i - x_i\hat{\beta}) x_i = 0
+$$
+
+Solving for $\hat{\beta}$ yields the following formula for regression through the origin.
+
+$$
+\hat{\beta} = \frac{ \sum_{i=1}^n y_i x_i }{ \sum_{i=1}^n x_i^2 }
+$$
+
+# Regression to the Mean
+
+- Why are the children of tall parents tall, but not as tall as their parents?
+- Why are the children of short parents short, but not as short as their parents?
+
+Why can think about it in terms of paris of standard normals. The largest first ones would be the largest by chance - put another way $P(Y < x|X = x)$ gets bigger as $x$ heads into the very large values.
+
+Let's simulate this. We generate the normals and arrange them in descending order by x. We calculate whether $x > y$ and separate them into 4 distinct groups. We then calculate the proportion of true values by each group.
+
+```{r regression_to_the_mean}
+set.seed(1)
+tibble(
+    x = rnorm(100),
+    y = rnorm(100),
+) %>%
+    arrange(desc(x)) %>%
+    mutate(
+        x_gt_y = x > y,
+        g = gl(4, 25)
+    ) %>%
+    group_by(g) %>%
+    summarise(prob = mean(x_gt_y))
+```
+
+This is "100% regression to the mean", but usually there is a blend of some intrinsic component and some noise.
+
+Consider the `galton` data set with sons and parents' heights. If the data is normalised then the slope of the line is $Cor(X,Y)$. If the parents height was a perfect predictor - there was no noise, then the regression line would be on the identity $y = x$. If there was only noise the the line would fall along $y = 0$.
+
+How shrunk the correlation is between the identity line and the zero line gives you the extent of the regression to the mean.

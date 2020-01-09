@@ -46,3 +46,8 @@ output:
 * [Week 2 Notes](C6_Statistical_Inference/w2_notes.html) - Variability, standard error, distributions, central limit theorem, confidence intervals.
 * [Week 3 Notes](C6_Statistical_Inference/w3_notes.html) - T-confidence intervals, hypothesis testing, t-tests, p-values.
 * [Week 4 Notes](C6_Statistical_Inference/w4_notes.html) - Power, t-test power, multiple testing, resampling.
+
+## Course 7 - Regression Models
+
+* [Week 1 Notes](C7_Regression_Models/w1_notes.html) - Least Squares, Covariance, Correlation, Regression to the Mean
+
