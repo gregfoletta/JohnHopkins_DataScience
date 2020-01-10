@@ -157,6 +157,18 @@ code span.ot { color: #007020; }
 <li><a href="#b1-hat-derivation">B1-Hat Derivation</a></li>
 </ul></li>
 <li><a href="#regression-to-the-mean">Regression to the Mean</a></li>
+<li><a href="#quiz">Quiz</a><ul>
+<li><a href="#question-1">Question 1</a></li>
+<li><a href="#question-2">Question 2</a></li>
+<li><a href="#question-3">Question 3</a></li>
+<li><a href="#question-4">Question 4</a></li>
+<li><a href="#question-5">Question 5</a></li>
+<li><a href="#question-6">Question 6</a></li>
+<li><a href="#question-7">Question 7</a></li>
+<li><a href="#question-8">Question 8</a></li>
+<li><a href="#question-9">Question 9</a></li>
+<li><a href="#question-10">Question 10</a></li>
+</ul></li>
 </ul>
 </div>
 
@@ -371,6 +383,123 @@ Cor(X,Y) = \frac{ Cov(X,Y) }{ S_x S_y }
 <p>This is “100% regression to the mean”, but usually there is a blend of some intrinsic component and some noise.</p>
 <p>Consider the <code>galton</code> data set with sons and parents’ heights. If the data is normalised then the slope of the line is <span class="math inline">\(Cor(X,Y)\)</span>. If the parents height was a perfect predictor - there was no noise, then the regression line would be on the identity <span class="math inline">\(y = x\)</span>. If there was only noise the the line would fall along <span class="math inline">\(y = 0\)</span>.</p>
 <p>How shrunk the correlation is between the identity line and the zero line gives you the extent of the regression to the mean.</p>
+</div>
+<div id="quiz" class="section level1">
+<h1>Quiz</h1>
+<div id="question-1" class="section level2">
+<h2>Question 1</h2>
+<p>Consider the data set:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.18</span>, <span class="fl">-1.54</span>, <span class="fl">0.42</span>, <span class="fl">0.95</span>)</a></code></pre></div>
+<p>and weights given by:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">w &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">1</span>)</a></code></pre></div>
+<p>Give the value of <span class="math inline">\(\mu\)</span> that minimizes the least squares equation:</p>
+<p><span class="math display">\[
+\sum_{i=1}^n w_i (x_i - \mu)^2
+\]</span></p>
+<ul>
+<li>1.077</li>
+<li>0.300</li>
+<li>0.0025</li>
+<li>0.1471</li>
+</ul>
+</div>
+<div id="question-2" class="section level2">
+<h2>Question 2</h2>
+<p>Consider the following data set</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.8</span>, <span class="fl">0.47</span>, <span class="fl">0.51</span>, <span class="fl">0.73</span>, <span class="fl">0.36</span>, <span class="fl">0.58</span>, <span class="fl">0.57</span>, <span class="fl">0.85</span>, <span class="fl">0.44</span>, <span class="fl">0.42</span>)</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2">y &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">1.39</span>, <span class="fl">0.72</span>, <span class="fl">1.55</span>, <span class="fl">0.48</span>, <span class="fl">1.19</span>, <span class="fl">-1.59</span>, <span class="fl">1.23</span>, <span class="fl">-0.65</span>, <span class="fl">1.49</span>, <span class="fl">0.05</span>)</a></code></pre></div>
+<p>Fit the regression through the origin and get the slope treating y</p>
+<p>as the outcome and x as the regressor. (Hint, do not center the data since we want regression through the origin, not through the means of the data.)</p>
+<ul>
+<li>0.8263</li>
+<li>0.59915</li>
+<li>-1.713</li>
+<li>-0.04462</li>
+</ul>
+</div>
+<div id="question-3" class="section level2">
+<h2>Question 3</h2>
+<p>Using the <code>mtcars</code> data set, model with mpg as the outcome and weight as the predictor. Give the slope coefficient.</p>
+<ul>
+<li>-5.344</li>
+<li>30.2851</li>
+<li>-9.559</li>
+<li>0.5591</li>
+</ul>
+</div>
+<div id="question-4" class="section level2">
+<h2>Question 4</h2>
+<p>Consider data with an outcome (Y) and a predictor (X). The standard deviation of the predictor is one half that of the outcome. The correlation between the two variables is .5. What value would the slope coefficient for the regression model with YYY as the outcome and XXX as the predictor?</p>
+<ul>
+<li>3</li>
+<li>0.25</li>
+<li>4</li>
+<li>1</li>
+</ul>
+</div>
+<div id="question-5" class="section level2">
+<h2>Question 5</h2>
+<p>Students were given two hard tests and scores were normalized to have empirical mean 0 and variance 1. The correlation between the scores on the two tests was 0.4. What would be the expected score on Quiz 2 for a student who had a normalized score of 1.5 on Quiz 1?</p>
+<ul>
+<li>0.6</li>
+<li>0.4</li>
+<li>0.16</li>
+<li>1.0</li>
+</ul>
+</div>
+<div id="question-6" class="section level2">
+<h2>Question 6</h2>
+<p>Consider the data given by the following</p>
+<p>What is the value of the first measurement if x were normalized (to have mean 0 and variance 1)?</p>
+<ul>
+<li>8.86</li>
+<li>9.31</li>
+<li>8.58</li>
+<li>-0.9719</li>
+</ul>
+</div>
+<div id="question-7" class="section level2">
+<h2>Question 7</h2>
+<p>Consider the following data set (used above as well). What is the intercept for fitting the model with x as the predictor and y as the outcome?</p>
+<ul>
+<li>1.252</li>
+<li>1.567</li>
+<li>-1.713</li>
+<li>2.105</li>
+</ul>
+</div>
+<div id="question-8" class="section level2">
+<h2>Question 8</h2>
+<p>You know that both the predictor and response have mean 0. What can be said about the intercept when you fit a linear regression?</p>
+<ul>
+<li>It is undefined as you have to divide by zero.</li>
+<li>Nothing about the intercept can be said from the information given.</li>
+<li>It must be exactly one.</li>
+<li>It must be identically 0.</li>
+</ul>
+</div>
+<div id="question-9" class="section level2">
+<h2>Question 9</h2>
+<p>Consider the data given by:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.8</span>, <span class="fl">0.47</span>, <span class="fl">0.51</span>, <span class="fl">0.73</span>, <span class="fl">0.36</span>, <span class="fl">0.58</span>, <span class="fl">0.57</span>, <span class="fl">0.85</span>, <span class="fl">0.44</span>, <span class="fl">0.42</span>)</a></code></pre></div>
+<p>What value minimizes the sum of the squared distances between these points and itself?</p>
+<ul>
+<li>0.44</li>
+<li>0.573</li>
+<li>0.36</li>
+<li>0.8</li>
+</ul>
+</div>
+<div id="question-10" class="section level2">
+<h2>Question 10</h2>
+<p>Let the slope having fit Y as the outcome and X as the predictor be denoted as <span class="math inline">\(\beta_1\)</span>. Let the slope from fitting <span class="math inline">\(X\)</span> as the outcome and <span class="math inline">\(Y\)</span> as the predictor be denoted as <span class="math inline">\(\gamma_1\)</span>. Suppose that you divide <span class="math inline">\(\beta_1\)</span> bu <span class="math inline">\(\gamma_1\)</span>. In other words consider <span class="math inline">\(\beta_1 / \gamma_1\)</span>. What is this ratio always equal to?</p>
+<ul>
+<li><span class="math inline">\(Cor(Y,X)\)</span></li>
+<li><span class="math inline">\(1\)</span></li>
+<li><span class="math inline">\(Var(Y)/Var(X)Var(Y)\)</span></li>
+<li><span class="math inline">\(2SD(Y)/SD(X)2SD(Y)\)</span></li>
+</ul>
+</div>
 </div>
     </section>
   </div>
