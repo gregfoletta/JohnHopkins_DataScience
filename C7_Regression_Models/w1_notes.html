@@ -13,7 +13,7 @@
 
 <meta name="author" content="Greg Foletta" />
 
-<meta name="date" content="2020-01-10" />
+<meta name="date" content="2020-01-11" />
 
 <title>Course 7 - Regression Models - Week 1 - Notes</title>
 
@@ -135,7 +135,7 @@ code span.ot { color: #007020; }
 <div class="inner">
 <h1 class="title toc-ignore">Course 7 - Regression Models - Week 1 - Notes</h1>
 <h3 class="author">Greg Foletta</h3>
-<h3 class="date">2020-01-10</h3>
+<h3 class="date">2020-01-11</h3>
 </div>
 </header>
 
@@ -402,20 +402,35 @@ Cor(X,Y) = \frac{ Cov(X,Y) }{ S_x S_y }
 <li>0.0025</li>
 <li>0.1471</li>
 </ul>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="co"># Using the lm() function</span></a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="kw">tibble</span>(<span class="dt">x =</span> x, <span class="dt">y =</span> w) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb14-3" data-line-number="3"><span class="st">    </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb14-4" data-line-number="4"><span class="st">    </span><span class="kw">coef</span>()</a></code></pre></div>
+<pre><code>##         x 
+## 0.2957306</code></pre>
 </div>
 <div id="question-2" class="section level2">
 <h2>Question 2</h2>
 <p>Consider the following data set</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.8</span>, <span class="fl">0.47</span>, <span class="fl">0.51</span>, <span class="fl">0.73</span>, <span class="fl">0.36</span>, <span class="fl">0.58</span>, <span class="fl">0.57</span>, <span class="fl">0.85</span>, <span class="fl">0.44</span>, <span class="fl">0.42</span>)</a>
-<a class="sourceLine" id="cb14-2" data-line-number="2">y &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">1.39</span>, <span class="fl">0.72</span>, <span class="fl">1.55</span>, <span class="fl">0.48</span>, <span class="fl">1.19</span>, <span class="fl">-1.59</span>, <span class="fl">1.23</span>, <span class="fl">-0.65</span>, <span class="fl">1.49</span>, <span class="fl">0.05</span>)</a></code></pre></div>
-<p>Fit the regression through the origin and get the slope treating y</p>
-<p>as the outcome and x as the regressor. (Hint, do not center the data since we want regression through the origin, not through the means of the data.)</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.8</span>, <span class="fl">0.47</span>, <span class="fl">0.51</span>, <span class="fl">0.73</span>, <span class="fl">0.36</span>, <span class="fl">0.58</span>, <span class="fl">0.57</span>, <span class="fl">0.85</span>, <span class="fl">0.44</span>, <span class="fl">0.42</span>)</a>
+<a class="sourceLine" id="cb16-2" data-line-number="2">y &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">1.39</span>, <span class="fl">0.72</span>, <span class="fl">1.55</span>, <span class="fl">0.48</span>, <span class="fl">1.19</span>, <span class="fl">-1.59</span>, <span class="fl">1.23</span>, <span class="fl">-0.65</span>, <span class="fl">1.49</span>, <span class="fl">0.05</span>)</a></code></pre></div>
+<p>Fit the regression through the origin and get the slope treating y as the outcome and x as the regressor. (Hint, do not center the data since we want regression through the origin, not through the means of the data.)</p>
 <ul>
 <li>0.8263</li>
 <li>0.59915</li>
 <li>-1.713</li>
 <li>-0.04462</li>
 </ul>
+<p><strong>Answer</strong>: we can use the derived regression through the origin formula of <span class="math inline">\(\frac{ \sum_{i=1}^n y_i x_i }{ \sum_{i=1}^n x_i^2 }\)</span>, or using the <code>lm()</code> function and specifiying regression through the origin.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="co"># Using the derived formula</span></a>
+<a class="sourceLine" id="cb17-2" data-line-number="2"><span class="kw">sum</span>(y <span class="op">*</span><span class="st"> </span>x) <span class="op">/</span><span class="st"> </span><span class="kw">sum</span>(x<span class="op">^</span><span class="dv">2</span>)</a></code></pre></div>
+<pre><code>## [1] 0.8262517</code></pre>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="co"># Using lm()</span></a>
+<a class="sourceLine" id="cb19-2" data-line-number="2"><span class="kw">tibble</span>(<span class="dt">x =</span> x, <span class="dt">y =</span> y) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb19-3" data-line-number="3"><span class="st">    </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb19-4" data-line-number="4"><span class="st">    </span><span class="kw">coef</span>()</a></code></pre></div>
+<pre><code>##         x 
+## 0.8262517</code></pre>
 </div>
 <div id="question-3" class="section level2">
 <h2>Question 3</h2>
@@ -426,10 +441,22 @@ Cor(X,Y) = \frac{ Cov(X,Y) }{ S_x S_y }
 <li>-9.559</li>
 <li>0.5591</li>
 </ul>
+<p><strong>Answer</strong>: we use the <span class="math inline">\(\hat{ \beta }_1\)</span> formula and <code>lm()</code> to calculate the slope coefficient.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="co"># Using the formula</span></a>
+<a class="sourceLine" id="cb21-2" data-line-number="2">mtcars <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb21-3" data-line-number="3"><span class="st">    </span><span class="kw">summarise</span>(<span class="dt">beta_1 =</span> <span class="kw">cor</span>(mpg, wt) <span class="op">*</span><span class="st"> </span>(<span class="kw">sd</span>(mpg) <span class="op">/</span><span class="st"> </span><span class="kw">sd</span>(wt)))</a></code></pre></div>
+<pre><code>##      beta_1
+## 1 -5.344472</code></pre>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1"><span class="co"># Using lm()</span></a>
+<a class="sourceLine" id="cb23-2" data-line-number="2">mtcars <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb23-3" data-line-number="3"><span class="st">    </span><span class="kw">lm</span>(mpg <span class="op">~</span><span class="st"> </span>wt, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb23-4" data-line-number="4"><span class="st">    </span><span class="kw">coef</span>()</a></code></pre></div>
+<pre><code>## (Intercept)          wt 
+##   37.285126   -5.344472</code></pre>
 </div>
 <div id="question-4" class="section level2">
 <h2>Question 4</h2>
-<p>Consider data with an outcome (Y) and a predictor (X). The standard deviation of the predictor is one half that of the outcome. The correlation between the two variables is .5. What value would the slope coefficient for the regression model with YYY as the outcome and XXX as the predictor?</p>
+<p>Consider data with an outcome <span class="math inline">\(Y\)</span> and a predictor <span class="math inline">\(X\)</span>. The standard deviation of the predictor is one half that of the outcome. The correlation between the two variables is .5. What value would the slope coefficient for the regression model with <span class="math inline">\(Y\)</span> as the outcome and <span class="math inline">\(X\)</span> as the predictor?</p>
 <ul>
 <li>3</li>
 <li>0.25</li>
@@ -446,10 +473,12 @@ Cor(X,Y) = \frac{ Cov(X,Y) }{ S_x S_y }
 <li>0.16</li>
 <li>1.0</li>
 </ul>
+<p><strong>Answer</strong>: if the data has been normalised (<span class="math inline">\(\sigma = 1, \mu = 0\)</span>), then the correlation of the two is the regression line slope: <span class="math inline">\(q_2 = .4q_1\)</span>. The expected score <span class="math inline">\(.4 \times 1.5 = 0.6\)</span>.</p>
 </div>
 <div id="question-6" class="section level2">
 <h2>Question 6</h2>
-<p>Consider the data given by the following</p>
+<p>Consider the data given by the following:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">8.58</span>, <span class="fl">10.46</span>, <span class="fl">9.01</span>, <span class="fl">9.64</span>, <span class="fl">8.86</span>)</a></code></pre></div>
 <p>What is the value of the first measurement if x were normalized (to have mean 0 and variance 1)?</p>
 <ul>
 <li>8.86</li>
@@ -457,16 +486,44 @@ Cor(X,Y) = \frac{ Cov(X,Y) }{ S_x S_y }
 <li>8.58</li>
 <li>-0.9719</li>
 </ul>
+<p><strong>Answer</strong>: we normalise my taking the mean away from each value and diving by the standard deviation:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1">( (x <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(x)) <span class="op">/</span><span class="st"> </span><span class="kw">sd</span>(x) )[<span class="dv">1</span>]</a></code></pre></div>
+<pre><code>## [1] -0.9718658</code></pre>
 </div>
 <div id="question-7" class="section level2">
 <h2>Question 7</h2>
-<p>Consider the following data set (used above as well). What is the intercept for fitting the model with x as the predictor and y as the outcome?</p>
+<p>Consider the following data set:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.8</span>, <span class="fl">0.47</span>, <span class="fl">0.51</span>, <span class="fl">0.73</span>, <span class="fl">0.36</span>, <span class="fl">0.58</span>, <span class="fl">0.57</span>, <span class="fl">0.85</span>, <span class="fl">0.44</span>, <span class="fl">0.42</span>)</a>
+<a class="sourceLine" id="cb28-2" data-line-number="2">y &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">1.39</span>, <span class="fl">0.72</span>, <span class="fl">1.55</span>, <span class="fl">0.48</span>, <span class="fl">1.19</span>, <span class="fl">-1.59</span>, <span class="fl">1.23</span>, <span class="fl">-0.65</span>, <span class="fl">1.49</span>, <span class="fl">0.05</span>)</a></code></pre></div>
+<p>What is the intercept for fitting the model with x as the predictor and y as the outcome?</p>
 <ul>
 <li>1.252</li>
 <li>1.567</li>
 <li>-1.713</li>
 <li>2.105</li>
 </ul>
+<p><strong>Answer:</strong></p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1"><span class="co"># Using the formulas</span></a>
+<a class="sourceLine" id="cb29-2" data-line-number="2"><span class="kw">tibble</span>(<span class="dt">x =</span> x, <span class="dt">y =</span> y) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb29-3" data-line-number="3"><span class="st">    </span><span class="kw">summarise</span>(</a>
+<a class="sourceLine" id="cb29-4" data-line-number="4">        <span class="dt">beta_1 =</span> <span class="kw">cor</span>(x,y) <span class="op">*</span><span class="st"> </span>( <span class="kw">sd</span>(y) <span class="op">/</span><span class="st"> </span><span class="kw">sd</span>(x) ),</a>
+<a class="sourceLine" id="cb29-5" data-line-number="5">        <span class="dt">beta_0 =</span> <span class="kw">mean</span>(y) <span class="op">-</span><span class="st"> </span>beta_<span class="dv">1</span> <span class="op">*</span><span class="st"> </span><span class="kw">mean</span>(x)</a>
+<a class="sourceLine" id="cb29-6" data-line-number="6">    ) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb29-7" data-line-number="7"><span class="st">    </span><span class="kw">select</span>(beta_<span class="dv">0</span>)</a></code></pre></div>
+<pre><code>## # A tibble: 1 x 1
+##   beta_0
+##    &lt;dbl&gt;
+## 1   1.57</code></pre>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" data-line-number="1"><span class="co"># Using lm()</span></a>
+<a class="sourceLine" id="cb31-2" data-line-number="2"><span class="kw">tibble</span>(<span class="dt">x =</span> x, <span class="dt">y =</span> y) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb31-3" data-line-number="3"><span class="st">    </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x, <span class="dt">data =</span> .)</a></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = y ~ x, data = .)
+## 
+## Coefficients:
+## (Intercept)            x  
+##       1.567       -1.713</code></pre>
 </div>
 <div id="question-8" class="section level2">
 <h2>Question 8</h2>
@@ -477,11 +534,12 @@ Cor(X,Y) = \frac{ Cov(X,Y) }{ S_x S_y }
 <li>It must be exactly one.</li>
 <li>It must be identically 0.</li>
 </ul>
+<p><strong>Answer</strong>: we know that any regression line must pass through <span class="math inline">\((\mu_x, \mu_y)\)</span>. If the mean of both of these is zero, then the regression line must pass through the origin.</p>
 </div>
 <div id="question-9" class="section level2">
 <h2>Question 9</h2>
 <p>Consider the data given by:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.8</span>, <span class="fl">0.47</span>, <span class="fl">0.51</span>, <span class="fl">0.73</span>, <span class="fl">0.36</span>, <span class="fl">0.58</span>, <span class="fl">0.57</span>, <span class="fl">0.85</span>, <span class="fl">0.44</span>, <span class="fl">0.42</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.8</span>, <span class="fl">0.47</span>, <span class="fl">0.51</span>, <span class="fl">0.73</span>, <span class="fl">0.36</span>, <span class="fl">0.58</span>, <span class="fl">0.57</span>, <span class="fl">0.85</span>, <span class="fl">0.44</span>, <span class="fl">0.42</span>)</a></code></pre></div>
 <p>What value minimizes the sum of the squared distances between these points and itself?</p>
 <ul>
 <li>0.44</li>
@@ -489,16 +547,27 @@ Cor(X,Y) = \frac{ Cov(X,Y) }{ S_x S_y }
 <li>0.36</li>
 <li>0.8</li>
 </ul>
+<p><strong>Answer</strong>: using a regression through the origin:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1"><span class="kw">tibble</span>(<span class="dt">x =</span> x, <span class="dt">y =</span> y) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb34-2" data-line-number="2"><span class="st">    </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb34-3" data-line-number="3"><span class="st">    </span><span class="kw">coef</span>()</a></code></pre></div>
+<pre><code>##         x 
+## 0.8262517</code></pre>
 </div>
 <div id="question-10" class="section level2">
 <h2>Question 10</h2>
-<p>Let the slope having fit Y as the outcome and X as the predictor be denoted as <span class="math inline">\(\beta_1\)</span>. Let the slope from fitting <span class="math inline">\(X\)</span> as the outcome and <span class="math inline">\(Y\)</span> as the predictor be denoted as <span class="math inline">\(\gamma_1\)</span>. Suppose that you divide <span class="math inline">\(\beta_1\)</span> bu <span class="math inline">\(\gamma_1\)</span>. In other words consider <span class="math inline">\(\beta_1 / \gamma_1\)</span>. What is this ratio always equal to?</p>
+<p>Let the slope having fit <span class="math inline">\(Y\)</span> as the outcome and <span class="math inline">\(X\)</span> as the predictor be denoted as <span class="math inline">\(\beta_1\)</span>. Let the slope from fitting <span class="math inline">\(X\)</span> as the outcome and <span class="math inline">\(Y\)</span> as the predictor be denoted as <span class="math inline">\(\gamma_1\)</span>. Suppose that you divide <span class="math inline">\(\beta_1\)</span> bu <span class="math inline">\(\gamma_1\)</span>. In other words consider <span class="math inline">\(\beta_1 / \gamma_1\)</span>. What is this ratio always equal to?</p>
 <ul>
 <li><span class="math inline">\(Cor(Y,X)\)</span></li>
 <li><span class="math inline">\(1\)</span></li>
-<li><span class="math inline">\(Var(Y)/Var(X)Var(Y)\)</span></li>
-<li><span class="math inline">\(2SD(Y)/SD(X)2SD(Y)\)</span></li>
+<li><span class="math inline">\(Var(Y)/Var(X)\)</span></li>
+<li><span class="math inline">\(2SD(Y)/SD(X)\)</span></li>
 </ul>
+<p><strong>Answer:</strong> <span class="math inline">\(\beta_1 = Cor(X,Y) * \frac{ sd(Y) }{ sd(X) }\)</span> and <span class="math inline">\(\gamma_1 = Cor(X,Y) * \frac{ sd(X) }{ sd(Y) }\)</span>, so we have:</p>
+<p><span class="math display">\[ \frac{ Cor(X,Y) * \frac{ sd(Y) }{ sd(X) }}{ Cor(X,Y) * \frac{ sd(X) }{ sd(Y) } } \\
+= \frac{ \frac{ sd(Y) }{ sd(X) }}{ \frac{ sd(X) }{ sd(Y) } } \\
+= 2\frac{ sd(Y) }{ sd(X) }
+\]</span></p>
 </div>
 </div>
     </section>

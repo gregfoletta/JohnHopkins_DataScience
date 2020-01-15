@@ -1,0 +1,482 @@
+---
+title: "Course 7 - Regression Models - Week 2 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(broom)
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+```
+
+# Statistical Linear Regression Models
+
+Least squares is simply an estimation tool - but we want to do inference. We want a probabalistic model for linear regression.
+
+$$ Y_i = \beta_0 + \beta_1X_i + \epsilon_i $$
+
+The $\epsilon_i$ are assumed to be IID $N(0, \sigma^2)$.
+
+
+The expected value of the response given a particular value of the regressor is the line $E[Y_i|\ X_i = x_i] = \mu_i = \beta_0 + \beta_1x_i$
+
+The variance of the response at any particular value of the regressor is $Var(Y_i|\ X_i = x_i) = \sigma^2$. Note that this is the variance **around** the regression line, not the variance of the response. It will be lower than the variance of the response because we have *explained away* some of the variation by conditioning on $x$.
+
+## Interpreting Coeffcients
+
+The intercept $\beta_0$ is the expected value of the response when the predictor is 0. $E[Y|X = 0] = \beta_0$. 
+
+This isn't always of interest, for example when the $X$ is impossible or far outside the range of the data (blood pressure, height, etc).
+
+However you can shift intercept to a point that does make sense. Often this is set to $\bar{X}$ so that the intercept is interpretted as the expected response at the average $X$ value.
+
+$$
+Y_i = \beta_0 + a\beta_1 + \beta_1(X_i - a) + \epsilon_i \\
+= \tilde{\beta_0} + \beta_1(X_i - a) + \epsilon_i
+$$
+The $a$ is where you want the intercept shifted to.
+
+The $\beta_1$ coefficient is the expected change in the response given a unit change in the regressor.
+
+Consider changing the units of $X$:
+
+$$
+Y_i = \beta_0 + \beta_1X_i + \epsilon_i \\
+= \beta_0 + \frac{\beta_1}{a}(X_i a) + \epsilon_i \\
+= \beta_0 + \tilde{\beta_1}(X_i a) + \epsilon_i
+$$
+So multiplication of $X$ by a factor $a$ results in dividing the coefficient by a factor of $a$.
+
+As an example, $X$ is height in $m$ and $Y$ is weight in $kg$. The $\beta_1$ is $kg/m$. Converting to $cm$ implies multiplying $X$ by $100cm/m$ to get the $\beta_1 in the right units.
+
+$$
+Xm \times \frac{100cm}{m} \\
+= (100X)cm \\
+\text{ and } \\
+\beta_1\frac{kg}{m} \times \frac{1m}{100cm} \\
+= \bigg( \frac{\beta_1}{100} \bigg) \frac{kg}{cm}
+$$
+
+
+
+# Residuals
+
+Residuals represent variation left unexplained by our model. We can take a look at the `diamonds` dataset.
+
+```{r diamonds}
+set.seed(1)
+diamond_smpl <- diamonds %>% sample_frac(.001)
+
+diamond_smpl %>%
+    ggplot(aes(carat, price)) +
+    geom_point() +
+    geom_smooth(method = 'lm') +
+    labs(title = 'Diamond Data', x = 'Carat', y = 'Price')
+```
+
+Before we perform the regression, there is a large amount of unexplained variance in the price:
+
+```{r price_var}
+diamond_smpl %>%
+    summarise(variance = var(price))
+```
+
+After we perform the regression, our unexplained variance is now reduced. It's the variance of the price at each carat. This variance that is left unexplained is known as the **residuals**.
+
+Each reslidual is the difference between the observed and predicted outcome:
+
+$$ e_i = Y_i - \hat{Y_i} $$
+The least squares minimises $\sum_{i=1}^n e^2_i$.
+
+### Residual Properties
+
+- $E[e_i] = 0$
+- Useful for investigating poor model fit.
+- Residuals can be thought of as the outcome ($Y$) with the linear association of the predictor ($X$) removed.
+    - For example, if we wanted to do subsequent analysis on `diamonds` but with adjusted for weight, we could use the residuals.
+    - Remember that if you're doing a linear regression, you've only removed the **linear** portion of the predictor.
+
+## Residual Plots
+
+
+
+We can create some dummy data that has a linear component and also an oscillating component.
+
+```{r osc_example}
+set.seed(1)
+oscillating <-
+    tibble(
+        x = runif(100, -3, 3),
+        y = x + sin(2*x) + rnorm(100, sd = .5)
+    )
+
+oscillating %>%
+    ggplot(aes(x,y)) +
+    geom_smooth(method = 'lm') +
+    geom_point() +
+    labs(
+        title = 'Dummy Oscillating Data',
+        x = 'runif(100, -3, 3)',
+        y = 'x + sin(x) + rnorm(100, sd = .5)'
+    )
+```
+
+We can see in the above that there is most definitely a linear trend, but there is also some oscillating that we not pick up on straight away.
+
+By looking at the residual plot we can see what we may have missed:
+
+```{r osc_resid}
+oscillating %>%
+    lm(y ~ x, data = .) %>%
+    augment() %>%
+    ggplot(aes(x, .resid)) +
+    geom_point() +
+    geom_hline(yintercept = 0) +
+    labs(x = 'runif(100, -3, 3)', y = 'lm residuals')
+```
+
+We can better see the oscillation within the data.
+
+## Heteroskedasticity
+
+Heteroskedasticity is where the variability is unequal across the range of values.
+
+```{r hetero_data}
+set.seed(1)
+heterosked <-
+    tibble(
+        x = runif(100, 0, 6),
+        y = x + rnorm(100, mean = 0, sd = .001 * x)
+    )
+
+heterosked %>%
+    ggplot(aes(x,y)) +
+    geom_smooth(method = 'lm') +
+    geom_point() +
+    labs(title = 'Heteroskedacticity Regression')
+```
+
+We don't see the variability in the regression plot, however if we look at the residuals:
+
+```{r hetero_resid}
+heterosked %>%
+    lm(y ~ x, data = .) %>%
+    augment() %>%
+    ggplot(aes(x, .resid)) +
+    geom_point() +
+    labs(
+        title = 'Heteroskedacticity Residuals',
+        x = 'X',
+        y = 'Residuals'
+    )
+```
+
+We clearly see the variability increasing across the x values.
+
+Let's take a look at the diamond data:
+
+```{r residual_example}
+library(broom)
+set.seed(1)
+
+# Looking at the carats vs the residuals.
+diamonds %>%
+    sample_frac(.001) %>%
+    lm(price ~ carat, data = .) %>%
+    augment() %>%
+    ggplot() +
+    geom_point(aes(carat, .resid)) +
+    labs(title = 'Mass (Carats) vs Residuals', x = 'Carats', y = 'Residuals')
+```
+
+I think we do see some heteroskedacticity in this as we see the a clear 'funnel' shape in the residual plot.
+
+We'll now look at the variance explained by our linear regression. 
+
+```{r variance_explained}
+set.seed(1)
+
+diamonds %>%
+    sample_frac(.001)  %>%
+    do(
+        Intercept = resid(lm(price ~ 1, data = .)),
+        Linear = resid(lm(price ~ carat, data = .))
+    ) %>%
+    unnest() %>%
+    gather(fit, residual) %>%
+    ggplot(aes(fit, residual, fill = fit)) +
+    geom_dotplot(binaxis = 'y',size = 2, stackdir = 'center', binwidth = 400) +
+    labs(
+        title = 'Residual Plot',
+        x = 'Fit Approach',
+        y = 'Residual Price',
+        fill = 'Fitting Approach'
+    )
+```
+
+What we see on the intercept plot is the variation of prices around the average. In the rightmost plot we see the variation around the regression line.
+
+As the rightmost graph is compressed, we've explained a lot of the variation as being due to the relationship with mass (carats).
+
+## Residual Variation
+
+Residual variation is the variation around the regression line. Recall that if we include an intercept, the residuals have to sum to zero, which means their mean is zero.
+
+The maximum likelyhood estimate of $\sigma^2$ is $\frac{1}{n} \sum_{i=1}^n e^2_i$, the average of the squared residual. 
+
+Most people use $\hat{\sigma} = \frac{1}{n - 2} \sum_{i=1}^n e^2_i$. This is so that $E[\hat{\sigma}^2] = \sigma^2$.
+
+```{r resid_variance}
+diamond_fit <- diamonds %>%
+    lm(price ~ carat, data = .)
+
+diamond_fit %>% summary() %>% .$sigma
+
+e <- resid(diamond_fit)
+n <- length(e)
+sqrt( sum( e^2 / (n - 2 ) ) )
+```
+
+## Summarising Variation
+
+The total variability in our response is the variability around an intercept - think mean only regression:
+
+$$ \sum_{i=1}^n (Y_i - \bar{Y})^2 $$
+
+The regression variability is the variability that is explained by adding the predictor:
+
+$$ \sum_{i=1}^n (\hat{Y}_i - \bar{Y})^2 $$
+The error variability is what's left over around the regression line:
+
+$$ \sum_{i=1}^n (Y_i - \hat{Y}_i)^2 $$
+
+The total variability is equal to the regression variability plus the residual variability.
+
+$$ 
+\sum_{i=1}^n (Y_i - \bar{Y})^2 = 
+\sum_{i=1}^n (\hat{Y}_i - \bar{Y})^2 +
+\sum_{i=1}^n (Y_i - \hat{Y}_i)^2
+$$
+## R^2
+
+With these, we can define the proportion or percentage of total variability that is explained by the linear relationship with the predictor:
+
+$$ R^2 = \frac{ \sum_{i=1}^n (\hat{Y}_i - \bar{Y})^2 }{ \sum_{i=1}^n (Y_i - \bar{Y})^2 } $$
+
+- $0 \le R^2 \le 1$
+- $R^2$ is the sample correlation squared.
+- $R^2$ can be a misleading summary of model fit:
+    - Deleting data can inflate $R^2$
+    - Adding terms to a regression always increases $R^2$.
+
+
+# Inference in Regression
+
+Statistics like:
+
+$$\frac{ \hat{\theta} - \theta}{ \hat{\sigma_{\hat{\theta}}} }$$
+
+often have the following properties:
+
+- They're normally distributed and have a a finite sample *t-distribution* if the estimated variance is replaced with a sample estimate.
+- Can be used to test hypothesis tests: $H_0: \theta = \theta_0$ versus $H_a: \theta \gt,\lt,\ne \theta_0$
+- Can be used to create a confidence interval for $\theta$ via:
+
+$$ \hat{\theta} \pm Q_{1-\alpha/2}\ \hat{\sigma}_{\hat{\theta}} $$, where our $Q_{1-\alpha/2}$ is the relevant quantile from our t or normal distribution, and $\alpha$ is our type I error rate.
+
+It is **not mandatory** for the errors to be Gaussian for the statistical inferences to hold.
+
+## Slope Variance
+2
+The variance of our regression slope is:
+
+$$ \sigma^2_{\hat{\beta}_1} = Var(\hat{\beta_1}) = \sigma^2 / \sum_{1=1}^n (X_i - \bar{X})^2 $$
+
+This formula involves two things and is quite instructive. The first is that the variance is proportional to the $\sigma^2$: how variable the points are around the "true" regression line, which is reasonably intuitive.
+
+The denominator is less intuitive: the more varied our predictor is, the lower the variance of the slope coefficient. Consider the predictors all packed together tightly, then the line can 'bend around' these points easily and you can get equivalent fits. If all of the points are spread out then we'll get a better fit and a lower variance for the slope.
+
+## Intercept Variance
+
+The intercept variance is:
+
+$$
+\sigma^2_{\hat{\beta}_0} = Var(\hat{\beta_0}) = 
+\bigg(\frac{1}{n} + \frac{ 
+    \bar{X}^2
+}{ \sum_{i=1}^n (X_i - \bar{X})^2
+} \bigg) \sigma^2
+$$
+
+In both of the cases, the $\sigma^2$ is replaced by its logical estimate: $\frac{1}{n-2} \sum_{i=1}^n e^2$
+
+## Confidence Interval Example
+
+Let's generate some data and fit a linear model to it:
+
+```{r conf_int_example}
+conf_int <- tibble(
+    x = seq(-3, 3, by = .4),
+    y = x + rnorm(length(x), sd = .5)
+)
+
+conf_int %>%
+    ggplot(aes(x,y)) +
+    geom_point()
+
+conf_int_fit <- conf_int %>% lm(y ~ x, data = .)
+summary(conf_int_fit)
+```
+
+Let's calculate the confidence interval for the slope. As $\hat{\beta_1}$ follows a t-distribution, we'll use the `qt()` function for the t-distribution quantile. We'll use a probabiltiy of .975 to get our two-tailed 95% confidence interval. The degrees of freedom are $n-1$, where $n$ is the number of observations.
+
+We then multiply this by the standard error.
+
+```{r conf_int}
+beta_1 <- summary(conf_int_fit)$coefficients[2,1]
+beta_1_sigma_hat <- summary(conf_int_fit)$coefficients[2,2]
+
+beta_1
+beta_1_sigma_hat
+
+beta_1 + c(-1,1) * qt(p = .975, df = 14) * beta_1_sigma_hat
+```
+
+## Prediction
+
+Consider predicting an outcome: the obvious predicition is to multiply out predictor by $\hat{\beta_1}$ and add $\hat{\beta_0}$. But we also need to communicate our uncertainty in that prediction. 
+
+There is a distinction between the intervals for the regression line at a point, and the prediction of what a $y$ would be at point $x_0$.
+
+**Line at $x_0$ standard error:**
+
+$$
+\hat{\sigma}
+\sqrt{
+    \frac{1}{n} + \frac{ 
+        (x_0 -\bar{X}^2)
+    }{ \sum_{i=1}^n (X_i - \bar{X})^2
+    }
+}
+$$
+
+**Prediction interval standard error at $x_0$:**
+
+$$
+\hat{\sigma}
+\sqrt{
+    1 +
+    \frac{1}{n} + \frac{
+        
+        (x_0 -\bar{X}^2)
+    }{ \sum_{i=1}^n (X_i - \bar{X})^2
+    }
+}
+$$
+
+# Quiz
+
+## Question 1
+
+Consider the following data with x as the predictor and y as as the outcome:
+
+```{r q1_data}
+x <- c(0.61, 0.93, 0.83, 0.35, 0.54, 0.16, 0.91, 0.62, 0.62)
+y <- c(0.67, 0.84, 0.6, 0.18, 0.85, 0.47, 1.1, 0.65, 0.36)
+```
+
+Give a P-value for the two sided hypothesis test of whether $\beta_1$ from a linear regression model is 0 or not.
+
+- 2.325
+- 0.05296
+- 0.391
+- 0.025
+
+## Question 2
+
+Consider the previous problem, give the estimate of the residual standard deviation.
+
+- 0.223
+- 0.3552
+- 0.4358
+- 0.05296
+
+## Question 3
+
+In the `mtcars` data set, fit a linear regression model of `weight` (predictor) on `mpg` (outcome). Get a 95% confidence interval for the expected `mpg` at the average `weight`. What is the lower endpoint?
+
+- 18.991
+- -6.486
+- -4.00
+- 21.190
+
+## Question 4
+
+Refer to the previous question. Read the help file for `mtcars`. What is the weight coefficient interpreted as?
+
+- The estimated expected change in mpg per 1,000 lb increase in weight.
+- The estimated 1,000 lb change in weight per 1 mpg increase.
+- It can't be interpreted without further information
+- The estimated expected change in mpg per 1 lb increase in weight.
+
+## Question 5
+
+Consider again the mtcars data set and a linear regression model with mpg as predicted by weight (1,000 lbs). A new car is coming weighing 3000 pounds. Construct a 95% prediction interval for its mpg. What is the upper endpoint?
+
+- 21.25
+- 14.93
+- -5.77
+- 27.57
+
+## Question 6
+
+Consider again the `mtcars` data set and a linear regression model with mpg as predicted by weight (in 1,000 lbs). A “short” ton is defined as 2,000 lbs. Construct a 95% confidence interval for the expected change in mpg per 1 short ton increase in weight. Give the lower endpoint.
+
+- -9.000
+- -6.486
+- 4.2026
+- -12.973
+
+## Question 7
+
+If my $X$ from a linear regression is measured in centimeters and I convert it to meters what would happen to the slope coefficient?
+
+- It would get multiplied by 100.
+- It would get multiplied by 10
+- It would get divided by 10
+- It would get divided by 100
+
+## Question 8
+
+I have an outcome, $Y$, and a predictor, $X$ and fit a linear regression model with $Y = \beta_0 + \beta_1X + \epsilon$. What would be the consequence to the subsequent slope and intercept if I were to refit the model with a new regressor, X+cX + cX+c for some constant, ccc?
+
+- The new intercept would be β^0+cβ^1
+- The new slope would be β^1+c
+- The new slope would be cβ^1
+- The new intercept would be β^0−cβ^1
+
+## Question 9
+
+Refer back to the mtcars data set with mpg as an outcome and weight (wt) as the predictor. About what is the ratio of the the sum of the squared errors, $\sum_{i=1}^n(Y_i−Y^i)^2$ when comparing a model with just an intercept (denominator) to the model with the intercept and slope (numerator)?
+
+- 0.25
+- 0.75
+- 0.50
+- 4.00
+
+## Question 10
+
+Do the residuals always have to sum to 0 in linear regression?
+
+- If an intercept is included, the residuals most likely won't sum to zero.
+- The residuals never sum to zero.
+- If an intercept is included, then they will sum to 0.
+- The residuals must always sum to zero.
