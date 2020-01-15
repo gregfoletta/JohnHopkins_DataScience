@@ -401,6 +401,15 @@ Give a P-value for the two sided hypothesis test of whether $\beta_1$ from a lin
 - 0.391
 - 0.025
 
+**Answer:**
+
+```{r q1_ans}
+# Fit the regression
+lm(y ~ x, data = tibble(x = x, y - y)) %>%
+    summary() %>%
+    .$coef
+```
+
 ## Question 2
 
 Consider the previous problem, give the estimate of the residual standard deviation.
@@ -409,6 +418,14 @@ Consider the previous problem, give the estimate of the residual standard deviat
 - 0.3552
 - 0.4358
 - 0.05296
+
+**Answer**: 
+
+```{r q2_ans}
+lm(y ~ x, data = tibble(x = x, y - y)) %>%
+    summary() %>%
+    .$sigma
+```
 
 ## Question 3
 
@@ -419,6 +436,16 @@ In the `mtcars` data set, fit a linear regression model of `weight` (predictor) 
 - -4.00
 - 21.190
 
+**Answer:**
+
+```{r q3_ans}
+# Fit the regression
+mtcars_lm <- mtcars %>%
+    lm(mpg ~ wt, data = .)
+
+predict(mtcars_lm, newdata = tibble(wt = mean(mtcars$wt)), interval = 'confidence')
+```
+
 ## Question 4
 
 Refer to the previous question. Read the help file for `mtcars`. What is the weight coefficient interpreted as?
@@ -427,6 +454,8 @@ Refer to the previous question. Read the help file for `mtcars`. What is the wei
 - The estimated 1,000 lb change in weight per 1 mpg increase.
 - It can't be interpreted without further information
 - The estimated expected change in mpg per 1 lb increase in weight.
+
+**Answer:** in the data set, weight is in 1,000 pounds, therefore the coefficient is 'estimated expected change in mpg per 1,000 pound increase in weight.
 
 ## Question 5
 
@@ -437,6 +466,11 @@ Consider again the mtcars data set and a linear regression model with mpg as pre
 - -5.77
 - 27.57
 
+***Answer:***
+```{r q5_ans}
+predict(mtcars_lm, newdata = tibble(wt = 3), interval = 'prediction')
+```
+
 ## Question 6
 
 Consider again the `mtcars` data set and a linear regression model with mpg as predicted by weight (in 1,000 lbs). A “short” ton is defined as 2,000 lbs. Construct a 95% confidence interval for the expected change in mpg per 1 short ton increase in weight. Give the lower endpoint.
@@ -445,6 +479,12 @@ Consider again the `mtcars` data set and a linear regression model with mpg as p
 - -6.486
 - 4.2026
 - -12.973
+
+**Answer:** unknown.
+
+```{r q6_ans}
+
+```
 
 ## Question 7
 
@@ -455,14 +495,30 @@ If my $X$ from a linear regression is measured in centimeters and I convert it t
 - It would get divided by 10
 - It would get divided by 100
 
+**Answer:** if we multiply the regressor by $X$, we need to divide the coefficient by $X$, thus it would be multiplied by 1000.
+
 ## Question 8
 
-I have an outcome, $Y$, and a predictor, $X$ and fit a linear regression model with $Y = \beta_0 + \beta_1X + \epsilon$. What would be the consequence to the subsequent slope and intercept if I were to refit the model with a new regressor, X+cX + cX+c for some constant, ccc?
+I have an outcome, $Y$, and a predictor, $X$ and fit a linear regression model with $Y = \beta_0 + \beta_1X + \epsilon$. What would be the consequence to the subsequent slope and intercept if I were to refit the model with a new regressor, $X+c$ for some constant, $c$?
 
 - The new intercept would be β^0+cβ^1
 - The new slope would be β^1+c
 - The new slope would be cβ^1
 - The new intercept would be β^0−cβ^1
+
+**Answer:** if we're shifting by a constant, the slope won't change:
+
+
+```{r q8_data}
+set.seed(1)
+x = -10:10
+y = x + rnorm(length(x))
+
+lm(y ~ x, data = tibble(x = 3*x, y = y)) %>% coef()
+lm(y ~ x, data = tibble(x = 3*x + 10, y = y)) %>% coef()
+```
+
+Our formula for $\beta_0$ is $\bar{Y} - \hat{\beta_1}\bar{X}$, so our new intercept will be $\bar{Y} - \hat{\beta_1}(\bar{X} + c) = \bar{Y} - \hat{\beta_1}\bar{X} - \hat{\beta_1}c$.
 
 ## Question 9
 
@@ -473,6 +529,34 @@ Refer back to the mtcars data set with mpg as an outcome and weight (wt) as the 
 - 0.50
 - 4.00
 
+```{r q9_ans}
+# Just fit the intercept and calculate the sum of squared errors
+mtcar_intcpt_rss <- mtcars %>%
+    lm(mpg ~ 1, data = .) %>%
+    augment() %>%
+    summarise(rss = sum(.resid^2)) %>%
+    pull(rss)
+
+# Now fit with the regressor
+mtcar_regress_rss <- mtcars %>%
+    lm(mpg ~ wt, data = .) %>%
+    augment() %>%
+    summarise(rss = sum(.resid^2)) %>%
+    pull(rss)
+
+# Calculate the ratio
+mtcar_regress_rss / mtcar_intcpt_rss
+
+# This is also 1 minus the R^2 value
+r_sqr <-
+    mtcars %>%
+    lm(mpg ~ wt, data = .) %>%
+    summary() %>%
+    .$r.squared
+
+1 - r_sqr
+```
+
 ## Question 10
 
 Do the residuals always have to sum to 0 in linear regression?
@@ -481,3 +565,21 @@ Do the residuals always have to sum to 0 in linear regression?
 - The residuals never sum to zero.
 - If an intercept is included, then they will sum to 0.
 - The residuals must always sum to zero.
+
+**Answer:** 
+
+```{r q1_test}
+# With an intercept
+mtcars %>%
+    lm(mpg ~ wt, data = .) %>%
+    augment() %>%
+    summarise(residual_sum = sum(.resid)) %>%
+    pull(residual_sum)
+
+# Without an intercept
+mtcars %>%
+    lm(mpg ~ wt - 1, data = .) %>%
+    augment() %>%
+    summarise(residual_sum = sum(.resid)) %>%
+    pull(residual_sum)
+```

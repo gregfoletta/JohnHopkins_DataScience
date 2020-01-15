@@ -13,7 +13,7 @@
 
 <meta name="author" content="Greg Foletta" />
 
-<meta name="date" content="2020-01-15" />
+<meta name="date" content="2020-01-16" />
 
 <title>Course 7 - Regression Models - Week 2 - Notes</title>
 
@@ -135,7 +135,7 @@ code span.ot { color: #007020; }
 <div class="inner">
 <h1 class="title toc-ignore">Course 7 - Regression Models - Week 2 - Notes</h1>
 <h3 class="author">Greg Foletta</h3>
-<h3 class="date">2020-01-15</h3>
+<h3 class="date">2020-01-16</h3>
 </div>
 </header>
 
@@ -500,6 +500,14 @@ Xm \times \frac{100cm}{m} \\
 <li>0.391</li>
 <li>0.025</li>
 </ul>
+<p><strong>Answer:</strong></p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1"><span class="co"># Fit the regression</span></a>
+<a class="sourceLine" id="cb28-2" data-line-number="2"><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x, <span class="dt">data =</span> <span class="kw">tibble</span>(<span class="dt">x =</span> x, y <span class="op">-</span><span class="st"> </span>y)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb28-3" data-line-number="3"><span class="st">    </span><span class="kw">summary</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb28-4" data-line-number="4"><span class="st">    </span>.<span class="op">$</span>coef</a></code></pre></div>
+<pre><code>##              Estimate Std. Error   t value   Pr(&gt;|t|)
+## (Intercept) 0.1884572  0.2061290 0.9142681 0.39098029
+## x           0.7224211  0.3106531 2.3254912 0.05296439</code></pre>
 </div>
 <div id="question-2" class="section level2">
 <h2>Question 2</h2>
@@ -510,6 +518,11 @@ Xm \times \frac{100cm}{m} \\
 <li>0.4358</li>
 <li>0.05296</li>
 </ul>
+<p><strong>Answer</strong>:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" data-line-number="1"><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x, <span class="dt">data =</span> <span class="kw">tibble</span>(<span class="dt">x =</span> x, y <span class="op">-</span><span class="st"> </span>y)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb30-2" data-line-number="2"><span class="st">    </span><span class="kw">summary</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb30-3" data-line-number="3"><span class="st">    </span>.<span class="op">$</span>sigma</a></code></pre></div>
+<pre><code>## [1] 0.2229981</code></pre>
 </div>
 <div id="question-3" class="section level2">
 <h2>Question 3</h2>
@@ -520,6 +533,14 @@ Xm \times \frac{100cm}{m} \\
 <li>-4.00</li>
 <li>21.190</li>
 </ul>
+<p><strong>Answer:</strong></p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" data-line-number="1"><span class="co"># Fit the regression</span></a>
+<a class="sourceLine" id="cb32-2" data-line-number="2">mtcars_lm &lt;-<span class="st"> </span>mtcars <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb32-3" data-line-number="3"><span class="st">    </span><span class="kw">lm</span>(mpg <span class="op">~</span><span class="st"> </span>wt, <span class="dt">data =</span> .)</a>
+<a class="sourceLine" id="cb32-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb32-5" data-line-number="5"><span class="kw">predict</span>(mtcars_lm, <span class="dt">newdata =</span> <span class="kw">tibble</span>(<span class="dt">wt =</span> <span class="kw">mean</span>(mtcars<span class="op">$</span>wt)), <span class="dt">interval =</span> <span class="st">'confidence'</span>)</a></code></pre></div>
+<pre><code>##        fit      lwr      upr
+## 1 20.09062 18.99098 21.19027</code></pre>
 </div>
 <div id="question-4" class="section level2">
 <h2>Question 4</h2>
@@ -530,6 +551,7 @@ Xm \times \frac{100cm}{m} \\
 <li>It can’t be interpreted without further information</li>
 <li>The estimated expected change in mpg per 1 lb increase in weight.</li>
 </ul>
+<p><strong>Answer:</strong> in the data set, weight is in 1,000 pounds, therefore the coefficient is ’estimated expected change in mpg per 1,000 pound increase in weight.</p>
 </div>
 <div id="question-5" class="section level2">
 <h2>Question 5</h2>
@@ -540,6 +562,10 @@ Xm \times \frac{100cm}{m} \\
 <li>-5.77</li>
 <li>27.57</li>
 </ul>
+<p><strong><em>Answer:</em></strong></p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1"><span class="kw">predict</span>(mtcars_lm, <span class="dt">newdata =</span> <span class="kw">tibble</span>(<span class="dt">wt =</span> <span class="dv">3</span>), <span class="dt">interval =</span> <span class="st">'prediction'</span>)</a></code></pre></div>
+<pre><code>##        fit      lwr      upr
+## 1 21.25171 14.92987 27.57355</code></pre>
 </div>
 <div id="question-6" class="section level2">
 <h2>Question 6</h2>
@@ -550,6 +576,7 @@ Xm \times \frac{100cm}{m} \\
 <li>4.2026</li>
 <li>-12.973</li>
 </ul>
+<p><strong>Answer:</strong> unknown.</p>
 </div>
 <div id="question-7" class="section level2">
 <h2>Question 7</h2>
@@ -560,16 +587,29 @@ Xm \times \frac{100cm}{m} \\
 <li>It would get divided by 10</li>
 <li>It would get divided by 100</li>
 </ul>
+<p><strong>Answer:</strong> if we multiply the regressor by <span class="math inline">\(X\)</span>, we need to divide the coefficient by <span class="math inline">\(X\)</span>, thus it would be multiplied by 1000.</p>
 </div>
 <div id="question-8" class="section level2">
 <h2>Question 8</h2>
-<p>I have an outcome, <span class="math inline">\(Y\)</span>, and a predictor, <span class="math inline">\(X\)</span> and fit a linear regression model with <span class="math inline">\(Y = \beta_0 + \beta_1X + \epsilon\)</span>. What would be the consequence to the subsequent slope and intercept if I were to refit the model with a new regressor, X+cX + cX+c for some constant, ccc?</p>
+<p>I have an outcome, <span class="math inline">\(Y\)</span>, and a predictor, <span class="math inline">\(X\)</span> and fit a linear regression model with <span class="math inline">\(Y = \beta_0 + \beta_1X + \epsilon\)</span>. What would be the consequence to the subsequent slope and intercept if I were to refit the model with a new regressor, <span class="math inline">\(X+c\)</span> for some constant, <span class="math inline">\(c\)</span>?</p>
 <ul>
 <li>The new intercept would be β<sup>0+cβ</sup>1</li>
 <li>The new slope would be β^1+c</li>
 <li>The new slope would be cβ^1</li>
 <li>The new intercept would be β<sup>0−cβ</sup>1</li>
 </ul>
+<p><strong>Answer:</strong> if we’re shifting by a constant, the slope won’t change:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb36-2" data-line-number="2">x =<span class="st"> </span><span class="dv">-10</span><span class="op">:</span><span class="dv">10</span></a>
+<a class="sourceLine" id="cb36-3" data-line-number="3">y =<span class="st"> </span>x <span class="op">+</span><span class="st"> </span><span class="kw">rnorm</span>(<span class="kw">length</span>(x))</a>
+<a class="sourceLine" id="cb36-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb36-5" data-line-number="5"><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x, <span class="dt">data =</span> <span class="kw">tibble</span>(<span class="dt">x =</span> <span class="dv">3</span><span class="op">*</span>x, <span class="dt">y =</span> y)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">coef</span>()</a></code></pre></div>
+<pre><code>## (Intercept)           x 
+##   0.2252121   0.3427000</code></pre>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb38-1" data-line-number="1"><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x, <span class="dt">data =</span> <span class="kw">tibble</span>(<span class="dt">x =</span> <span class="dv">3</span><span class="op">*</span>x <span class="op">+</span><span class="st"> </span><span class="dv">10</span>, <span class="dt">y =</span> y)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">coef</span>()</a></code></pre></div>
+<pre><code>## (Intercept)           x 
+##   -3.201788    0.342700</code></pre>
+<p>Our formula for <span class="math inline">\(\beta_0\)</span> is <span class="math inline">\(\bar{Y} - \hat{\beta_1}\bar{X}\)</span>, so our new intercept will be <span class="math inline">\(\bar{Y} - \hat{\beta_1}(\bar{X} + c) = \bar{Y} - \hat{\beta_1}\bar{X} - \hat{\beta_1}c\)</span>.</p>
 </div>
 <div id="question-9" class="section level2">
 <h2>Question 9</h2>
@@ -580,6 +620,32 @@ Xm \times \frac{100cm}{m} \\
 <li>0.50</li>
 <li>4.00</li>
 </ul>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb40-1" data-line-number="1"><span class="co"># Just fit the intercept and calculate the sum of squared errors</span></a>
+<a class="sourceLine" id="cb40-2" data-line-number="2">mtcar_intcpt_rss &lt;-<span class="st"> </span>mtcars <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-3" data-line-number="3"><span class="st">    </span><span class="kw">lm</span>(mpg <span class="op">~</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-4" data-line-number="4"><span class="st">    </span><span class="kw">augment</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-5" data-line-number="5"><span class="st">    </span><span class="kw">summarise</span>(<span class="dt">rss =</span> <span class="kw">sum</span>(.resid<span class="op">^</span><span class="dv">2</span>)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-6" data-line-number="6"><span class="st">    </span><span class="kw">pull</span>(rss)</a>
+<a class="sourceLine" id="cb40-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb40-8" data-line-number="8"><span class="co"># Now fit with the regressor</span></a>
+<a class="sourceLine" id="cb40-9" data-line-number="9">mtcar_regress_rss &lt;-<span class="st"> </span>mtcars <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-10" data-line-number="10"><span class="st">    </span><span class="kw">lm</span>(mpg <span class="op">~</span><span class="st"> </span>wt, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-11" data-line-number="11"><span class="st">    </span><span class="kw">augment</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-12" data-line-number="12"><span class="st">    </span><span class="kw">summarise</span>(<span class="dt">rss =</span> <span class="kw">sum</span>(.resid<span class="op">^</span><span class="dv">2</span>)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-13" data-line-number="13"><span class="st">    </span><span class="kw">pull</span>(rss)</a>
+<a class="sourceLine" id="cb40-14" data-line-number="14"></a>
+<a class="sourceLine" id="cb40-15" data-line-number="15"><span class="co"># Calculate the ratio</span></a>
+<a class="sourceLine" id="cb40-16" data-line-number="16">mtcar_regress_rss <span class="op">/</span><span class="st"> </span>mtcar_intcpt_rss</a></code></pre></div>
+<pre><code>## [1] 0.2471672</code></pre>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" data-line-number="1"><span class="co"># This is also 1 minus the R^2 value</span></a>
+<a class="sourceLine" id="cb42-2" data-line-number="2">r_sqr &lt;-</a>
+<a class="sourceLine" id="cb42-3" data-line-number="3"><span class="st">    </span>mtcars <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb42-4" data-line-number="4"><span class="st">    </span><span class="kw">lm</span>(mpg <span class="op">~</span><span class="st"> </span>wt, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb42-5" data-line-number="5"><span class="st">    </span><span class="kw">summary</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb42-6" data-line-number="6"><span class="st">    </span>.<span class="op">$</span>r.squared</a>
+<a class="sourceLine" id="cb42-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb42-8" data-line-number="8"><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>r_sqr</a></code></pre></div>
+<pre><code>## [1] 0.2471672</code></pre>
 </div>
 <div id="question-10" class="section level2">
 <h2>Question 10</h2>
@@ -590,6 +656,21 @@ Xm \times \frac{100cm}{m} \\
 <li>If an intercept is included, then they will sum to 0.</li>
 <li>The residuals must always sum to zero.</li>
 </ul>
+<p><strong>Answer:</strong></p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" data-line-number="1"><span class="co"># With an intercept</span></a>
+<a class="sourceLine" id="cb44-2" data-line-number="2">mtcars <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb44-3" data-line-number="3"><span class="st">    </span><span class="kw">lm</span>(mpg <span class="op">~</span><span class="st"> </span>wt, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb44-4" data-line-number="4"><span class="st">    </span><span class="kw">augment</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb44-5" data-line-number="5"><span class="st">    </span><span class="kw">summarise</span>(<span class="dt">residual_sum =</span> <span class="kw">sum</span>(.resid)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb44-6" data-line-number="6"><span class="st">    </span><span class="kw">pull</span>(residual_sum)</a></code></pre></div>
+<pre><code>## [1] -1.637579e-15</code></pre>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" data-line-number="1"><span class="co"># Without an intercept</span></a>
+<a class="sourceLine" id="cb46-2" data-line-number="2">mtcars <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb46-3" data-line-number="3"><span class="st">    </span><span class="kw">lm</span>(mpg <span class="op">~</span><span class="st"> </span>wt <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb46-4" data-line-number="4"><span class="st">    </span><span class="kw">augment</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb46-5" data-line-number="5"><span class="st">    </span><span class="kw">summarise</span>(<span class="dt">residual_sum =</span> <span class="kw">sum</span>(.resid)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb46-6" data-line-number="6"><span class="st">    </span><span class="kw">pull</span>(residual_sum)</a></code></pre></div>
+<pre><code>## [1] 98.11672</code></pre>
 </div>
 </div>
     </section>
