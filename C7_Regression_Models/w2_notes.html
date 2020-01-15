@@ -151,11 +151,25 @@ code span.ot { color: #007020; }
 <li><a href="#heteroskedasticity">Heteroskedasticity</a></li>
 <li><a href="#residual-variation">Residual Variation</a></li>
 <li><a href="#summarising-variation">Summarising Variation</a></li>
+<li><a href="#r2">R^2</a></li>
 </ul></li>
 <li><a href="#inference-in-regression">Inference in Regression</a><ul>
 <li><a href="#slope-variance">Slope Variance</a></li>
 <li><a href="#intercept-variance">Intercept Variance</a></li>
 <li><a href="#confidence-interval-example">Confidence Interval Example</a></li>
+<li><a href="#prediction">Prediction</a></li>
+</ul></li>
+<li><a href="#quiz">Quiz</a><ul>
+<li><a href="#question-1">Question 1</a></li>
+<li><a href="#question-2">Question 2</a></li>
+<li><a href="#question-3">Question 3</a></li>
+<li><a href="#question-4">Question 4</a></li>
+<li><a href="#question-5">Question 5</a></li>
+<li><a href="#question-6">Question 6</a></li>
+<li><a href="#question-7">Question 7</a></li>
+<li><a href="#question-8">Question 8</a></li>
+<li><a href="#question-9">Question 9</a></li>
+<li><a href="#question-10">Question 10</a></li>
 </ul></li>
 </ul>
 </div>
@@ -362,7 +376,10 @@ Xm \times \frac{100cm}{m} \\
 \sum_{i=1}^n (Y_i - \bar{Y})^2 = 
 \sum_{i=1}^n (\hat{Y}_i - \bar{Y})^2 +
 \sum_{i=1}^n (Y_i - \hat{Y}_i)^2
-\]</span> ## R^2</p>
+\]</span></p>
+</div>
+<div id="r2" class="section level2">
+<h2>R^2</h2>
 <p>With these, we can define the proportion or percentage of total variability that is explained by the linear relationship with the predictor:</p>
 <p><span class="math display">\[ R^2 = \frac{ \sum_{i=1}^n (\hat{Y}_i - \bar{Y})^2 }{ \sum_{i=1}^n (Y_i - \bar{Y})^2 } \]</span></p>
 <ul>
@@ -398,7 +415,8 @@ Xm \times \frac{100cm}{m} \\
 <div id="intercept-variance" class="section level2">
 <h2>Intercept Variance</h2>
 <p>The intercept variance is:</p>
-<p><span class="math display">\[ \sigma^2_{\hat{\beta}_0} = Var(\hat{\beta_0}) = 
+<p><span class="math display">\[
+\sigma^2_{\hat{\beta}_0} = Var(\hat{\beta_0}) = 
 \bigg(\frac{1}{n} + \frac{ 
     \bar{X}^2
 }{ \sum_{i=1}^n (X_i - \bar{X})^2
@@ -410,14 +428,14 @@ Xm \times \frac{100cm}{m} \\
 <h2>Confidence Interval Example</h2>
 <p>Let’s generate some data and fit a linear model to it:</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">conf_int &lt;-<span class="st"> </span><span class="kw">tibble</span>(</a>
-<a class="sourceLine" id="cb18-2" data-line-number="2">    <span class="dt">x =</span> <span class="kw">seq</span>(<span class="op">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="dt">by =</span> <span class="fl">.01</span>),</a>
+<a class="sourceLine" id="cb18-2" data-line-number="2">    <span class="dt">x =</span> <span class="kw">seq</span>(<span class="op">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="dt">by =</span> <span class="fl">.4</span>),</a>
 <a class="sourceLine" id="cb18-3" data-line-number="3">    <span class="dt">y =</span> x <span class="op">+</span><span class="st"> </span><span class="kw">rnorm</span>(<span class="kw">length</span>(x), <span class="dt">sd =</span> <span class="fl">.5</span>)</a>
 <a class="sourceLine" id="cb18-4" data-line-number="4">)</a>
 <a class="sourceLine" id="cb18-5" data-line-number="5"></a>
 <a class="sourceLine" id="cb18-6" data-line-number="6">conf_int <span class="op">%&gt;%</span></a>
 <a class="sourceLine" id="cb18-7" data-line-number="7"><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(x,y)) <span class="op">+</span></a>
 <a class="sourceLine" id="cb18-8" data-line-number="8"><span class="st">    </span><span class="kw">geom_point</span>()</a></code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1">conf_int_fit &lt;-<span class="st"> </span>conf_int <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x, <span class="dt">data =</span> .)</a>
 <a class="sourceLine" id="cb19-2" data-line-number="2"><span class="kw">summary</span>(conf_int_fit)</a></code></pre></div>
 <pre><code>## 
@@ -426,19 +444,152 @@ Xm \times \frac{100cm}{m} \\
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
-## -1.48106 -0.32734 -0.02846  0.33851  1.93429 
+## -0.93276 -0.35032  0.06095  0.22715  1.09036 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept) -0.01273    0.02097  -0.607    0.544    
-## x            0.98737    0.01209  81.688   &lt;2e-16 ***
+## (Intercept) -0.03267    0.12797  -0.255    0.802    
+## x            0.97139    0.06940  13.997 1.27e-09 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.5141 on 599 degrees of freedom
-## Multiple R-squared:  0.9176, Adjusted R-squared:  0.9175 
-## F-statistic:  6673 on 1 and 599 DF,  p-value: &lt; 2.2e-16</code></pre>
-<p>Now</p>
+## Residual standard error: 0.5119 on 14 degrees of freedom
+## Multiple R-squared:  0.9333, Adjusted R-squared:  0.9285 
+## F-statistic: 195.9 on 1 and 14 DF,  p-value: 1.267e-09</code></pre>
+<p>Let’s calculate the confidence interval for the slope. As <span class="math inline">\(\hat{\beta_1}\)</span> follows a t-distribution, we’ll use the <code>qt()</code> function for the t-distribution quantile. We’ll use a probabiltiy of .975 to get our two-tailed 95% confidence interval. The degrees of freedom are <span class="math inline">\(n-1\)</span>, where <span class="math inline">\(n\)</span> is the number of observations.</p>
+<p>We then multiply this by the standard error.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">beta_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">summary</span>(conf_int_fit)<span class="op">$</span>coefficients[<span class="dv">2</span>,<span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb21-2" data-line-number="2">beta_<span class="dv">1</span>_sigma_hat &lt;-<span class="st"> </span><span class="kw">summary</span>(conf_int_fit)<span class="op">$</span>coefficients[<span class="dv">2</span>,<span class="dv">2</span>]</a>
+<a class="sourceLine" id="cb21-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb21-4" data-line-number="4">beta_<span class="dv">1</span></a></code></pre></div>
+<pre><code>## [1] 0.9713851</code></pre>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">beta_<span class="dv">1</span>_sigma_hat</a></code></pre></div>
+<pre><code>## [1] 0.06940067</code></pre>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1">beta_<span class="dv">1</span> <span class="op">+</span><span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>) <span class="op">*</span><span class="st"> </span><span class="kw">qt</span>(<span class="dt">p =</span> <span class="fl">.975</span>, <span class="dt">df =</span> <span class="dv">14</span>) <span class="op">*</span><span class="st"> </span>beta_<span class="dv">1</span>_sigma_hat</a></code></pre></div>
+<pre><code>## [1] 0.8225354 1.1202347</code></pre>
+</div>
+<div id="prediction" class="section level2">
+<h2>Prediction</h2>
+<p>Consider predicting an outcome: the obvious predicition is to multiply out predictor by <span class="math inline">\(\hat{\beta_1}\)</span> and add <span class="math inline">\(\hat{\beta_0}\)</span>. But we also need to communicate our uncertainty in that prediction.</p>
+<p>There is a distinction between the intervals for the regression line at a point, and the prediction of what a <span class="math inline">\(y\)</span> would be at point <span class="math inline">\(x_0\)</span>.</p>
+<p><strong>Line at <span class="math inline">\(x_0\)</span> standard error:</strong></p>
+<p><span class="math display">\[
+\hat{\sigma}
+\sqrt{
+    \frac{1}{n} + \frac{ 
+        (x_0 -\bar{X}^2)
+    }{ \sum_{i=1}^n (X_i - \bar{X})^2
+    }
+}
+\]</span></p>
+<p><strong>Prediction interval standard error at <span class="math inline">\(x_0\)</span>:</strong></p>
+<p>$$   $$</p>
+</div>
+</div>
+<div id="quiz" class="section level1">
+<h1>Quiz</h1>
+<div id="question-1" class="section level2">
+<h2>Question 1</h2>
+<p>Consider the following data with x as the predictor and y as as the outcome:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.61</span>, <span class="fl">0.93</span>, <span class="fl">0.83</span>, <span class="fl">0.35</span>, <span class="fl">0.54</span>, <span class="fl">0.16</span>, <span class="fl">0.91</span>, <span class="fl">0.62</span>, <span class="fl">0.62</span>)</a>
+<a class="sourceLine" id="cb27-2" data-line-number="2">y &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.67</span>, <span class="fl">0.84</span>, <span class="fl">0.6</span>, <span class="fl">0.18</span>, <span class="fl">0.85</span>, <span class="fl">0.47</span>, <span class="fl">1.1</span>, <span class="fl">0.65</span>, <span class="fl">0.36</span>)</a></code></pre></div>
+<p>Give a P-value for the two sided hypothesis test of whether <span class="math inline">\(\beta_1\)</span> from a linear regression model is 0 or not.</p>
+<ul>
+<li>2.325</li>
+<li>0.05296</li>
+<li>0.391</li>
+<li>0.025</li>
+</ul>
+</div>
+<div id="question-2" class="section level2">
+<h2>Question 2</h2>
+<p>Consider the previous problem, give the estimate of the residual standard deviation.</p>
+<ul>
+<li>0.223</li>
+<li>0.3552</li>
+<li>0.4358</li>
+<li>0.05296</li>
+</ul>
+</div>
+<div id="question-3" class="section level2">
+<h2>Question 3</h2>
+<p>In the <code>mtcars</code> data set, fit a linear regression model of <code>weight</code> (predictor) on <code>mpg</code> (outcome). Get a 95% confidence interval for the expected <code>mpg</code> at the average <code>weight</code>. What is the lower endpoint?</p>
+<ul>
+<li>18.991</li>
+<li>-6.486</li>
+<li>-4.00</li>
+<li>21.190</li>
+</ul>
+</div>
+<div id="question-4" class="section level2">
+<h2>Question 4</h2>
+<p>Refer to the previous question. Read the help file for <code>mtcars</code>. What is the weight coefficient interpreted as?</p>
+<ul>
+<li>The estimated expected change in mpg per 1,000 lb increase in weight.</li>
+<li>The estimated 1,000 lb change in weight per 1 mpg increase.</li>
+<li>It can’t be interpreted without further information</li>
+<li>The estimated expected change in mpg per 1 lb increase in weight.</li>
+</ul>
+</div>
+<div id="question-5" class="section level2">
+<h2>Question 5</h2>
+<p>Consider again the mtcars data set and a linear regression model with mpg as predicted by weight (1,000 lbs). A new car is coming weighing 3000 pounds. Construct a 95% prediction interval for its mpg. What is the upper endpoint?</p>
+<ul>
+<li>21.25</li>
+<li>14.93</li>
+<li>-5.77</li>
+<li>27.57</li>
+</ul>
+</div>
+<div id="question-6" class="section level2">
+<h2>Question 6</h2>
+<p>Consider again the <code>mtcars</code> data set and a linear regression model with mpg as predicted by weight (in 1,000 lbs). A “short” ton is defined as 2,000 lbs. Construct a 95% confidence interval for the expected change in mpg per 1 short ton increase in weight. Give the lower endpoint.</p>
+<ul>
+<li>-9.000</li>
+<li>-6.486</li>
+<li>4.2026</li>
+<li>-12.973</li>
+</ul>
+</div>
+<div id="question-7" class="section level2">
+<h2>Question 7</h2>
+<p>If my <span class="math inline">\(X\)</span> from a linear regression is measured in centimeters and I convert it to meters what would happen to the slope coefficient?</p>
+<ul>
+<li>It would get multiplied by 100.</li>
+<li>It would get multiplied by 10</li>
+<li>It would get divided by 10</li>
+<li>It would get divided by 100</li>
+</ul>
+</div>
+<div id="question-8" class="section level2">
+<h2>Question 8</h2>
+<p>I have an outcome, <span class="math inline">\(Y\)</span>, and a predictor, <span class="math inline">\(X\)</span> and fit a linear regression model with <span class="math inline">\(Y = \beta_0 + \beta_1X + \epsilon\)</span>. What would be the consequence to the subsequent slope and intercept if I were to refit the model with a new regressor, X+cX + cX+c for some constant, ccc?</p>
+<ul>
+<li>The new intercept would be β<sup>0+cβ</sup>1</li>
+<li>The new slope would be β^1+c</li>
+<li>The new slope would be cβ^1</li>
+<li>The new intercept would be β<sup>0−cβ</sup>1</li>
+</ul>
+</div>
+<div id="question-9" class="section level2">
+<h2>Question 9</h2>
+<p>Refer back to the mtcars data set with mpg as an outcome and weight (wt) as the predictor. About what is the ratio of the the sum of the squared errors, <span class="math inline">\(\sum_{i=1}^n(Y_i−Y^i)^2\)</span> when comparing a model with just an intercept (denominator) to the model with the intercept and slope (numerator)?</p>
+<ul>
+<li>0.25</li>
+<li>0.75</li>
+<li>0.50</li>
+<li>4.00</li>
+</ul>
+</div>
+<div id="question-10" class="section level2">
+<h2>Question 10</h2>
+<p>Do the residuals always have to sum to 0 in linear regression?</p>
+<ul>
+<li>If an intercept is included, the residuals most likely won’t sum to zero.</li>
+<li>The residuals never sum to zero.</li>
+<li>If an intercept is included, then they will sum to 0.</li>
+<li>The residuals must always sum to zero.</li>
+</ul>
 </div>
 </div>
     </section>

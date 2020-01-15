@@ -265,6 +265,7 @@ $$
 \sum_{i=1}^n (\hat{Y}_i - \bar{Y})^2 +
 \sum_{i=1}^n (Y_i - \hat{Y}_i)^2
 $$
+
 ## R^2
 
 With these, we can define the proportion or percentage of total variability that is explained by the linear relationship with the predictor:
