@@ -1,0 +1,620 @@
+---
+title: "Course 7 - Regression Models - Week 3 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(broom)
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+```
+
+# Multivariable Regression
+
+When performing a regression and finding a relationship between the regressor and the response, you have to be careful that there's not some other variable that actually explains the relationship.
+
+As an example, you may find in your tests that there's a relationship between breath mints and loss in pulmonary function. You'd probably think that smokers use more breath mints and that smoking is the likely cause.
+
+How do you establish this? You'd consider smokers and non-smokers by themselves and see if their lung function differs by breath mint usage. Multi-variable regression is an 'automated' way of doing this, holding all other variables constant while looking and the regression of a single variable.
+
+
+## General Linear Model
+
+$$
+Y_i = \beta_1X_{1i} + \beta_2X_{2i} + \dots + \beta_pX_{pi} + \epsilon_i \\
+
+= \sum_{k=1}^p X_{ik}\beta_j + \epsilon_i
+$$
+
+The least squares is pretty much the same as a single variable model: $\sum_{i=1}^n\bigg(Y_i - \sum_{k=1}^p X_{ki} \beta_j \bigg)^2$
+
+The important linearity is linearity in the coefficients. If you squared or cubed the $X$ values, that would still be a linear equation.
+
+## Two Variable Example
+
+Consider a regression with two variables, so that the least squares ends up asL
+
+$$\sum\big(y_i - X_{1i}\beta_1 - X_{2i}\beta_2\big)^2$$
+What it works out to be is that the regression slope for $\beta_1$ is exactly what you would obtain if you took the residual of $X_2$ out of $X_1$ and $X_2$ out of $Y$ and did regression through the origin.
+
+So what multi-variable regression is doing is the coefficient or $\beta_1$ is the coefficient, having removed $X_2$, the other covariant, from both the response and that first predictor $X_1$.
+
+Similarly, the $X_2$ is going to be what you get if you were to remove $X_1$ out of both the response $Y$ and the second predictor $X_2$.
+
+**Summary**: A multi-variable coefficient is one where the linear effect of all the other variables on that predictor and the response has been removed.
+
+Consider $Y_i = \beta_1X_{1i} + \beta_2X_{2i}$ where $X_{2i} = 1$, it's just an intercept term.
+
+In an intercept only ression, the fitted value is simply $\bar{Y}$, so the residuals $e_{i,Y|X_2} = Y_i - \bar{Y}$, which is the centered version of the $Y$'s.
+
+If we fit $X_{2i}$ on $X_{1i}$, $X_{2i}$ is just a constant, so the coefficient would just be $\bar{X_1}$, the mean of that covariant. Thus $e_{i,X_1|X_2} = X_{1i} - \bar{X_1}$.
+
+So the fitted regression is:
+
+$$
+\hat{\beta_1} = \frac{
+    \sum_{i=1}^n e_{i,Y|X-2} e_{i,X_1,X_2}
+}{
+    \sum_{i=1}^n e^2_{i,X_1|X_2}
+} \\
+= \frac{
+    \sum_{i=1}^n (X_i - \bar{X})(Y_i - \bar{Y})
+}{
+    \sum_{i=1}^n (X_i - \bar{X})^2
+} \\ =
+Cor(X,Y) \frac{Sd(Y)}{Sd(X)}
+$$
+
+Let's do a computed example:
+
+```{r multivariate}
+set.seed(1)
+mv <- tibble(
+    n = 1:100,
+    x1 = rnorm(n),
+    x2 = rnorm(n),
+    x3 = rnorm(n),
+    y = x1 + 2*x2 + 3*x3 + rnorm(n, sd = .3)
+)
+
+e_y <- mv %>% lm(y ~ x2 + x3, data = .) %>% resid()
+e_x <- mv %>% lm(x1 ~ x2 + x3, data = .) %>% resid()
+
+sum(e_x * e_y) / sum(e_x^2)
+
+mv %>% lm(y ~ x1 + x2 + x3, data = .) %>% coef()
+```
+
+## Interpretation of Coeficients
+
+The regression predictor is the sum of the $x$'s times their coefficients:
+
+$$ E[Y|X_1 = x_1, \ldots, X_p = x_p] = \sum_{k=1}^p x_k \beta_k $$
+
+If one of the regression coefficients is incremented by one:
+
+$$ E[Y|X_1 = x_1 + 1, \ldots, X_p = x_p] = (x_1 + 1) \beta_1 + \sum_{k=2}^p x_k \beta_k $$
+then we subtract these two terms:
+
+$$
+E[Y|X_1 = x_1 + 1, \ldots, X_p = x_p] - E[Y|X_1 = x_1, \ldots, X_p = x_p] \\
+= (x_1 + 1) \beta_1 + \sum_{k=2}^p x_k \beta_k - \sum_{k=1}^p x_k \beta_k \\
+= \beta_1
+$$
+
+Notice that all of the other $x_p$ were held fixed. So the interpretation of a multi-variable regression coefficient is **the expected change in the response per unit change in the regressor, holding all of the other regressors fixed**.
+
+## Fitted Values, Residuals and Residual Variation
+
+All of our simple linear regression quantities can be extended:
+
+- Model $Y_i = \sum_{k=1}^p X_{ik} \beta_k + \epsilon_i$ where $\epsilon_i \sim N(0, \sigma^2)$
+- Fitted responses $\hat{Y_i} = \sum_{k=1}^p X_{ik} \hat{\beta_k}$
+- Residuals $\epsilon_i = Y_i - \hat{Y_i}$
+- Variance estimate $\hat{\sigma^2} = \frac{1}{n - p}\sum_{i=1}^n e_i^2$
+    - It's $n - p$ because you know the last $p$ of the residuals due to some linear constraints.
+    - We don't really have $n$ residuals, we have $n-p$.
+- The coefficients have standard errors $\hat{\sigma_{\hat{\beta_k}}}$
+- We can test whether the coefficients are 0 with a t-test: $\frac{ \hat{\beta_k} - \beta_k}{ \hat{\sigma_{\hat{\beta_k}}} }$
+- Predicted responses have standard errors and we can calculate predicted and expected response intervals.
+
+## Linear Models
+
+Linear models are the single most important applied statistical and machine learning technique.
+
+Some things you can accomplish with a linear model:
+
+- Decompose a signal into its harmonics.
+    - The discrete Fourier transform can be thought of as the fit from a a linear model.
+- Flexibly fit complicated functions.
+- Fit factor variables as predictors.
+- Uncover complex multivariate relationships with the response.
+- Build accurate prediction models.
+
+## Confounding
+
+Let's look at the the `swiss` dataset and perform a linear regression on all of the variables with the outcome of `fertility`:
+
+```{r swiss_all}
+swiss %>%
+    lm(Fertility ~ ., data = .) %>%
+    tidy()
+```
+
+We see a 0.17 decrease.  in fertility decrease in standardised fertility for every 1% increase in percentage of males involved in agriculture.
+
+We now look at how our model selection changes the outcomes. We regress only agriculture on to fertility:
+
+```{r swiss_agriculture}
+swiss %>%
+    lm(Fertility ~ Agriculture, data = .) %>%
+    tidy()
+```
+
+It now appears that the percentage of males involves in agriculture increases rather than decreases the fertility. What has happened? This is [Simpson's Paradox](https://en.wikipedia.org/wiki/Simpson%27s_paradox), where 'a trend appears in different groups but disappears or reverses when the groups are combined'.
+
+We can see this be assigning colour to one of the variables. There's a clear positive linear trend with Agriculture and Fertility, but we can see also that there's a trend (viewed via the colour) of Catholic to Fertility as well.
+
+```{r swiss_confound}
+swiss %>%
+    ggplot(aes(Agriculture, Fertility)) +
+    geom_point(aes(colour = Catholic)) +
+    geom_smooth(method = 'lm', se = F)
+```
+
+With the single regressor, the linear regression is picking up effects of other variables and associating them with Agriculture. With all of the variables included, their linear effects are removed when the regression is occurring.
+
+## Factor Variables
+
+Consider a model $Y_i = \beta_0 + X_{i1}\beta_1 + \epsilon_i$ where each $X_{i1}$ is binary. It could be that 1 is the control group and 0 otherwise.
+
+For the people in the group, $E[Y_i] = \beta_0 + \beta_1$ and for those not in the control group, $E[Y_i] = \beta_0$.
+
+$\beta_1$ is interpreted as the increase or decrease in the mean for those in the group compared to those not.
+
+It can be extened to three variables with $Y_i = \beta_0 + X_{i1}\beta_1+ X_{i2}\beta_2 + \epsilon_i$. $X_{i1}$ could be Liberal/not Liberal, and $X_{i2}$ could be Labour/not Labour. When both $X$ are 0, then it's the third outcome, perhaps Independents.
+
+- $\beta_1$ compares Liberal to Independents
+- $\beta_2$ compares Labour to Independents
+- $\beta_1 - \beta_2$ compares Liberal to Labour
+
+The reference level in the factor is very important.
+
+We take a look via the `InsectSprays` data set:
+
+```{r insectsprays}
+InsectSprays %>%
+    ggplot(aes(spray, count)) +
+    geom_violin(aes(fill = spray)) +
+    labs(x = 'Spray', y = 'Insect Count')
+```
+
+We fit a model of count to the factor variable spray:
+
+```{r insect_fit}
+InsectSprays %>%
+    lm(count ~ spray, data = .) %>%
+    tidy()
+```
+
+Notice that there's no `sprayA` - this is the reference and everythig is in comparison with it. So the `sprayB` 0.8333 is the change in the mean between `sprayB` and `sprayA`.
+
+The intercept is the average count for `sprayA`, so the average count for `sprayB` is 14.5 + 0.833.
+
+Use `fct_relevel()` to relevel the factors:
+
+```{r relevel}
+InsectSprays %>%
+    mutate(spray = fct_relevel(spray, 'C')) %>%
+    lm(count ~ spray, data = .) %>%
+    tidy()
+```
+
+If you just want the means for each of the groups, you remove the intercept:
+
+```{r insect_means}
+InsectSprays %>%
+    lm(count ~ spray - 1, data = .) %>%
+    tidy()
+
+InsectSprays %>%
+    group_by(spray) %>%
+    summarise(mean(count))
+```
+
+There's no difference in the model, it's that the coefficients have a different interpretation. The p-values in the first one are testing whether the means are different from `sprayA`, whereas in the one without the intercept it's testing whether the means are different from 0.
+
+## Interaction Terms
+
+Taking our `swiss` dataset, we create a new variable which is 1 if the province is > 50% Catholic, and 0 if it is not.
+
+There are a few different models we can apply:
+
+$E[Y | X_1 X_2] = \beta_0 + \beta_1X1$, which is a line that disregards the religon of the province.
+
+We could do $E[Y | X_1 X_2] = \beta_0 + \beta_1 X_1 + \beta_2 X_2$, however in this instance the slope is the same for both binary outcomes of X_2.
+
+Finally, we can do $E[ Y | X_1 X_2] = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_1 X_2$. In this case we end up with:
+
+$$
+\text{Let } X_2 = 0 \\
+\beta_0 + \beta_1 X_1 \\
+\\
+\text{Let } X_2 = 1 \\
+\beta_0 + \beta_1 X_1 + \beta_2 + \beta_3 X_1 \\
+= (\beta_0 + \beta_2) + (\beta_1 + \beta_3) X_1
+$$
+When we include an interaction term, we have two different lines with two different slopes and intercepts.
+
+```{r swiss_no_interaction}
+# Add a binary variable
+swiss %>%
+    mutate(MajCatholic = Catholic > 50) -> swiss_maj
+
+# Set up the graph
+swiss_maj %>%
+    ggplot() +
+    geom_point(aes(Agriculture, Fertility, colour = MajCatholic)) -> g
+
+# Perform the linear regression with no interaction
+swiss_maj %>%
+    lm(Fertility ~ Agriculture + MajCatholic, data = .) -> swiss_lm_noint
+
+# We see in this one, the 'MajCatholicTRUE' is added to the intercept when
+# MajCatholic = TRUE. The slope does not change.
+summary(swiss_lm_noint)
+
+
+# Graph the two regressions
+f <- swiss_lm_noint
+g +
+    geom_abline(intercept = coef(f)[1], slope = coef(f)[2]) +
+    geom_abline(intercept = coef(f)[1] + coef(f)[3], slope = coef(f)[2])
+
+
+swiss_maj %>%
+    lm(Fertility ~ Agriculture * MajCatholic, data = .) -> swiss_lm_int
+
+# With the interaction term, we have the intecept for MajCatholic < 50, and
+# the slope for Agriculture with MajCatholic < 50.
+# The second two are the intercept and slope for MajCatholic > 50, but these need
+# to be added to the < 50 main effects (the first two)
+summary(swiss_lm_int)
+
+f <- swiss_lm_int
+g +
+    geom_abline(intercept = coef(f)[1], slope = coef(f)[2]) +
+    geom_abline(intercept = coef(f)[1] + coef(f)[3], slope = coef(f)[2] + coef(f)[4])
+```
+
+# Residuals, Diagnostics, Variation
+
+We recall that we had our linear models wth IID, normally distributed error terms, and our residuals are the vertical distance away from the line. Our residual variation is the average of the squared residuals, except that we divide by $n - p$.
+
+## Influence Measures
+
+Calling a point an 'outlier' is vague. They can be caused by both real and spurious processes.
+
+You can use `?influence.measures` to get a list of different influence measures.
+
+- `rstandard()` - standardised residuals, divided by their standard deviation. Allows comparison across between different response units.
+- `rstudent()` - standardised residuals where which have have [externally studentised](https://en.wikipedia.org/wiki/Studentized_residual#Internal_and_external_studentization)
+    - This is where the improbably large observation has been removed from the variance calculation.
+- `hatvalues()` - A measure of influence.
+    - A point could have high leverage, but doesn't exert that leverage, e.g. an influential point that is on the regression line.
+    - Very useful in finding data entry errors.
+- `dffits()` - for every data point, how much has the value changed when the fit does vs doesn't include the observation.
+    - One dffit per data point.
+- `dfbetas()` - looks at how the slope coefficients change when the fit does and doesn't contain the observation.
+    - One dfbeta per coefficient.
+- `cooks.distance()` - a summary of `dfbeta()`
+- `resid()` - returns the ordinary residuals.
+- `resid(fit) / (1 - hatvalues(fit))` - press residuals. Less useful for influence and outliers and more used for general model fit.
+
+Be wary of simple rules and diagnostic plots - it is often different depending on the context.
+
+## Examples
+
+In this example, we take uncorrelated X and Y values, then add a point out at (10,10). Without the influential point there would be no correlation, but with the point there is now a linear trend.
+
+```{r inf_example1}
+influence_d <- tibble(
+    x = rnorm(100),
+    y = rnorm(100)
+) %>%
+    add_row(x = 10, y = 10)
+
+influence_fit <- lm(x ~ y, influence_d)
+
+influence_d %>%
+    ggplot(aes(x,y)) +
+    geom_point() +
+    geom_smooth(method = 'lm', se = F)
+```
+
+We'll take a look at some diagnostic plots:
+
+```{r influence_diagnostics}
+# The 101st point has a very large dfbeta
+dfbetas(influence_fit) %>% 
+    as_tibble() %>%
+    rownames_to_column('ob_id') %>%
+    top_n(5, y)
+
+# We also see the hat value is very large compared to the other values
+influence_fit %>%
+    augment() %>%
+    rownames_to_column('ob_id') %>%
+    top_n(5, .hat) %>%
+    select(ob_id, .hat)
+
+plot(influence_fit)
+```
+
+```{r orly}
+orly <- read_table2(
+    'https://www4.stat.ncsu.edu/~stefanski/NSF_Supported/Hidden_Images/orly_owl_files/orly_owl_Lin_4p_5_ramp.txt',
+    col_names = F,
+    col_types = cols(
+        X1 = col_double(),
+        X2 = col_double(),
+        X3 = col_double(),
+        X4 = col_double(),
+        X5 = col_double(),
+        X6 = col_logical()
+    )
+) %>% select(-X6)
+
+# The p values show that every regressor is significant
+orly_lm <- orly %>% lm(X1 ~ ., data = .)
+orly_lm %>% summary()
+
+# The residuals versus the fitted values
+orly_lm %>%
+    augment() %>%
+    ggplot(aes(.fitted, .resid)) +
+    geom_point(size = .1)
+```
+
+The residuals versus the fit has show a clear systematic pattern. Usually we want to model the systematic elements, so that all that is left over is random noise.
+
+
+
+# Model Selection
+
+How do we choose what variables to include in a regression model? No single easy answer exists - 'it depends'. 
+
+A model is a lense through which you look at the data. Under this philosophy, what is the right model? Whataver model connects the data to a true, parsimonious statement about what you're studying.
+
+## General Rules
+
+- Including variables that we shouldn't have increases standard errors of the regression variables.
+    - Actually, any new varaibles increase the standard errors of the other regressors.
+- $R^2$ increases monotonically as more regressors are included.
+
+Not including important regressors increases bias, and including unimportant regressors causes variance inflation.
+
+If a regressor is highly correlated to the response, the variance is going to be inflated. You need to ensure you're not putting these variables into the model unnecessarily.
+
+## Variance Inflation Factors
+
+Variance inflation is much worse when you include a variable that is highly related to the response. We don't know $\sigma$, so we can only estimate the increase in the actual standard error of the coefficients for including a regressor.
+
+However $\sigma$ drops out of the relative standard errors. If we sequentially add variables, we can check the variance (or SD) inflation for including each one.
+
+When the other regressors are actually orthogonal (uncorrelated) to the regressor of interest, then there is no variance inflation. 
+
+The **Variance Inflation Factor (VIF)** is the increase in variance for the $i$th regressor compared to the ideal setting where it is orthogonal to the other regressors. It;s only part of the picture, we need to include certain variables that are pertinent even if they dramatically inflate our variance.
+
+We can look at the `swiss` dataset:
+
+```{r swiss_vif, message = F}
+# Need this library for vif
+library(car)
+
+swiss %>%
+    lm(Fertility ~ ., data = .) %>%
+    vif()
+```
+
+So `Agriculture` having 2.28 means that the standard error for the Agriculture effect is approx. double what it would be if it was orthogonal to the other regressors.
+
+## Variance
+
+If we correctly fit or over fit the model, including all necessary covariates and/or unnecessary covariates, the variance estimate is unbiased. However the variance of the variance estimate gets inflated if we include unnecessary variables.
+
+## Principal Components
+
+Principal components or factor analytic models on covariates are foten useful for reducing covariate spaces - i.e. when you have a large variable space. THis comes with consequences - your interpretability is reduced.
+
+## Nested Models
+
+If the models of interest are nested and without lots of paramete
+
+So for example you may have a treatment. You first look at the model with the response against treatment, then the model with response against treatment and age, then treatment, age and gender, etc.
+
+```{r nesting}
+swiss %>%
+    do(
+        fit_a = lm(Fertility ~ Agriculture, data = .),
+        fit_b = lm(Fertility ~ Agriculture + Examination, data = .),
+        fit_c = lm(Fertility ~ Agriculture + Examination + Education, data = .)
+    ) %>%
+    gather(fit_name, fit_model) %>%
+    pull(fit_model) %>%
+    do.call(anova, .)
+```
+
+An expanation of the columns:
+
+- *Residual degrees of freedom* is the number of data points minus the number of parameters.
+- *RSS* is the residual sum of squares.
+- *Df* is the excess degrees of freedom going between each model - we added two parameters between each successive mode.l
+- - *F-statistic*
+- *Pr(>F)* is the p-value for the F-statistic
+
+It's important to note that the models must be nested for this to work - i.e. the later models must include all of the variables that the earlier models had.
+
+> All models are wrong, some models are useful.
+
+# Quiz
+
+## Question 1
+
+Consider the  `mtcars` data set. Fit a model with `mpg` as the outcome that includes number of cylinders as a factor variable and weight as confounder. Give the adjusted estimate for the expected change in mpg comparing 8 cylinders to 4.
+
+- 33.991
+- -3.206
+- -6.071
+- -4.256
+
+**Answer:** thh answer is -6.071
+
+```{r q1_ans}
+mtcars %>%
+    mutate(cyl = as.factor(cyl)) %>%
+    lm(mpg ~ cyl + wt, data = .) %>%
+    summary()
+```
+
+We see that 4 cylinders is used as the base, so there is a -6.071 estimate for the expected change in mpg going from 4 cylinders to 8.
+
+## Question 2
+
+Consider the  `mtcars` data set. Fit a model with `mpg` as the outcome that includes number of cylinders as a factor variable and weight as a possible confounding variable. Compare the effect of 8 versus 4 cylinders on mpg for the adjusted and unadjusted by weight models. Here, adjusted means including the weight variable as a term in the regression model and unadjusted means the model without weight included. What can be said about the effect comparing 8 and 4 cylinders after looking at models with and without weight included?.
+
+- Including or excluding weight does not appear to change anything regarding the estimated impact of number of cylinders on mpg.
+- Holding weight constant, cylinder appears to have more of an impact on mpg than if weight is disregarded.
+- Within a given weight, 8 cylinder vehicles have an expected 12 mpg drop in fuel efficiency.
+- Holding weight constant, cylinder appears to have less of an impact on mpg than if weight is disregarded.
+
+**Answer:** It is both true and sensible that including weight would attenuate the effect of number of cylinders on mpg.
+
+```{r q2_ans}
+# Our unadjusted model
+mtcars %>%
+    mutate(cyl = as.factor(cyl)) %>%
+    lm(mpg ~ cyl, data = .) %>%
+    summary()
+```
+
+In this regression without weight, the cylinders appear to have more of an impact on the mpg than when they are included.
+
+## Question 3
+
+Consider the `mtcars` data set. Fit a model with mpg as the outcome that considers number of cylinders as a factor variable and weight as confounder. Now fit a second model with mpg as the outcome model that considers the interaction between number of cylinders (as a factor variable) and weight. Give the P-value for the likelihood ratio test comparing the two models and suggest a model using 0.05 as a type I error rate significance benchmark.
+
+- The P-value is small (less than 0.05). Thus it is surely true that there is no interaction term in the true model.
+- The P-value is small (less than 0.05). Thus it is surely true that there is an interaction term in the true model.
+- The P-value is larger than 0.05. So, according to our criterion, we would fail to reject, which suggests that the interaction terms is necessary.
+- The P-value is small (less than 0.05). So, according to our criterion, we reject, which suggests that the interaction term is not necessary.
+- The P-value is small (less than 0.05). So, according to our criterion, we reject, which suggests that the interaction term is necessary
+- The P-value is larger than 0.05. So, according to our criterion, we would fail to reject, which suggests that the interaction terms may not be necessary.
+
+**Answer:** large p-value, so the term may not be necessary.
+
+```{r q3_ans}
+mtcars %>%
+    mutate(cyl = as.factor(cyl)) %>%
+    do(
+        fit1 = lm(mpg ~ cyl + wt, data = .),
+        fit2 = lm(mpg ~ cyl + wt + cyl * wt, data = .)
+    ) %>%
+    gather(name, fit) %>%
+    pull(fit) %>%
+    do.call(anova, .)
+```
+
+The term may not be necessary.
+
+## Question 4
+
+Consider the `mtcars` data set. Fit a model with mpg as the outcome that includes number of cylinders as a factor variable and weight inlcuded in the model as:
+
+```{r q4 data}
+q4_fit <- lm(mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars)
+```
+
+How is the wt coefficient interpretted?
+
+- The estimated expected change in MPG per one ton increase in weight. -> No
+- The estimated expected change in MPG per one ton increase in weight for a specific number of cylinders (4, 6, 8).
+- The estimated expected change in MPG per half ton increase in weight for for a specific number of cylinders (4, 6, 8). -> No
+- The estimated expected change in MPG per half ton increase in weight for the average number of cylinders. -> No
+- The estimated expected change in MPG per half ton increase in weight. -> No
+
+**Answer:**  The estimated expected change in MPG per one ton increase in weight for a specific number of cylinders (4, 6, 8)
+
+```{r q4_ans}
+q4_fit %>% summary()
+```
+
+## Question 5
+
+Consider the following data set:
+
+```{r q5 data}
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+```
+
+Give the hat diagonal for the most influential point
+
+- 0.2804
+- 0.2287
+- 0.9946
+- 0.2025
+
+**Answer:** 0.9946
+
+```{r q5 ans}
+tibble(x = x, y = y) %>%
+    lm(y ~ x, data = .) %>%
+    augment() %>%
+    mutate(n = n()) %>%
+    top_n(1, .hat) %>%
+    select(.hat, n)
+```
+
+## Question 6
+
+Consider the following data set:
+
+```{r q6_data}
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+```
+
+Give the slope dfbeta for the point with the highest hat value.
+
+- -.00134
+- 0.673
+- -134
+- -0.378
+
+**Answer::** -134
+
+```{r q6_ans}
+tibble(x = x, y = y) %>%
+    lm(y ~ x, data = .) %>%
+    dfbetas()
+```
+
+## Question 7
+
+Consider a regression relationship between Y and X with and without adjustment for a third variable Z. Which of the following is true about comparing the regression coefficient between Y and X with and without adjustment for Z.
+
+- The coefficient can't change sign after adjustment, except for slight numerical pathological cases.
+- It is possible for the coefficient to reverse sign after adjustment. For example, it can be strongly significant and positive before adjustment and strongly significant and negative after adjustment.
+- For the the coefficient to change sign, there must be a significant interaction term.
+- Adjusting for another variable can only attenuate the coefficient toward zero. It can't materially change sign.
+
+**Answer:** It is possible for the coefficient to reverse sign.

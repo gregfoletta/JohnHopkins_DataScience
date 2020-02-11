@@ -1,0 +1,583 @@
+---
+title: "Course 7 - Regression Models - Week 4 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(broom)
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+```
+
+# Generalised Linear Models
+
+Linear models are useful, however they have their limitations. Additative response models don't make sense if the response is discrete or stricty positive. Additative error models don't make sense if the outcome has to be positive.
+
+The generalised linear model family includes linear models but extends them. A GLM contains three components:
+
+- An *exponential family* model for the response. This is the random component.
+- A systematic component via a linear predictor. This is the part that we're modelling.
+- A link function that connects the means of the response to the linear predictor.
+
+The three most famous GLMs are linear models, bionomial and binary regression, and Poisson regresssion.
+
+## Example: Linear Models
+
+- Assume that $Y_i \sim N(\mu, \sigma^2)$
+- Define the linear predictor to be $\eta_i = \sum_{k=1}^p X_{ik} \beta_k$
+- The link function as $g$ so that $g(\mu) = \eta$.
+    - For linear models $g(\mu) = \mu$ so that $\mu_i = \eta_i$
+    - This is the connection of the mean from the normal distribution to the linear predictor.
+
+## Example: Logistic Regression
+
+In this setting we have data that is zero or one, so it doesn't make sense to assume it comes from a normal distribution.
+
+- Assume that $Y_i \sim Bernoulli(\mu_i)$ so that $E[Y_i] = \mu_i$ where $0 \le \mu_i \le 1$
+- The linear predictor is still the same, $\eta_i = \sum_{k=1}^p X_{ik} \beta_k$
+- The link function is the logistic link function, or the log odds.
+    - $g(\mu) = \eta = log\big( \frac{\mu}{1-\mu} \big)$
+    - $g$ is the (natural) log odds
+    - Referred to as *logit*.
+    
+So what we're doing is transforming our mean, the probability of getting a head, and on that transform scale is where the co-variance and their coefficients - the standard part of our linear model - is going to appear.
+
+**Important note:** we're transforming the mean of te prediction, we're not transforming the $Y$s themselves.
+
+## Example: Poisson Regression
+
+- Assume $Y_i \sim Poisson(\mu_i)$ so that $E[Y_i] = \mu_i$ where $0 \ge \mu_i$
+    - Useful for modellin count data, and Poisson counts are unbounded.
+- Linear predictor is the same as it has been in every case: $\eta_i = \sum_{k=1}^p X_{ik} \beta_k$ - the sum of the co-variance times their coefficients.
+- Link function is the log, the log link: $g(\mu) = \eta = log(\mu)$.
+    - Again we're not logging the data, we're logging the mean from the distribution the data comes from.
+    
+## Note
+
+In each case the only way in which likelyhood depends on the data is through:
+
+$$
+\sum_{i=1}^n y_i \eta_i \\
+= \sum_{i=1}^n y_i \sum_{k=1}^p X_{ik} \beta_k \\
+= \sum_{k=1}^p \beta_k \sum_{i=1}^n X_{ik} y_i
+$$
+
+## Variances
+
+For the linear model, we have an assumption: $Var(Y_i) = \sigma^2$ is constant. However for the Bernoulli case the variance of a coin flip is $Var(Y_i) = \mu_i \times (1 - \mu_i)$. But it depends on $i$, so the variance atually depends on which observation you're looking at. Same thing with the Poisson case: $Var(Y_i) = \mu_i$.
+
+This is something you can check, e.g. Poisson data, you have several Poisson observations at the same level of covariance so the mean should be the same. The variance of those should be roughly equal to the mean. If it's not, then that's a problem.
+
+You can use the 'quasi' functions which have a more flexible variance model.
+
+# Logistic Regressions
+
+Binary GLMs come from trying to model outcomes that can take only two values. These are called *Bernoulli* outcomes. 
+
+If we happen to have several exchangable binary outcomes for the same level of covariate values, then that is *binomial* data and we can aggregate the 0s and 1s into the count of 1s. Example: spraying insects with four different pesticides and counted whether they died or not. For each spray we can summarise the data with the count of dead and total number that were sprayed. We then treat the data as binomial rather than Bernoulli.
+
+## Using Linear Regressions
+
+You can use a linear regression to try to fit data. Imagine:
+
+- $W$ is whether a team wins or not
+    - 1 being a win, and 0 being a loss.
+- $S$ is the number of points they scored.
+- $b_0$ is the probability of a win if 0 points are scored.
+- $b_1$ is the probability of a win for each additional point.
+- $\epsilon_i$ is the residual variaion.
+
+Then $W = b_0 + b_1 S + \epsilon_i$
+
+## Odds
+
+For a binary outcome $W_i$ and score $S_i$, the probability is $Pr(W_i | S_i, b_0, b_1)$ and is between $(0,1)$.
+
+The odds are $O = \frac{ Pr(W_i | S_i, b_0, b_1) }{ 1 - Pr(W_i | S_i, b_0, b_1) }$ and are between $(0, \infty)$
+
+The probabiltiy is equal to $P = \frac{O}{1 + O}$.
+
+The log odds or logit is simply the log of the odds, and it's between $(-\infty, \infty)$.
+
+## Linear vs Logistic
+
+With a linear regression, our expected valie $E[Y_i]$ is the same as the linear model formula. With a logistic, our expected value is the probability of getting a 0 or a 1.
+
+So we come up with this relationship:
+
+$$ Pr(W_i | S_i, b_0, b_1) = \frac{ exp( b_0 + b_1 S_i ) }{ 1 + exp( b_0 + b_1 S_i ) } $$ 
+
+then re-working it we have:
+
+$$
+log \Bigg( \frac{ Pr(W_i | S_i, b_0, b_1) }{ 1 - Pr(W_i | S_i, b_0, b_1) } \Bigg) \\
+= b_0 + b_1 S_i
+$$
+
+So what we're doing is modeling our data as if it were 'coin tosses' where the success probability changes with $i$. We're relating that success probability of that 'coin' to our regressors by taking to log of the odds of that probability.
+
+This is the clever part of generalised models; we're not actually putting the model on the linear regression scale. Instead we're saying:
+
+- The outcome depends on a probability distribution.
+- That probability distribution depends on success probability.
+- That success probability then depends on the regressors.
+
+## Interpreting Logistic Regression
+
+- $b_0$ is the log odds of a 'win' if there are zero 'points'.
+- $b_1$ is the log odds ratio of 'win' probability for each 'point' scored (compared to zero points).
+- $e^{b_1}$ is the odds ratio of 'win' probability for each point scored.
+
+The extension to a covariates regression is very much the same as in linear regression.
+
+## Odds History
+
+Imagine you're playing a fair game with success probability $p$. If you win you get $X$, if you lose you lose $Y$.
+
+What should $X$ and $Y$ be for the game to be fair?
+
+$$ E[earnings] = Xp - Y(1 - p) = 0 $$
+
+This implies
+
+$$ \frac{Y}{X} = \frac{p}{1 - p} $$
+The odds can be said as "How much should you be willing to pay for a $p$ probability of winning a dollar?"
+
+- If $p \gt 0.5$ then you have to **pay more** if you lose that you get if you win.
+- If $p \lt 0.5$ then you have to **pay less** if you lose that you get if you win.
+
+## Example
+
+In this example, we're going to take data from the AFL team the Melbourne Football Club (MFC). We're going to perform a linear regression with points scored as the regressor, and win/loss as the response.
+
+We first scrape the data from the [AFL Tables - Melbourne - All Games](https://afltables.com/afl/teams/melbourne/allgames.html) site.
+
+The below pipeline reads in the HTML and extracts all of the tables using an XPath. The very helpful `html_table()` takes each table and turns it into a list of dataframes.
+
+The dataframes have a duplicate `Scoring` column, so we convert to a tibble and repair the name. Finally we reduce this list of tibbles into a single tibble.
+
+```{r afl_scrape, message = F}
+library(rvest)
+read_html('https://afltables.com/afl/teams/melbourne/allgames.html') %>%
+    html_nodes(xpath = 'body/center/table') %>%
+    html_table(fill = T) %>%
+    map(as_tibble, .name_repair = 'universal') %>%
+    reduce(full_join) %>%
+    dplyr::filter(str_detect(Rnd, 'R\\d+')) -> 
+    mfc_games
+
+mfc_games
+```
+
+The column `R` is a 'L' for a loss and 'W' for a win, and the column `F` has the points for for every game. We create a new variable `Won` which is 1 if the MFC won the game, and 0 if they lost. An intercept only logistic regression is then fit.
+
+```{r mfc_}
+mfc_games %>%
+    dplyr::filter(R != 'D') %>%
+    mutate(Won = ifelse(R == 'W', 1, 0)) ->
+    mfc_games
+
+mfc_games %>%
+    glm(Won ~ 1, family = 'binomial', data = .) ->
+    mfc_games_logistic_intercept
+
+mfc_games_logistic_intercept %>% summary()
+```
+What does the intercept represent? It's simply the log odds of winning. Let's work backwards:
+
+```{r mfc_win_log_odds}
+# Calculate the Win probability
+win_table <- table(mfc_games$Won)
+( p <- win_table[2] / sum(win_table) )
+
+# Calculate the log odds - we see this is the same as the intercept
+log(p / (1 - p))
+```
+
+Now we fit a logistic regression against the 'points for'.
+```{r mf_log_points_for}
+mfc_games %>%
+    glm(Won ~ F, family = 'binomial', data = .) ->
+    mfc_games_logistic
+
+mfc_games_logistic %>% summary()
+```
+
+So what are these coefficients? The intercept is the log odds of the Demons winning a game with 0 points. What is this in terms of probability?
+
+```{r mfc_win_zero_prob}
+logit <- coef(mfc_games_logistic_intercept)[1]
+
+exp(logit) / 1 + exp(logit)
+```
+
+About three percent. Now that doesn't really make sense in the context of our regression, as the actual probability is 0.
+
+```{r mfc_pref_stderr}
+predict(mfc_games_logistic, newdata = tibble(F = 0), type = 'response')
+```
+
+To determine how good this is a model, we train on half of the data and test the other half.
+
+```{r mfc_logistic_prediction}
+library(modelr)
+set.seed(1)
+# Partition in to train and test sets
+mfc_games %>%
+    resample_partition(c(train = .5, test = .5)) ->
+    mfc_resample
+
+# Perform a logistic regression on the training set
+mfc_resample$train %>%
+    glm(Won ~ F, family = 'binomial', data = .) ->
+    mfc_resample_logistic
+
+mfc_resample$train %>%
+    as_tibble() %>%
+    mutate(
+        Prob = predict(mfc_resample_logistic, type = 'response'),
+        Pred = ifelse(Prob > .5, 1, 0)
+    ) %>%
+    summarise(WinProb = mean(Won == Pred))
+
+mfc_resample$test %>%
+    as_tibble() %>%
+    mutate(
+        Prob = predict(mfc_resample_logistic, newdata = ., type = 'response'),
+        Pred = ifelse(Prob > .5, 1, 0)
+    ) %>%
+    summarise(WinProb = mean(Won == Pred))
+```
+
+
+# Poisson Regressions
+
+Many data take the form of unbounded count data: calls to a call centre, number of flu cases, hits to a website. It can also be in the form of rates, a count per unit time.
+
+Sometimes the counts are bounded, however modeling counts as unbounded is often done when the upper limit is not known or large. If the upper bound is known, techniques can be used to model the proportion or rate.
+
+A Poisson regression is a GLM used to model count data. It assumes the underlying response $Y$ has a Poisson distribution, and the logarithm of its expected value (not its expected value) can be modeled by a linear combination of parameters ($\beta_0, \beta_1, \text{etc}$).
+
+## Poisson Distribution
+
+This distribution is a useful model for counts and rate, where a rate is a count per unit time. 
+
+The mass function:
+
+$X \sim Poisson(t\lambda)$ if
+
+$$ 
+P(X = x) = \frac{ (t \lambda)^x e^{-t\lambda} }{ x! } \\
+\text{For } x = 0,1,\ldots
+$$
+
+The mean of the Poisson is $E[X] = t\lambda$ and thus $E[X/t] = \lambda$. So our natural estimate of the rate is $X/t$ and that is exactly $\lambda$.
+
+The variance is equal to our mean, $t\lambda$.
+
+The Poisson tendds towards normal as $t\lambda$ gets large. This can be t fixed and $\lambda$ lareg, or vice-versa, or both getting large.
+
+```{r poisson_mass}
+tibble(x = list(1:200), lambda = 2^(7:1)) %>%
+    mutate(p = map2(x, lambda, ~dpois(.x, lambda = .y))) %>%
+    unnest() %>%
+    ggplot() +
+    geom_col(aes(x, p, colour = factor(lambda), fill = factor(lambda)))
+```
+
+
+
+## Log of the Outcome
+
+Consider the model $log(Y_i) = \beta_0 + \beta_1X_1 + \epsilon_i$. 
+
+When you exponentiate the coefficients with $e^{E[log(y)]}$ it mean is the geometric mean. Why? Because:
+
+$$ e^{\frac{1}{n} \sum_{i=1}^n log(y_i)} = \bigg(\prod_{i=1}^n y_i \bigg)^{1/n}$$
+
+What this means is when you take the of log the outcome, your exponentiated coefficients are interpretable with respect to the geometric mean. So if your $x$ axis is days, and your $y$ axis is a count:
+
+- $e^{\beta_0}$ - estimated geometric mean of counts on day 0.
+- $e^{\beta_1}$ - estimated relative increase or decrease in geometric mean count per day.
+
+So for example, if you performed a regression with a log response and the $\beta_1$ coefficient was 1.04, this would be a 4% increase in counts per day.
+
+## Example
+
+We'll look at bike data.
+
+```{r pois_example}
+if (!exists('vicroads')) { load('vicroads.data') }
+
+# Which route has the largest amount of data?
+vicroads %>% 
+    count(SITE_XN_ROUTE, sort = TRUE) %>%
+    slice(1:20) %>%
+    dplyr::mutate(SITE_XN_ROUTE = factor(SITE_XN_ROUTE)) %>%
+    ggplot() +
+    geom_col(aes(fct_reorder(SITE_XN_ROUTE, n), n)) +
+    coord_flip() +
+    labs(x = 'Route ID', y = 'Total Bike Count')
+
+# Filter out this route and add a datetime column
+vicroads %>%
+    dplyr::filter(SITE_XN_ROUTE == '6592') %>%
+    mutate(
+        DATETIME = as.POSIXct(paste(DATE, TIME), format = '%d/%m/%Y %H:%M:%S'),
+        UNIX_TIME = as.numeric(DATETIME),
+        HOUR = as.POSIXct(3600 * floor(UNIX_TIME/3600), origin = '1970-01-01')
+    ) ->
+    top_bike_route
+```
+
+
+```{r vicroads_graph}
+# Count the number of bikes per hour across the entire date/time range
+# then draw a histogram
+top_bike_route %>%
+    count(HOUR) %>%
+    ggplot() +
+    geom_histogram(aes(n), bins = 200)
+
+top_bike_route %>%
+    count(HOUR, name = 'COUNT') ->
+    bike_count
+
+bike_count
+```
+
+The number of bikes per hour over the year is actually cyclical based on the season, so our log linear model is not going to be very accurate. However it will do for working through the example.
+
+Let's do a linear regression of bikes per per based on the date. We add one so that we don't have any zero counts that we can't take the log of:
+
+```{r log_linear_bike}
+bike_count %>%
+    lm(I(log(COUNT + 1)) ~ HOUR, data = .) ->
+    bike_count_lm
+
+bike_count %>%
+    glm(COUNT ~ HOUR, data = ., family = 'poisson') %>%
+    summary() %>%
+    coef() %>%
+    exp()
+
+bike_count_lm %>% summary()
+
+bike_count_lm %>%
+    coef() %>%
+    exp()
+
+bike_count %>%
+    ggplot(aes(HOUR, COUNT)) +
+    geom_point() +
+    geom_smooth(formula = 'y ~ x', method = 'glm', method.args = list(family = 'poisson'), colour = 'lightgreen') +
+    geom_smooth(formula = 'I(log(y + 1)) ~ x', method = 'lm', colour = 'lightblue')
+```
+
+So the exponential of the HOUR coefficient is 1.000, so the model is interpreting that there is actually no increase in bikes per hour per day. If the exponentiated HOUR coefficient was for example 1.002, then this is interpreted as 'there is a .2% increase in bikes traffic per hour'.
+
+## Poisson / Log-Linear
+
+If our response is count $C$ and our regressor is days $D$ then:
+
+$$ log(E[C_i|D, \beta_0, \beta_1]) - \beta_0 + \beta_1D_i $$
+
+or
+
+$$ E[C | D, \beta_0, \beta_1] = e^{\beta_0 + \beta_1D_i} $$
+
+So the differences that we're looking at are multiplicative. We Can factor out the $\beta_0$:
+
+$$ E[C | D, \beta_0, \beta_1] = e^{\beta_0} e^{\beta_1D_i} $$
+
+What is the interpretation of our slope coefficient? If $D$ is increased by one unit, the expected value is multiplied by $e^{\beta_0}$. This coefficient is the relative increase/decrease in the mean per one unit change in the regressor. We're going to be look as to whether this is close to one. So if we exponentiate the coefficient, we're looking at whether they're close to one. If we leave it on the log scale, we're looking at whether it's 0 (which is what we do normally).
+
+## Rates
+
+Often we will be talking about rates or proportions. We want to interpret not the expected outcome, but the expected outcome divided by the relative term. So in our case, we want to talk about a count from a particular subset $S_i$. 
+
+$$ E[C_i|D_i,\beta_0,\beta_1]/S_i = e^{\beta_0 + \beta_1D_i} $$
+Modifying the equation (exponentiating both sides/exponential arithmetic) we get:
+
+$$ log(E[C_i|D_i,\beta_0,\beta_1]) = log(S_i) + \beta_0 + \beta_1D_i $$
+So all you have to do to add a rate or proportion is add the log of the denominator (rate or proportion).
+
+To do this in R, you use the `offset = ` argument to the `glm()` function.
+
+# Fitting Functions with Linear Models
+
+
+
+# Quiz
+
+Consider the space shuttle data `shuttle` in the `MASS` library. Consider modeling the use of the autolander as the outcome (variable name `use`). Fit a logistic regression model with autolander (variable `auto`) use (labeled as "auto" 1) versus not (0) as predicted by wind sign (variable `wind`). Give the estimated odds ratio for autolander use comparing head winds, labeled as "head" in the variable headwind (numerator) to tail winds (denominator).
+
+- **0.969**
+- -0.031
+- 1.327
+- 0.031
+
+**Answer:**
+
+```{r q1_ans, message = F}
+library(MASS)
+
+# Fit the model
+shuttle %>%
+    mutate(auto = ifelse(use == 'auto', 1, 0)) %>%
+    mutate(wind = fct_relevel(wind, c('tail', 'head'))) %>%
+    glm(auto ~ wind, data =., family = 'binomial') ->
+    shuttle_logistic
+
+shuttle_logistic %>% summary()
+
+# These are the odds of head/tail
+coef(shuttle_logistic) %>% 
+    exp()
+```
+
+## Question 2
+
+Consider the previous problem. Give the estimated odds ratio for autolander use comparing head winds (numerator) to tail winds (denominator) adjusting for wind strength from the variable magn.
+
+- **0.969**
+- 0.684
+- 1.485
+- 1.00
+
+**Answer:**
+
+```{r q2_ans}
+shuttle %>%
+    mutate(auto = ifelse(use == 'auto', 1, 0)) %>%
+    mutate(wind = fct_relevel(wind, c('tail', 'head'))) %>%
+    glm(auto ~ wind + magn, data =., family = 'binomial') ->
+    shuttle_logistic
+
+shuttle_logistic %>% summary()
+
+shuttle_logistic %>% 
+    coef() %>%
+    exp()
+```
+
+## Question 3
+
+If you fit a logistic regression model to a binary variable, for example use of the autolander, then fit a logistic regression model for one minus the outcome (not using the autolander) what happens to the coefficients?
+
+- The coefficients change in a non-linear fashion.
+- The coefficients reverse their signs.
+- **The coefficients get inverted (one over their previous value).**
+- The intercept changes sign, but the other coefficients don't.
+
+**Answer:**
+
+```{r q3_ans}
+# We swap the outcome variable
+shuttle %>%
+    mutate(auto = ifelse(use == 'auto', 0, 1)) %>%
+    mutate(wind = fct_relevel(wind, c('tail', 'head'))) %>%
+    glm(auto ~ wind, data =., family = 'binomial') ->
+    shuttle_logistic
+
+shuttle_logistic %>% summary()
+```
+
+We can see the sign has changed. The coefficients are on the log scale, so changing the sign changes the numerator and denominator.
+
+## Question 4
+
+Consider the insect spray data `InsectSprays`. Fit a Poisson model using spray as a factor level. Report the estimated relative rate comapring spray A (numerator) to spray B (denominator).
+
+- **0.9457**
+- 0.321
+- -0.056
+- 0.136
+
+**Answer:**
+
+```{r q4_ans}
+InsectSprays %>%
+    glm(count ~ spray, family = 'poisson', data = .) ->
+    insect_pois
+
+( insect_pois %>% coef() -> q4_coef )
+beta_0 <- q4_coef[1]
+beta_1 <- q4_coef[2]
+```
+
+The intercept is the log expected count of sprayA. $\beta_1$ is the difference in log expected count, so $\beta_0 + \beta_1$ is the log expected count of sprayB. 
+
+So we can do:
+
+```{r q4_ans_2}
+exp(beta_0) / exp(beta_0 + beta_1)
+```
+
+## Question 5
+
+Consider a Poisson glm with an offset, $t$. So, for example, a model of the form `glm(count ~ x + offset(t), family = poisson)`, where `x` is a factor variable comparing a treatment (1) to a control (0) and `t` is the natural log of a monitoring time. What is impact of the coefficient for `x` if we fit the model `glm(count ~ x + offset(t2), family = poisson)` where `t2 <- log(10) + t`? In other words, what happens to the coefficients if we change the units of the offset variable. (Note, adding log(10) on the log scale is multiplying by 10 on the original scale.)
+
+- The coefficient estimate is divided by 10.
+- The coefficient is subtracted by log(10).
+- **The coefficient estimate is unchanged**
+- The coefficient estimate is multiplied by 10.
+
+**Answer:**
+
+The coefficients are unchanged, except the intercept which is shifted by $log(10)$. All of the coefficients are interpretted as log relative rates, so a unit change in the offset would cancel out. However the intercept is not relative but a pure log rate with all the covariates set to 0.
+
+
+## Question 6
+
+Consider the data:
+
+```{r q6_data}
+x <- -5:5
+y <- c(5.12, 3.93, 2.67, 1.87, 0.52, 0.08, 0.93, 2.05, 2.54, 3.87, 4.97)
+```
+
+Using a knot point at 0, fit a linear model that looks like a hockey stick with two lines meeting at $x = 0$. Include an intercept term, $x$ and the knot point term. What is the estimated slope of the line after 0?
+
+- 2.037
+- -0.183
+- -1.024
+- **1.013**
+
+**Answer:**:
+
+```{r q6_ans}
+library(lspline)
+
+# Create another variable
+tibble(x = x, y = y) %>%
+    mutate(z = (x > 0) * x) ->
+    q6_data
+
+# Perform a linear regression
+( q6_data %>%
+    lm(y ~ x + z, data = .) %>%
+    coef() ->
+    q6_coef )
+
+# This is from the answer: not sure of this.
+q6_coef[2:3] %>% sum()
+
+# Using the lsplines library
+q6_data %>%
+    lm(y ~ lspline(x, 0), data = .)
+
+q6_data %>%
+    ggplot(aes(x,y)) +
+    geom_point() +
+    geom_smooth(method = lm, formula = y ~ lspline(x, 0))
+```
+

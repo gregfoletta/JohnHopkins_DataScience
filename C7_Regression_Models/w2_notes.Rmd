@@ -480,10 +480,17 @@ Consider again the `mtcars` data set and a linear regression model with mpg as p
 - 4.2026
 - -12.973
 
-**Answer:** unknown.
+**Answer:** 
 
 ```{r q6_ans}
+mtcars_ci <-
+    mtcars %>%
+    lm(mpg ~ wt, data = .) %>%
+    confint()
 
+mtcars_ci
+
+mtcars_ci * 2
 ```
 
 ## Question 7
