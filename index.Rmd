@@ -54,3 +54,6 @@ output:
 * [Week 3 Notes](C7_Regression_Models/w3_notes.html) - Multivariable linear models, influence measures, variance inflation, nested models.
 * [Week 4 Notes](C7_Regression_Models/w4_notes.html) - Generalised linear models, logistic regressions, Poisson regressions.
 
+## Course 8 - Practical Machine Learning
+
+* [Week 1 Notes](C8_Regression_Models/w1_notes.html) - Prediction, Cross-Validation, Types of Errors

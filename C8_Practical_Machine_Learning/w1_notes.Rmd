@@ -1,0 +1,315 @@
+---
+title: "Course 8 - Practical Machine Learning - Week 1 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(magrittr)
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+```
+
+# Introduction
+
+This course focuses on developing the tools and techniques for understanding, building and testing prediction functions.
+
+
+# What is Prediction?
+
+The central dogma of prediction is:
+
+- Take a large group of something you want to predict about.
+- Pick a training set
+- Measure characteristics about the training set and build a prediction function.
+- Evaluate whether the prediction functions works well or not.
+
+Components of a predictor:
+
+1. Define the question: what are you trying to predict?
+1. Collect the best input data that you can.
+1. Determine the features you think are useful in predicting and outcome.
+1. Use algorithms and estimate the parameters you'll use.
+1. Evaluate the prediction function.
+
+# Relative Order of Importance
+
+The question is the most important part of the machine learning process. Then collecting the data, which may not be readily available. Afer this comes features, and finally the algorithm which can be the least important.
+
+## Input Data
+
+Quote from John Tukey:
+
+*"The combination of some data and an aching desire for an answer does not ensure that a reasonable answer can be extracted from a given body of data"*
+
+Garbage in = Garbage out. Often more data is more important that better models.
+
+## Features
+
+Properties of good features:;
+
+- Lead to data compression
+- Retain relevant information
+- Are created based on export application knowledge
+
+Common mistakes:
+
+- Trying to automate feature selection
+    - Black box selections can be useful, but can also change on a dime if we're not paying attention to how the features *actually* predict the outcome.
+- Not paying attention to data-specific quirks.
+- Throwing away information unnecessarily.
+
+## Issues to Consider
+
+- Is the model interpretable?
+- Simplicity - easy to explain
+- Accurate - interpretabilitiy and simplicity may be traded off against accuracy.
+- Fast - easy to build and test
+- Sclable - scales out to larger data sets.
+
+Prediction is about accuracy tradeoffs.
+
+# In Sample vs Out Of Sample
+
+One of the most fundamental concepts. 
+
+In sample error is the error you get on the sample you used to build your predictor. It is also known as *resubstitution error*.
+
+Out of sample error is the error rate you get on a new data set. It is also known as generalisation error.
+
+Out of sample is what you care about. Fitting on the in sample set leads to overfitting.
+
+Data has two parts:
+
+- Signal
+- Noise
+
+The goal of the predictor is to find the signal. You can always design a perfect in-sample predictor, but you're capturing both the signal and the noise when you do that. It won't perform as well on new samples.
+
+
+# Prediction Study Design
+
+1. Define your error rate
+2. Split data into test, train and optionally validation
+3. On the training set pick features
+    - Can use cross-validation
+4. On the training set pick a prediction function.
+    - Use cross-validation
+5. If there's no validation set, apply 1x to the test set.
+6. If there is a validation set
+    - Apply to the test set and refine
+    - Apply 1x to the validation set.
+    
+## Sample Sizes
+
+Avoid small sample sizes. Imagine a binary outcome, which is like flipping a coin. The probability of perfect classification is approximately $\frac{1}{2}^{\text{sample size}}$.
+
+So when $n = 1$, you've got a 50% chance of 100% accuracy. When $n = 10$, you've got a 0.10% chance of 100% accuracy.
+
+Good rules of thumb, for a large data set:
+
+- 60% training
+- 20% test
+- 20% validation
+
+For a medium training set:
+
+- 60% training
+- 40% test
+
+If you have a small sample size:
+
+- Perform cross-validation
+- Report the caveat of a small sample size.
+
+## Principles
+
+- Test/validation set set aside an not looked at.
+- In general, *randomly* sample training set.
+- If te predictions evolve with time, split the train/test sets in time chunks.
+    - This is called backtesting in finance.
+- All subsets should reflect as much diversity as possible.
+    - Random assignment does this
+    - Can also balance by features, but this is difficult.
+    
+# Types of Errors
+
+Thinking about a binary prediction problem, positive = identified and negative = rejected.
+
+- True positive (TP) = correctly identified
+    - Sick people diagnosed as sick
+- False positive (FP) = incorrectly identified
+    - Healthy people diagnosed as sick
+- True negative (TN) = correctly rejected
+    - Healthy people diagnosed as healthy
+- False Negative (FN) = incorrectly rejected
+    - Sick people identified as healthy
+    
+* Sensitivity = Pr( positive test | disease )
+    - TP / (TP + FN)
+* Specificity = Pr( negative test | no disease )
+    - TN / (FP + TN)
+* Positive Predictive Value = Pr( disease | positive test )
+    - TP / (TP + FP)
+* Negative Predictive Value = Pr( no disease | negative test )
+    - TN / (FN + TN)
+* Accuracy = Pr( correct outcome )
+    - (TP + TN) / (TP + TN + FP + FN)
+
+## Continuous Data
+
+The goal it see how close you are to the truth. You use mean squared error (MSE).
+
+$$ \frac{1}{n} \sum_{i=1}^n (\text{Prediction}_i - \text{Truth}_i)^2$$
+
+Root mean squared error (RMSE)
+
+$$ \sqrt{ \frac{1}{n} \sum_{i=1}^n (\text{Prediction}_i - \text{Truth}_i)^2 }$$
+
+## Common Error Measures
+
+- MSE or RMSE
+    - Continuous, sensistive to outliers
+- Median absolute deviation
+    - Continuous, often more robust.
+    - $\tilde{X} = median(X)$
+    - $MAD = median(|X_i - \tilde{X}|)$
+- Sensitivity
+    - If you want few missed positives
+- Specificity
+    - If you want few negatives called positives
+- Accuracy
+    - Weights false positives/negatives equally
+- Concordance
+    - Used in multi-class data
+    
+# Receiver Operating Characteristic (ROC Curves)
+
+In binary classification you're predicting one of two categories, but most of the prediction algorithms will assign a probability (0 - 1) or a prediction between 1 - 10. The cutoff **you** choose gives different results.
+
+The ROC curve shows one minus the specificity on the x-axis (Pr(FP)) and on the y-axis they plot the sensitivity (Pr(TP)).
+
+Then every point along the curve shows the results for a different cutoff.
+
+The "best" curve is usually determined by the area under the ROC curve. If the area is .5 (axis are [0,1]), then this is as good as random guessing. An area of 1 is a perfect classifier.
+
+In general an area of .8 is considered good. A curve sitting on the 45 degree angle means the sensitivity and specificity match each other. The further you are towards the upper left of the plot the better you are, as you're getting more true positives rather than false positives are your cutoff goes up.
+
+# Cross Validation
+
+Take the training set and split it into sub-training and sub-test sets. Build the model on the sub-training set and evaluate on the sub-test set. They key is then to repeat this process and average the estimated errors.
+
+Can be used for picking the variables in the model, picking the type of prediction, picking the parameters, or comparing different predictors.
+
+## Random Subsampling
+
+Take a number of different random samples from the training set, splitting it into training and test sets.
+
+## K-Fold
+
+Break the data set up into $K$ equal size data sets. Build a model on the training sets within each fold and test on the test within each fold.
+
+## Leave One Out Cross Validation (LOOCV)
+
+Leave out one sample, train the model on the remaining $n-1$ samples. Test on the one sample that was left out. This is the same as K-Fold but where $k = n$.
+
+## Considerations
+
+For time-series data this doesn't natively work, you have to get blocks of time that is contiguous. This is because one time point may be dependent on a number of other time points that came before.
+
+For K-fold:
+- Larger k = less bias, more variance.
+- Smaller k = more bias, less variance
+
+The random sampling must be done without replacement. Random smapling **with** replacement is called the bootstrap.
+    - Underestimates the error. This is because some samples will appear more than once, and if you get one right you've got the other one right.
+    - Can be corrected, but its complicated (a ".632 bootstrap").
+    
+If you cross-validate to pick predictors you must estimate the errors on independent data. The cross-validated error rates won't be a good example of what the out-of-sample error rates will be. The only way to do this is to apply **once** to your test set.
+
+# What Data Should You Use?
+
+Polling data is using like data to predict like outcomes. "To predict X, use data related to X".
+
+The looser connection, the harder the prediction.
+
+Data properties matter. Knowing how the data connects back to what you're trying to predict is vitally important. Unrelated data is the most common mistake. It's the old "correlation versus causation".
+
+# Quiz
+
+## Question 1
+
+Which of the following are components in building a machine learning algorithm?
+
+- Statistical inference
+- Machine learning
+- Collecting data to answer the question.
+- Artificial intelligence
+- **Training and test sets**
+
+**Answer:** training and test sets are components in the process of building an ML algorithm.
+
+## Question 2
+
+Suppose we build a prediction algorithm on a data set and it is 100% accurate on that data set. Why might the algorithm not work well if we collect a new data set?
+
+- We have used neural networks which has notoriously bad performance.
+- We may be using bad variables that don't explain the outcome.
+- We are not asking a relevant question that can be answered with machine learning.
+- **Our algorithm may be overfitting the training data, predicting both the signal and the noise.**
+
+**Answer:** the algorithm will be over-fitting our data on the training set. 
+
+## Question 3
+
+What are typical sizes for the training and test sets?
+
+- 10% test set, 90% training set
+- **60% in the training set, 40% in the testing set.**
+- 50% training set, 50% test set
+- 90% training set, 10% test set
+
+**Answer:** 60% in the training, 40% in the test.
+
+## Question 4
+
+What are some common error rates for predicting binary variables (i.e. variables with two possible values like yes/no, disease/normal, clicked/didn't click)? Check the correct answer(s).
+
+- Accuracy
+- Median absolute deviation
+- R^2
+- Root mean squared error
+- Correlation
+
+**Answer:** Accuracy. The others relate to continuous variables.
+
+## Question 5
+
+Suppose that we have created a machine learning algorithm that predicts whether a link will be clicked with 99% sensitivity and 99% specificity. The rate the link is clicked is 1/1000 of visits to a website. If we predict the link will be clicked on a specific visit, what is the probability it will actually be clicked?
+
+- 89.9%
+- 50%
+- 9%
+- **0.009%**
+
+
+**Answer:** 
+
+We're looking for Pr( click | prediction ). This it *positive predictive value* given by  $TP / (TP + FP)$.
+
+```{r q5}
+POSITIVE <- 1
+NEGATIVE <- 999
+TP <- .99 * POSITIVE
+FP <- (1 - .99) * NEGATIVE
+TP / (TP + FP)
+```
+
+    
