@@ -56,4 +56,5 @@ output:
 
 ## Course 8 - Practical Machine Learning
 
-* [Week 1 Notes](C8_Regression_Models/w1_notes.html) - Prediction, Cross-Validation, Types of Errors
+* [Week 1 Notes](C8_Practical_Machine_Learning/w1_notes.html) - Prediction, Cross-Validation, Types of Errors
+* [Week 2 Notes](C8_Practical_Machine_Learning/w2_notes.html) - Data Slicing, Training, Standardising, Imputation, Covariate Creation, PCA
