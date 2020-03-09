@@ -14,6 +14,577 @@ output:
 library(tidyverse)
 library(broom)
 knitr::opts_chunk$set(echo = TRUE)
-library(kableExtra)
+library(ISLR)
+```
+
+
+# Predicting with Trees
+
+Iteratively split variables into groups and evalularte the 'homogeneity' within each group. You can split again if necessary.
+
+It's easy to interpret and has good performance in nonlinear settings. However without pruning/cross-validation it can lead to overfitting, it's hard to estimate uncertainty, and the results may be variable.
+
+The basic algorithm:
+
+1. Start with all variables in one group.
+1. Find the variable & split that best separates the outcomes.
+1. Divide the data into two groups (leaves) on the splt (node).
+1. Within each split, go back to 1.
+1. Continue until the groups are too small or sufficiently 'pure'.
+
+## Measures of Impurity
+
+$$ \hat{p}_{mk} = \frac{1}{N_m} \sum_{x_i \in Leaf_m} \mathbb{1}(y_i = k)  $$
+
+This is probability that within a leaf $m$ there are $N$ total objects that we might consider, and you can count the number of a times a class $k$ occurs in a leaf.
+
+The missclassification error is then
+
+$$ 1 - \hat{p}_{mk(m)}; k(m) = \text{most common k} $$
+
+So 0 is perpect purity, .5 is no purity (because if the classification swung the other way it would be 0 in the other direction).
+
+Another method is **deviance/information gain**
+
+$$ -\sum_{k=1}^K \hat{p}_{mk} log_2(\hat{p}_{mk}) $$
+If you use $log_e$ it's called deviance, if you use $log_2$ it's called information gain.
+
+It's minus the sum of the probability of being assigned to class $k$ and leam $m$, times the log of that same probability.
+
+0 is perfect purity, 1 means no purity.
+
+## Example
+
+```{r}
+library(modelr)
+iris_smpl <-
+    iris %>%
+    resample_partition(c(train = .8, test = .2))
+
+iris_smpl$train %>%
+    as_tibble() %>%
+    ggplot() +
+    geom_point(aes(Petal.Width, Sepal.Width, colour = Species)) +
+    labs(
+        title = 'Iris Petal vs Sepal Width by Species',
+        x = 'Petal Width',
+        y = 'Sepal Width'
+    )
+```
+
+```{r, warning = F}
+library(caret)
+library(rattle)
+
+iris_smpl$train %>%
+    as_tibble() %>%
+    train(Species ~ ., method = 'rpart', data = .) ->
+    iris_tree
+
+iris_tree$finalModel
+fancyRpartPlot(iris_tree$finalModel, caption = 'Species Categorisation')
+
+```
+
+Let's look at how good it is at predicting:
+
+```{r, warning = F}
+iris_smpl$test %>%
+    as_tibble() %>%
+    mutate(
+        pred = predict(iris_tree, newdata = .),
+        res = Species == pred
+    ) %>%
+    summarise(Categorisation_Accuracy = mean(res))
+```
+
+## Notes
+
+- Classification trees and non-linear models
+    - They use interactions between variables
+    - If you have a large number of classes, the models can overfit.
+- Data transformations may be less important
+    - Any monotone transformation means you'll get the same data.
+- Trees can also be used for regression problems
+    - RMSE as the purity measure
+
+
+# Bagging
+
+Short for bootstrap aggregating. If you fit complicated models, sometimes if you average those models together you get a smoother model fit.
+
+1. Resample with replacement cases and recalculate predictions
+1. Average or majority vote
+
+You get similar bias but a reduced variance. It's most useful for non-linear functions.
+
+## Bagging in Caret
+
+In caret you can use `bagEarth`, `treeBag` or `bagDFA` method options in the `train()` function.
+
+You can also bag any model using the `bag` function.
+
+
+## Notes
+
+- Most useful for non-linear models
+- Often used with trees
+- Several models use bagging in caret's `train()` function.
+
+
+# Random Forests
+
+Random forests can be thought of as an extension to basgging for classification trees.
+
+1. Bootstrap samples
+1. At each split, bootstrap variables
+    - Thus only a subset of variables is considered at each split.
+1. Grow multiple trees and vote or average the trees
+
+**Pros**:
+
+- Accuracy
+
+**Cons**:
+
+- Speed
+- Interpretability
+- Overfitting
+
+Once the trees have been build, you predict an outcome through each tree. At the end you take an average of all of the predictions.
+
+## Example
+
+```{r, warning = F}
+library(randomForest)
+
+set.seed(10)
+iris_smpl <- iris %>% resample_partition(c(train = .8, test = .2))
+
+iris_rtree <- 
+    iris_smpl$train %>%
+    as_tibble() %>%
+    train(Species ~ ., data = ., method = 'rf', prox = TRUE)
+
+iris_rtree
+```
+
+Can use the `getTree()` to look at the tree. Each of the rows is a split in the tree. We see the left and right daughter of the split, which variable, at which point we split on that variable, and what the prediction is out of the split.
+
+```{r}
+getTree(iris_rtree$finalModel, k = 2)
+```
+
+Use `classCenter()` to find the center of each class.
+
+To predict values:
+
+```{r}
+iris_smpl$test %>%
+    as_tibble() %>%
+    pull(Species) %>%
+    confusionMatrix(predict(iris_rtree, iris_smpl$test))
+```
+
+## Notes
+
+- Random forests are usually one of the two top performing algorithms (along with boosting) in prediction contests.
+- Random forests are difficult to interpret but often very accurate.
+- Care should be taken to avoid overfitting
+    - See the `rfcv()` function.
+
+# Boosting
+
+Basic idea:
+
+1. Take lots of possibly weak predictors
+1. Weight them and add them up
+1. Get a stronger predictor
+
+Diving in a little deeper:
+
+1. Start with a set of classifiers $h_1, \ldots, h_k$.
+    - Examples: all possible trees, all possible regression models, all possible cutoffs.
+2. Create a classifier that combines classification functions
+    - $f(x) = sgn\bigg( \sum_{t=1}^T \alpha_t h_t(x) \bigg)$
+        -$\alpha_t$ is the weight
+        -$h_t(x)$ is the classifier
+        -$sgn()$ is the [signum function](https://en.wikipedia.org/wiki/Sign_function)
+    - Goal is to minimise error on training set.
+    - Iterative, select one $h$ at each step.
+    - Calculate weights based on errors
+    - Upweight missed classifications and select next $h$
+
+## Notes
+
+- Can be done with any subset of classifiers
+- One large class is [gradient boosting](https://en.wikipedia.org/wiki/Gradient_boosting)
+- Boosting libraries
+    - `gbm` does boosting with trees
+    - `mboost` does model based boosting
+    - `ada` does statistical boosting based on additive logistic regression
+    - `gamBoost` for boosting generalised additive modles
+
+## Example
+
+```{r warning = F}
+set.seed(1)
+wage_smpl <- Wage %>%
+    select(-logwage) %>%
+    resample_partition(c(train = .8, test = .2))
+
+wage_mod <-
+    wage_smpl$train %>%
+    as_tibble() %>%
+    train(wage ~ ., method = 'gbm', data = ., verbose = FALSE)
+
+wage_mod
+
+wage_smpl$test %>%
+    as_tibble() %>%
+    mutate(pred = predict(wage_mod, newdata = .)) %>%
+    ggplot() +
+    geom_point(aes(pred, wage)) +
+    labs(
+        title = 'Boosted Wage Prediction',
+        x = 'Predicted Wage',
+        y = 'Real Wage'
+    )
+
+```
+
+
+
+# Model Based Prediction
+
+1. Assume the data follow a probabilistic model
+2. Use Bayes' theorem to identify optimal classifiers
+
+**Pros:**
+
+- Can take advantage of structure of the data.
+- May be computationally convenient.
+- Are reasonably accurate on read problems.
+
+**Cons:**
+
+- Make additional assumptions about the data.
+- When the model is incorrect you may get reduced accuracy.
+
+## Approach
+
+Our goal is to build a parametric model for conditional distribution $P(Y = k|X = x)$. 
+
+A typical approach is to apply Bayes' theorem:
+
+$$
+Pr(Y = k|X = x) \\
+
+= \frac{
+    Pr(X = x|Y = k)Pr(Y = k)
+}{
+    \sum_{\ell = 1}^K Pr(X = x|Y = \ell)Pr(Y = \ell)
+} \\
+= \frac {
+    f_k(x)\pi_k
+}{
+    \sum_{\ell = 1}^K f_\ell(x)\pi_k
+}
+
+$$
+
+The last line has $f_k(x)$, which is the assumption of a parametric model for the distribution of the features given the class. The $Pr(Y = k)$ is the 'prior' that an element $Y$ comes from class $k$.
+
+Thus we can model the $Pr(Y = k|X = x)$ as a model for the $x$ variables and a model for the prior probability.
+
+Priors are generally set in advance, and a common choice for $f_k(x)$ is the Gaussian distribution. Could be multi-variate Gaussian if there are muliple variables. The $(\mu_k,\sigma_k^2)$ are estimated from the data.
+
+Classify to the class with the highest value of $P(Y = k|X = x)$.
+
+## Uses
+
+- Linear discriminant analysis assumes $f_k(x)$ is a multivariate Gaussian with the same covariances.
+- Quadratic discriminant analysis assumes $f_k(x)$ is multivariate Gaussian with different covariances.
+- Model based prediction assumes more complicated versions of the covariance matirx.
+- Naive Bayes assumes independence between features.
+
+
+## Discriminant Function
+
+$$ \delta_k(x) = x^T\Sigma^{-1} \mu_k - \frac{1}{2}\mu_k \Sigma^{-1} \mu_k + log(\mu_k) $$
+
+Where
+
+- $\mu_k$ is the mean of class $k$ for all our features.
+- $\Sigma^-1$ is the inverse of the co-variance matrix for that class.
+- $x^T$ is the transform of our predictor matrix.
+
+We pplug in our new data value into our function, and we pick the value of $k$ that produces the largest value in this function: $\hat{Y}(x) = \text{argmax}_k \delta_k(x)$
+
+Estimate parameters with maximum likelyhood.
+
+## Naive Bayes
+
+Suppose we have many predictors, we want to model $P(Y = k|X_1, \ldots, X_m)$
+
+We can use Bayes theorem to get:
+
+$$
+P(Y = k|X_1, \ldots, X_m) = \frac{
+    \pi_k P(X_1, \ldots, X_m|Y = k)
+}{
+    \sum_\ell^K P(X_1, \ldots, X_m | Y = k) \pi_\ell
+} \\
+\text{ } \\
+\propto \pi_k P(X_1, \ldots, X_m | Y = k)
+$$
+
+You can expant out every $X$ probability so you end up with:
+
+$$
+\pi_k P(X_1|Y=k) P(X_2, \ldots, X_m|X_1, Y = k) \\
+\pi_k P(X_1|Y=k) P(X_2 | X_1, Y = k) \ldots P(X_m | X_1, \ldots, X_{m-1}, Y = k)
+$$
+
+So you can see that the variables are dependent on each other. To make this simple you could assume that the predictors are independent, in which case they drop out:
+
+$$ \pi_k P(X_1|Y = k)P(X_2 | Y = k)\ldots P(X_m|Y=k) $$
+
+This is a naive assumption, which is why it's called Naive Bayes.
+
+## Examples
+
+```{r, warning = FALSE}
+set.seed(10)
+iris_smpl <-
+    iris %>%
+    resample_partition(c(train = .8, test = .2))
+
+iris_smpl$train %>%
+    as_tibble() %>%
+    train(Species ~ ., data = ., method = 'lda') %>%
+    predict(newdata = as_tibble(iris_smpl$test)) %>%
+    confusionMatrix(as_tibble(iris_smpl$test)$Species)
+
+iris_smpl$train %>%
+    as_tibble() %>%
+    train(Species ~ ., data = ., method = 'nb') %>%
+    predict(newdata = as_tibble(iris_smpl$test)) %>%
+    confusionMatrix(as_tibble(iris_smpl$test)$Species)
+```
+
+# Quiz
+
+## Question 1
+
+For this quiz we will be using several R packages. R package versions change over time, the right answers have been checked using the following versions of the packages.
+
+AppliedPredictiveModeling: v1.1.6
+
+caret: v6.0.47
+
+ElemStatLearn: v2012.04-0
+
+pgmm: v1.1
+
+rpart: v4.1.8
+
+```{r}
+library(AppliedPredictiveModeling)
+library(caret)
+library(pgmm)
+library(rpart)
+```
+
+
+If you aren't using these versions of the packages, your answers may not exactly match the right answer, but hopefully should be close.
+
+Load the cell segmentation data from the AppliedPredictiveModeling package using the commands:
+
+```{r}
+library(AppliedPredictiveModeling)
+data(segmentationOriginal)
+library(caret)
+```
+
+
+1. Subset the data to a training set and testing set based on the Case variable in the data set.
+2. Set the seed to 125 and fit a CART model with the rpart method using all predictor variables and default caret settings.
+3. In the final model what would be the final model prediction for cases with the following variable values:
+    a. TotalIntench2 = 23,000; FiberWidthCh1 = 10; PerimStatusCh1=2
+    b. TotalIntench2 = 50,000; FiberWidthCh1 = 10;VarIntenCh4 = 100
+    c. TotalIntench2 = 57,000; FiberWidthCh1 = 8;VarIntenCh4 = 100
+    d. FiberWidthCh1 = 8;VarIntenCh4 = 100; PerimStatusCh1=2
+
+```{r, warning = FALSE}
+set.seed(125)
+
+segmentationOriginal %>%
+    dplyr::filter(Case == 'Train') %>%
+    train(Class ~ ., method = 'rpart', data = .) ->
+    seg_rpart
+
+
+library(rattle)
+fancyRpartPlot(seg_rpart$finalModel)
+```
+
+- a. PS
+- b. Not possible to predict
+- c. PS
+- d. Not possible to predict
+
+- a. WS
+- b. WS
+- c. PS
+- d. Not possible to predict
+
+**- a. PS**
+- b. WS
+- c. PS
+- d. Not possible to predict
+
+- a. PS
+- b. WS
+- c. PS
+- d. WS
+
+
+
+
+## Question 2
+
+If K is small in a K-fold cross validation is the bias in the estimate of out-of-sample (test set) accuracy smaller or bigger?
+
+If K is small is the variance in the estimate of out-of-sample (test set) accuracy smaller or bigger?
+
+Is K large or small in leave one out cross validation?
+
+- **The bias is larger and the variance is smaller. Under leave one out cross validation K is equal to the sample size.**
+- The bias is larger and the variance is smaller. Under leave one out cross validation K is equal to one.
+- The bias is smaller and the variance is bigger. Under leave one out cross validation K is equal to one.
+- The bias is smaller and the variance is smaller. Under leave one out cross validation K is equal to the sample size.
+
+**Answer**: in k-fold CV, the data set is split into K 'folds', and LOOCV is a special case where k = n.
+
+As K is smaller, then we are training on more observations, and thus the variance should be reduced. However this will be traded off against higher bias in
+the error estimates.
+
+## Question 3
+
+Load the olive oil data using the commands:
+
+```{r}
+library(pgmm)
+data(olive)
+olive <- olive[,-1]
+```
+
+
+(NOTE: If you have trouble installing the pgmm package, you can download the -code-olive-/code- dataset here: olive_data.zip. After unzipping the archive, you can load the file using the -code-load()-/code- function in R.)
+
+These data contain information on 572 different Italian olive oils from multiple regions in Italy. Fit a classification tree where Area is the outcome variable. Then predict the value of area for the following data frame using the tree command with all defaults:
+
+```{r}
+newdata = as.data.frame(t(colMeans(olive)))
+```
+
+
+What is the resulting prediction? Is the resulting prediction strange? Why or why not?
+
+```{r, warning = FALSE}
+olive %>%
+    train(Area ~ ., method = 'rpart', data = .) %>%
+    predict(newdata = newdata)
+```
+
+
+- **2.783. It is strange because Area should be a qualitative variable - but tree is reporting the average value of Area as a numeric variable in the leaf predicted for newdata**
+- 4.59965. There is no reason why the result is strange.
+- 0.005291005 0 0.994709 0 0 0 0 0 0. The result is strange because Area is a numeric variable and we should get the average within each leaf.
+- 0.005291005 0 0.994709 0 0 0 0 0 0. There is no reason why the result is strange.
+
+## Question 4
+
+Load the South Africa Heart Disease Data and create training and test sets with the following code:
+
+```{r}
+library(ElemStatLearn)
+data(SAheart)
+set.seed(8484)
+train = sample(1:dim(SAheart)[1],size=dim(SAheart)[1]/2,replace=F)
+trainSA = SAheart[train,]
+testSA = SAheart[-train,]
+```
+
+
+Then set the seed to 13234 and fit a logistic regression model (method="glm", be sure to specify family="binomial") with Coronary Heart Disease (chd) as the outcome and age at onset, current alcohol consumption, obesity levels, cumulative tabacco, type-A behavior, and low density lipoprotein cholesterol as predictors. Calculate the misclassification rate for your model using this function and a prediction on the "response" scale:
+
+```{r}
+missClass = function(values,prediction){sum(((prediction > 0.5)*1) != values)/length(values)}
+```
+
+
+What is the misclassification rate on the training set? What is the misclassification rate on the test set?
+
+```{r, warning = FALSE}
+trainSA %>%
+    glm(
+        chd ~ age + alcohol + obesity + tobacco + typea + ldl,
+        data = .,
+        family = 'binomial'
+    ) -> SA_mdl
+
+missClass(testSA$chd, predict(SA_mdl, newdata = testSA, type = 'response'))
+missClass(trainSA$chd, predict(SA_mdl, type = 'response'))
+```
+
+
+- Test Set Misclassification: 0.32
+- Training Set: 0.30
+
+- Test Set Misclassification: 0.31
+- Training Set: 0.27
+
+- Test Set Misclassification: 0.38
+- Training Set: 0.25
+
+- Test Set Misclassification: 0.35
+- Training Set: 0.31
+
+## Question 5
+
+Load the vowel.train and vowel.test data sets:
+
+```{r}
+library(ElemStatLearn)
+data(vowel.train)
+data(vowel.test)
+```
+
+
+Set the variable y to be a factor variable in both the training and test set. Then set the seed to 33833. Fit a random forest predictor relating the factor variable y to the remaining variables. Read about variable importance in random forests here: http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm#ooberr The caret package uses by default the Gini importance.
+
+Calculate the variable importance using the varImp function in the caret package. What is the order of variable importance?
+
+[NOTE: Use randomForest() specifically, not caret, as there's been some issues reported with that approach. 11/6/2016]
+
+- The order of the variables is: x.2, x.1, x.5, x.6, x.8, x.4, x.9, x.3, x.7,x.10
+- The order of the variables is: x.10, x.7, x.9, x.5, x.8, x.4, x.6, x.3, x.1,x.2
+- The order of the variables is: x.1, x.2, x.3, x.8, x.6, x.4, x.5, x.9, x.7,x.10
+- The order of the variables is: x.10, x.7, x.5, x.6, x.8, x.4, x.9, x.3, x.1,x.2
+
+```{r, warning = F}
+library(randomForest)
+
+set.seed(33833)
+
+
+vowel.test %>%
+    mutate(y = factor(y)) %>%
+    randomForest(y ~ ., data = .) %>%
+    varImp() %>%
+    rownames_to_column() %>%
+    arrange(desc(Overall))
 ```
 
