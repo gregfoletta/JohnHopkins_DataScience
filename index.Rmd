@@ -59,3 +59,4 @@ output:
 * [Week 1 Notes](C8_Practical_Machine_Learning/w1_notes.html) - Prediction, Cross-Validation, Types of Errors
 * [Week 2 Notes](C8_Practical_Machine_Learning/w2_notes.html) - Data Slicing, Training, Standardising, Imputation, Covariate Creation, PCA
 * [Week 3 Notes](C8_Practical_Machine_Learning/w3_notes.html) - Prediction with Trees, Bagging, Random Forests, Boosting, LDA, Naive Bayes
+* [Week 4 Notes](C8_Practical_Machine_Learning/w4_notes.html) - Thresholding, Ridge Regression, Lasso, Forecasting, Unsupervised Prediction
