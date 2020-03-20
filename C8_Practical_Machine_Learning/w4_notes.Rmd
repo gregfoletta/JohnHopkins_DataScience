@@ -430,6 +430,7 @@ iris_smpl$test %>%
 
 For this quiz we will be using several R packages. R package versions change over time, the right answers have been checked using the following versions of the packages.
 
+
 AppliedPredictiveModeling: v1.1.6
 
 caret: v6.0.47
@@ -453,6 +454,7 @@ If you aren't using these versions of the packages, your answers may not exactly
 Load the vowel.train and vowel.test data sets:
 
 ```{r}
+library(caret)
 library(ElemStatLearn)
 data(vowel.train)
 data(vowel.test)
@@ -464,7 +466,7 @@ Set the variable y to be a factor variable in both the training and test set. Th
 What are the accuracies for the two approaches on the test data set? What is the accuracy among the test set samples where the two methods agree?
 
 - RF Accuracy = 0.3233 GBM Accuracy = 0.8371 Agreement Accuracy = 0.9983
-- RF Accuracy = 0.6082 GBM Accuracy = 0.5152 Agreement Accuracy = 0.6361
+- **RF Accuracy = 0.6082 GBM Accuracy = 0.5152 Agreement Accuracy = 0.6361*
 - RF Accuracy = 0.9987 GBM Accuracy = 0.5152 Agreement Accuracy = 0.9985
 - RF Accuracy = 0.6082 GBM Accuracy = 0.5152 Agreement Accuracy = 0.5325
 
@@ -482,22 +484,38 @@ set.seed(33833)
 
 vowel.train %>%
     do(
-        rpart = train(y ~ ., data = ., method = 'rf'),
-        gbm = train(y ~ ., data = ., method = 'gbm', verbose = F)
+        rf = train(y ~ ., data = ., method = 'rf', prox = TRUE),
+        gbm = train(y ~ ., data = ., method = 'gbm', verbose = FALSE)
     ) %>%
     gather(model_name, model) ->
     vowel_models
+
+vowel_models
 ```
 
 
 ```{r, warning = F}
-vowel_models %>%
+( vowel_models %>%
     mutate(
-        train_predicton = map(model, ~predict(.x)),
         test_prediction = map(model, ~predict(.x, newdata = vowel.test))
-    ) %>%
+    ) ->
+    vowel_models )
+
+vowel_models %>% 
     pull(test_prediction) %>%
     walk( ~{ print(confusionMatrix(.x, vowel.test$y)) } )
+```
+
+Now we take a look at the accuracy where the two models predict the same value:
+
+```{r, warning = FALSE}
+vowel_models %>%
+    select(model_name, test_prediction) %>% 
+    spread(key = model_name, value = test_prediction) %>% 
+    mutate(y = list(vowel.test$y)) %>% 
+    unnest() %>% 
+    dplyr::filter(gbm == rf) %>%
+    { confusionMatrix(.$gbm, .$y) }
 ```
 
 
@@ -506,7 +524,7 @@ vowel_models %>%
 
 Load the Alzheimer's data using the following commands:
 
-```{r}
+```{r, warning = F}
 library(caret)
 library(gbm)
 set.seed(3433)
@@ -515,14 +533,58 @@ data(AlzheimerDisease)
 
 adData = data.frame(diagnosis,predictors)
 inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
-training = adData[ inTrain,]
-testing = adData[-inTrain,]
+q2_training = adData[ inTrain,]
+q2_testing = adData[-inTrain,]
 ```
 
 
 Set the seed to 62433 and predict diagnosis with all the other variables using a random forest ("rf"), boosted trees ("gbm") and linear discriminant analysis ("lda") model. Stack the predictions together using random forests ("rf"). What is the resulting accuracy on the test set? Is it better or worse than each of the individual predictions?
 
-- Stacked Accuracy: 0.80 is better than all three other methods
+```{r, warning = F}
+set.seed(62433)
+
+q2_training %>% 
+    do(
+        rf = train(diagnosis ~ ., method = 'rf', data = .),
+        gbm = train(diagnosis ~ ., method = 'gbm', data = ., verbose = F),
+        lda = train(diagnosis ~ ., method = 'lda', data = .)
+    ) %>% 
+    gather(algorithm, model) ->
+    alz_models
+```
+
+
+```{r}
+# Look at the test set error rate for each individual model
+alz_models %>% 
+    mutate(
+        diagnosis = list(q2_testing$diagnosis),
+        test_prediction = map(model, ~predict(.x, newdata = q2_testing))
+    ) ->
+    alz_models
+
+alz_models %>%
+    select(-model) %>% 
+    unnest() %>% 
+    group_by(algorithm) %>% 
+    summarise(accuracy = mean(diagnosis == test_prediction))
+```
+
+```{r, warning = F }
+# Stack it up together
+alz_models %>% 
+    select(-model) %>% 
+    spread(algorithm, test_prediction) %>% 
+    unnest() %>% 
+    train(diagnosis ~ ., method = 'rf', data = .) %>% 
+    { tibble(
+        diagnosis = q2_testing$diagnosis,
+        prediction = predict(.)
+    ) } %>% 
+    summarise(accuracy = mean(diagnosis == prediction))
+```
+
+- **Stacked Accuracy: 0.80 is better than all three other methods**
 - Stacked Accuracy: 0.80 is better than random forests and lda and the same as boosting.
 - Stacked Accuracy: 0.76 is better than random forests and boosting, but not lda.
 - Stacked Accuracy: 0.76 is better than lda but not random forests or boosting.
@@ -531,18 +593,33 @@ Set the seed to 62433 and predict diagnosis with all the other variables using a
 
 Load the concrete data with the commands:
 
-```{r}
+```{r, warning = F}
 set.seed(3523)
 library(AppliedPredictiveModeling)
 
 data(concrete)
 inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
-training = concrete[ inTrain,]
-testing = concrete[-inTrain,]
+q3_training = concrete[ inTrain,]
+q3_testing = concrete[-inTrain,]
 ```
 
 
 Set the seed to 233 and fit a lasso model to predict Compressive Strength. Which variable is the last coefficient to be set to zero as the penalty increases? (Hint: it may be useful to look up ?plot.enet).
+
+```{r}
+set.seed(233)
+library(glmnet)
+
+x <- q3_training %>% model.matrix(CompressiveStrength ~ ., .)
+y <- q3_training$CompressiveStrength
+
+glmnet(x, y, alpha = 1, lambda = 10^seq(10, -2, length = 100)) %>% 
+    tidy() %>% 
+    dplyr::filter(term != '(Intercept)') %>% 
+    ggplot() +
+    geom_line(aes(log(lambda), estimate, colour = term))
+```
+
 
 - CoarseAggregate
 - Cement
@@ -562,13 +639,22 @@ library(lubridate) # For year() function below
 
 dat = read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/gaData.csv")
 
-training = dat[year(dat$date) < 2012,]
-testing = dat[(year(dat$date)) > 2011,]
-tstrain = ts(training$visitsTumblr)
+q4_training = dat[year(dat$date) < 2012,]
+q4_testing = dat[(year(dat$date)) > 2011,]
+tstrain = ts(q4_training$visitsTumblr)
 ```
 
 
 Fit a model using the bats() function in the forecast package to the training time series. Then forecast this model for the remaining time points. For how many of the testing points is the true value within the 95% prediction interval bounds?
+
+```{r}
+library(forecast)
+
+tstrain %>%
+    bats() %>% 
+    forecast(h = nrow(q4_testing))
+```
+
 
 - 94%
 - 98%
@@ -585,15 +671,27 @@ library(AppliedPredictiveModeling)
 data(concrete)
 
 inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
-training = concrete[ inTrain,]
-testing = concrete[-inTrain,]
+q5_training = concrete[ inTrain,]
+q5_testing = concrete[-inTrain,]
 ```
 
 
 Set the seed to 325 and fit a support vector machine using the e1071 package to predict Compressive Strength using the default settings. Predict on the testing set. What is the RMSE?
 
+```{r}
+library(e1071)
+library(modelr)
+
+set.seed(325)
+
+q5_training %>% 
+    svm(CompressiveStrength ~ ., data = .) %>%
+    rmse(model = ., data = q5_testing)
+```
+
+
 - 35.59
 - 6.72
 - 6.93
-- 107.44
+- **107.44**
 
