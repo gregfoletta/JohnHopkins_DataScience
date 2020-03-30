@@ -1,0 +1,365 @@
+---
+title: "Course 9 - Developing Data Products- Week 1 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(magrittr)
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+```
+
+# Shiny
+
+Shiny is a web development framework in R. It allows you to create a graphical interface so that users can interact with visualisations, models and algorithms without needing to know R themselves.
+
+# An Application
+
+When you create an app, there's a ui.R and a server.R.
+
+Within the UI, you start off with a `shinyUI()` call which one arugment:
+
+- A `fluidPage()` call to set up the page. This function has two arguments:
+    - A `titlePanel()` to set the title.
+    - A `sidebarLayout()` to set the sidebar, and
+    - A `mainPanel()` to set the main content.
+    
+```r
+library(shiny)
+
+# Define UI for application that draws a histogram
+shinyUI(fluidPage(
+    # Application title
+    titlePanel("Old Faithful Geyser Data"),
+
+    # Sidebar with a slider input for number of bins
+    sidebarLayout(
+        sidebarPanel( h3('Sidebar Text') ),
+        mainPanel( h3("Main Panel Text') )
+    )
+))
+```
+
+
+# Wrapper Tags
+
+Shiny provides several wrapper functions for suing standard HTML tags:
+
+- `h1()` - `h6()`
+- `p()`
+- `a()`
+- `div()`
+- `span()`
+- `code()`
+
+Can look at `?builder` for more information.
+
+# Inputs and Outputs
+
+## Slider
+
+A slider can be created as such on the UI side:
+
+```r
+sliderInpput('slider_id' 'Text', min, max, starting_value)
+```
+
+Then on the server side:
+
+```r
+shinyServer(function(input, output) {
+    output$slider_text= renderText(input$slider_id)
+})
+```
+
+Then back on the UI we can use
+
+```r
+textOutput('slider_text')
+```
+
+to output the value.
+
+# Plots
+
+Shiny provides the `plotOutput()` function and the `renderPlot()` for taking user input and creating plots
+
+On the user side we use `plotOutput('plot_name')`. On the server side we use the render plot function. Here's an example:
+
+```r
+output$plot_name <- render_plot({
+    set.seed(1)
+    data_x <- rnorm(100, 20)
+    data_y <- rnorm(100, 20)
+    plot(data_x, data_y)
+})
+```
+
+# Reactivity
+
+A reactive expression manipulates inputs from Shiny and returns a value. It provides a way for an app to respond since inputs will change depending on how users interact with the user interface.
+
+Expressions wrapped by `reactive()` are subject to change.
+
+```r
+calc_sum <- reactive({
+    input$box1 + input$box2
+})
+
+calc_sum()
+```
+
+You may not want the app to immediately react to changes in user input, as the calculation may be long running. This is where delayed reactivity comes in.
+
+You add a button in the UI and this delays the reactivity:
+
+```r
+submitButton('submit')
+```
+
+
+# Tabs
+
+There are several other kinds of UI components including tabs, navbars, and sidebars.
+
+You can use tabs:
+
+```r
+mainPanel(
+    tabsetPanel(type = 'tabs',
+        tabPanel('tab1', br(), textOutput('out1'))
+        tabPanel('tab2', br(), textOutput('out2'))
+        tabPanel('tab3', br(), textOutput('out3'))
+    )
+)
+```
+
+# Interactive Graphics
+
+You can create graphics that the user an interact with. One method is to select multiple data points on a graph by using the `brush` argument in `plotOutput()` on the server side.
+
+On the UI side:
+
+```r
+mainPanel(
+    plotOutput('plot1', brush = brushOpts(
+        id = 'brush1'
+    ))
+)
+```
+
+On the server side:
+
+```r
+shinyServer(function(i, o) {
+    model <- reactive({
+        
+        brushed_data <- brushedPoints(
+            trees,
+            i$brush1
+            xvar = 'Girth',
+            yvar = 'Volume'
+        )
+        
+        if (nrow(brushed_data) < 2) {
+            return(NULL)
+        }
+        
+        return(lm(Volume ~ Girth, data = brushed_data))
+    })
+    
+    ...
+})
+```
+
+# Shiny Gadget
+
+Shiny gadget is a function that launches a small, single page Shiny application. 
+
+```{r}
+library(shiny)
+library(miniUI)
+
+a_gadget <- function() {
+    ui <- miniPage(
+        gadgetTitleBar("A Gadget")
+    )
+    
+    server <- function(i, o, session) {
+        observeEvent(i$done, {
+            stopApp()
+        })
+    }
+    
+    rungadget(ui, server)
+}
+```
+
+One of the advantages of gadgets is that they are functions, so they can take arguments and can return values.
+
+You can also do interactive graphics.
+
+```r
+pickTrees <- function() {
+    ui <- miniPage(
+        gadgetTitleBar('Select Points by Dragging your Mouse'),
+        miniContentPanel(
+            plotOutput('plot', height = '100%', brush = 'brush')
+        )
+    )
+
+    server <- function(i, o, session) {
+        o$plot <- renderPlot({
+            plot(trees$Girth, trees$Volume, main = 'Trees!')
+        })
+        
+        observeEvent(i$done, {
+            stopApp(brushedPoints(trees, i$brush, xvar = 'Girth', yvar = 'Volume'))
+        })
+    }
+        
+    runGadget(ui, server)
+}
+```
+
+# GoogleVis
+
+Can create interactive charts:
+
+```{r, results = 'asis'}
+library(googleVis)
+
+gvisMotionChart(Fruits, 'Fruit', 'Year')
+```
+
+There are a number of other charts:
+
+- Motion charts: `gvisMotionChart()`
+- Interactive maps: `gvisGeoChart()`
+- Interactive tables: `gvisTable()`
+- Line charts: `gvisLineChart()`
+- Bar charts: `gvisColumnChart()`
+- Tree maps: `gvisTreeMap()`
+
+Combine multiple plots together:
+
+```r
+plot_a <- gvisGeoChart(...)
+plot_b <- gvisTable(...)
+
+merged <- gvisMerge(plot_a, plot_b, horizontal = FALSE)
+```
+
+# Plotly
+
+Plotly is a web applications for creating and sharing data visualisations.
+
+```{r}
+library(plotly)
+plot_ly(mtcars, x = ~wt, y = ~mpg, type = 'scatter', mode = 'markers')
+```
+
+
+Can change the colour of the points, size of the points
+
+```{r}
+mtcars %>% 
+    plot_ly(x = ~wt, y = ~mpg, color = ~as.factor(cyl), size = ~hp)
+```
+
+Three dimensional scatterplot:
+
+```{r}
+tibble(
+    x = 1:100,
+    y = rnorm(100, 20, 10),
+    z = rnorm(100, 20, 2),
+    c = as.factor(sample(1:4, 100, replace = TRUE))
+) %>% 
+    plot_ly(x = ~x, y = ~y, z = ~z, type = 'scatter3d', mode = 'markers', color = ~c)
+    
+```
+
+## Histogram
+
+```{r}
+tibble(
+    x = rnorm(3000)
+) %>% 
+    plot_ly(x = ~x, type = 'histogram')
+```
+
+## Boxplot
+
+```{r}
+iris %>% 
+    plot_ly(y = ~Petal.Length, color = ~Species, type = 'box')
+```
+
+## Heatmap
+
+```{r}
+terrain_d <- matrix(rnorm(100 * 100), nrow = 100)
+
+plot_ly(z = terrain_d, type = 'heatmap')
+```
+
+## 3D Surface
+
+```{r}
+# Using the terrain from before
+plot_ly(z = terrain_d, type = 'surface')
+```
+
+## Choropleth
+
+```{r}
+library(stringr)
+library(glue)
+
+df <- read_csv(
+    "https://raw.githubusercontent.com/plotly/datasets/master/2011_us_ag_exports.csv"
+)
+
+map_options <- list(
+    scope = 'usa',
+    projection = list(type = 'albers usa'),
+    showlakes = TRUE,
+    lakecolor = toRGB('white')
+)
+
+df %>% 
+    mutate(hover = glue("State: {code}")) %>% 
+    plot_ly(
+        type = 'choropleth',
+        locations = ~code,
+        locationmode = 'USA-states',
+        z = ~`total exports`,
+        colors = 'Blues',
+        text = ~hover
+    ) %>% 
+    layout(title = 'USA Map', geo = map_options)
+```
+
+## GGPlotly
+
+```{r}
+(
+    mtcars %>% 
+    ggplot(aes(wt, mpg)) +
+    geom_point() +
+    geom_smooth(method = 'lm') +
+    facet_wrap(~cyl)
+) %>% 
+    ggplotly()
+            
+```
+

@@ -1,0 +1,697 @@
+---
+title: "Course 8 - Practical Machine Learning - Week 4 - Notes"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(broom)
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+```
+
+
+# Regularised Regression
+
+The basic idea is to fit a regression model (LM or GLM) then penalise or shrink the large coefficients corresponding with of the predictor values. We do this as it might help with the bias-variance tradeoff.
+
+As an example, take:
+
+$$ Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \epsilon $$
+
+where $X_1$ and $X_2$ are nearly perfectly correlated (co-linear). You can approximate this model with:
+
+$$ Y = \beta_0 + (\beta_1 + \beta_2) X_1 + \epsilon $$
+The result is:
+
+- A good estimate of $Y$.
+- The estimate of $Y$ will be biased.
+- We may reduce the variance in the estimate.
+
+## Model Selection Approach
+
+- Divide data into train/test/validation.
+- Treat validation as test data.
+- Train all competing models on the train data.
+- Pick the best one on validation.
+- To appropriately assess performance on new data apply to test set.
+
+Common problems:
+
+- You may have limited data
+- There may be computational complexity
+
+## Decomposing Prediction Error
+
+Assume $Y_i = f(X_i) + \epsilon_i$, then the expected prediction error is the differentce between the outcome and the prediction of the outcome squared:
+
+$$ EPE(\lambda) = E\bigg [ \{Y - \hat{f}_\lambda(X)\}^2 \bigg] $$
+
+Suppose $\hat{f}_\lambda$ is the estimate from the training data and we look at a new data point $X = x^*$. The difference between the outcome and the new data point can be decompsed into:
+
+- Irreducible error $\sigma^2$
+- The bias, which is the difference between our expected prediction and the truth, and
+- The varaince of the estimate
+
+$$
+E\bigg [ \{Y - \hat{f}_\lambda(x^*)\}^2 \bigg] \\
+= \sigma^2 + \{E \Big[ \hat{f}_\lambda(x^*) \Big] - f(x^*) \}^2 + var[\hat{f}_\lambda(x_0)]
+$$
+
+The goal is to reduce this overall quantity. You can't reduce the irreducible erorr, but you can trade-off the bias and variance.
+
+## High Dimensional Data
+
+Another issue is with high-dimensional data. If you've got more variables than there are observations, there is no single matrix that represents them:
+
+```{r}
+library(ElemStatLearn)
+
+prostate %>%
+    slice(1:5) %>%
+    lm(lpsa ~ ., data = .) %>%
+    summary()
+```
+You see on the right that some of the variables are NA.
+
+### Hard Thresholding
+
+One way to try and resolve this is to use **hard thresholding**:
+
+- Model $Y = f(X) + \epsilon$
+- ASsume that it has a linear form $\hat{f}_\lambda(x) = x^\prime\beta$
+- Constrain $\lambda$ coefficients to be nonzero.
+- Selection problem is after chosing $\lambda$, figure out which $p - \lambda$ coefficients to make nonzero
+
+### Regularised Regression
+
+This is another option. If the $\beta_j$s are unconstrained, i.e we don't claim that they have any particular form, the may explode if you have highly correlated variables, and they can be susceptible to high variance.
+
+To control we might regularise/shrink the coefficients with a penalised residual sum of squares:
+
+$$ PRSS(\beta) = \sum_{j=1}^n ( Y_j - \sum_{i=1}^m \beta_{1i} X_{ij})^2 + P(\lambda; \beta) $$
+The first part above is the minimisation of the outcome and the linear model fit squared, which is the standard RSS. 
+
+The second term is a penalty term which says if the penality term is too big it will shrink them back down.
+
+### Ridge Regression
+
+Solve:
+
+$$ \sum_{i=1}^N\bigg ( y_i - \beta_0 + \sum_{j=1}^p x_{ij} \beta_j \bigg )^2 + \lambda \sum_{j=1}^p \beta_j^2 $$
+
+which is equivalanet to minimising the standard RSS subject to $\sum_{j=1}^p \beta_j^2 \le s$ where $s$ is inversey proportonal to $\lambda$
+
+Inclusion of the $\lambda$ may make the problem *non-singular* even if $X^TX$ is not invertible.
+
+- The tuning parameter $\lambda$ controls the size of the coefficients.
+- As $\lambda \to 0$ we obtain the least sqaure solution.
+- As $\lambda \to \infty$ we have $\hat{\beta}^{ridge}_{\lambda=\infty} = 0$
+    - i.e. all of the coefficients go to zero.
+
+### Lasso
+
+$$ \sum_{i=1}^N\bigg ( y_i - \beta_0 + \sum_{j=1}^p x_{ij} \beta_j \bigg )^2 + \lambda \sum_{j=1}^p |\beta_j| $$
+
+The lasso shrinks coefficients but also sets some to zero, rather than the ridge regression which makes the coefficients approach zero. Thus it performs model selection.
+
+# Combining Predictors
+
+- Combine classifiers by averaging/voting.
+    - Combine boosting with a random forest.
+- Combining classifiers improves accuracy, however it can reduce interpretability.
+- Boosting, bagging and random forests are variants on this theme.
+
+## Intuition
+
+If we have 5 completely independent classifiers, and if the accuracy is 70% for each, then
+
+$$ 10 \times (0.7)^3 (0.3)^2 + 5 \times (0.7)^4 (0.3)^2 + (0.7)^5 $$
+
+which is 83.7 majority vote accuracy.
+
+## Example
+
+- Bagging, boosting and random forests
+    - Usually combining similar classifiers
+- Combining different classifiers
+    - Model stacking
+    - Model ensembling
+    
+```{r, warning = F}
+library(ISLR)
+library(modelr)
+library(caret)
+
+Wage %>%
+    select(-logwage) %>%
+    resample_partition(c(train = .5, test = .2, validation = .3)) ->
+    wage_smpl
+
+
+# Build two different models
+wage_smpl$train %>%
+    as_tibble() %>%
+    train(wage ~ ., method = 'glm', data = .) ->
+    wage_glm
+
+wage_smpl$train %>%
+    as_tibble() %>%
+    train(
+        wage ~ ., method = 'rf', data = .,
+        trControl = trainControl(method = 'cv'), number = 3
+    ) ->
+    wage_rf
+```
+
+
+```{r}
+wage_smpl$test %>%
+    as_tibble() %>%
+    mutate(
+        glm_pred = predict(wage_glm, newdata = .),
+        rf_pred = predict(wage_rf, newdata = .)
+    ) -> test_predictions
+
+test_predictions %>%
+    ggplot() +
+    geom_point(aes(glm_pred, rf_pred, colour = wage)) +
+    labs(
+        title = 'GLM versus Random Forest - Training Predictions',
+        x = 'GLM Training Prediction',
+        y = 'Random Forest Training Prediction'
+    )
+```
+
+Predictions are close but don't line up completely. We then create a data frame consisting of the predictions from the two models as well as the repsonse variable from the **test set**:
+
+```{r, warning = F}
+test_predictions %>%
+    select(glm_pred, rf_pred, wage) %>%
+    train(wage ~ ., data = ., method = 'gam') ->
+    combo_model
+
+# Looking at the RMSE of the testing set with the GLM and the RF
+test_predictions %>%
+    mutate(combo_pred = predict(combo_model)) %>% 
+    summarise(
+        GLM_RMSE = sqrt(sum((wage - glm_pred)^2)),
+        RF_RMSE = sqrt(sum((wage - rf_pred)^2)),
+        COMBO_RMSE = sqrt(sum((wage - combo_pred)^2))
+    ) %>%
+    gather('model', 'rmse')
+```
+
+Now we need to validate, as we've used the test set to blend the two models together:
+
+```{r}
+wage_smpl$validation %>%
+    as_tibble() %>%
+    mutate(
+        glm_pred = predict(wage_glm, newdata = .),
+        rf_pred = predict(wage_rf, newdata = .)
+    ) %>%
+    mutate(
+        combo_pred = predict(combo_model, newdata = .)
+    ) %>%
+    summarise(
+        GLM_RMSE = sqrt(sum((wage - glm_pred)^2)),
+        RF_RMSE = sqrt(sum((wage - rf_pred)^2)),
+        COMBO_RMSE = sqrt(sum((wage - combo_pred)^2))
+    ) %>%
+    gather('model', 'rmse')
+```
+
+We see the blended model also has a lower RMSE on the validation as well.
+
+## Notes
+
+- Even simple blending can be useful.
+- Typical model for binary/multiclass data:
+    - Build an odd number of models
+    - Predict with each model
+    - Predict the class by the majority vote
+- This can get dramatically more complicated.
+
+One important note is that computational complexity can go through the roof.
+
+# Forecasting
+
+This a very specific type of prediction problem, generally applied to time series data.
+
+## What is different?
+
+- Data are dependent over time.
+- Specific pattern types:
+    - Trends: long term increase or decrease
+    - Seasonal patterns: patterns related to time of week, month, year, etc.
+    - Cycles: patterns that rise and fall periodically.
+- Subsampling into training/test is more complicated
+    - You can't just randomly assign observations into training/test
+    - Have to take into account the time
+- Similar issues arise in spatial data
+    - Dependency between nearby observations
+    - Location specific effects
+- Typically goal is to predict one or more observations into the future.
+- All standard predictions can be used - **with caution**.
+
+Need to beware of spurious correlations.
+
+
+## Example
+
+Using the `quantmod` package:
+
+```{r}
+library(ggfortify)
+library(quantmod)
+
+# Loads into the global environment as the symbol
+getSymbols('GOOG', src = "yahoo", from = Sys.Date() - 365 * 2, to = Sys.Date())
+
+GOOG %>%
+    Op() %>%
+    ts(frequency = 21) ->
+    time_series
+
+time_series %>% autoplot()
+```
+
+## Time Series Decomposition
+
+- **Trend**: consistently increasing pattern over time.
+- **Seasonal**: when there is a pattern over a fixed period of time that recurs.
+- **Cyclic**: when data rises and falls over non-fixed periods.
+
+Can use the `decompose()` function in R:
+
+```{r}
+time_series %>% 
+    decompose() %>%
+    autoplot()
+```
+
+## Training and Test Sets
+
+We build the training set for a particular window of time, then the test set is the next consecutive sets of points after that.
+
+```{r}
+time_series %>%
+    window(start = 1, end = 5) ->
+    ts_train
+
+time_series %>%
+    window(start = 5, end = (7 - 0.01)) ->
+    ts_test
+```
+
+
+## Simple Moving Average
+
+$$ Y_t = \frac{1}{ 2 \times k + 1 } \sum_{j = -k}^k y_{t + j} $$
+
+```{r}
+library(forecast)
+
+ts_train %>%
+    ma(order = 3) %>%
+    autoplot()
+```
+
+
+## Exponential Smoothing
+
+Weight nearby time points more heavily than time points that are farther away.
+
+```{r, warning = F}
+ts_train %>%
+    ets(model = 'MMM') %>% 
+    forecast() ->
+    ts_train_forecast
+
+ts_train_forecast %>% autoplot()
+ts_train_forecast %>% accuracy(ts_test)
+```
+
+
+Best resource: [Forecasting: Principles and Practice](https://otexts.com/fpp2/)
+
+
+# Unsupervised Prediction
+
+Sometimes you don't know the labels for prediction.
+
+To build a predictor:
+
+- Create clusters
+- Name clusters
+- Build predictors for those clusters
+
+Then in the new data set:
+
+- Predict clusters
+
+This adds several layers of complexity: creating the clusters is not perfectly noiseless, and coming up with the right names (interpretation) is challenging.
+
+## Example
+
+```{r}
+library(modelr)
+library(magrittr)
+library(caret)
+
+set.seed(1)
+
+iris %>%
+    resample_partition(c(train = .75, test = .25)) ->
+    iris_smpl
+
+iris_smpl$train %>%
+    as_tibble() %>%
+    select(-Species) %>%
+    kmeans(centers = 3) %>%
+    magrittr::extract2('cluster') %>%
+    factor() ->
+    iris_train_cluster
+
+iris_smpl$train %>%
+    as_tibble() %>%
+    mutate(species_pred = iris_train_cluster) %>%
+    ggplot() +
+    geom_point(aes(Petal.Width, Petal.Length, colour = species_pred))
+    labs(
+        title = 'Species K-Means',
+        x = 'Petal Width',
+        y = 'Petal Height',
+        colour = 'Species K-Means Prediction'
+    )
+```
+
+We can then build a predictor based on these clusters
+
+```{r, warning = F}
+iris_smpl$train %>%
+    as_tibble() %>%
+    select(-Species) %>%
+    mutate(species_pred = iris_train_cluster) %>%
+    train(species_pred ~ ., method = 'rpart', data = .) ->
+    iris_rpart
+
+iris_smpl$train %>%
+    as_tibble() %>%
+    mutate(pred = predict.train(iris_rpart)) %>%
+    { table( .[['Species']], .[['pred']] ) }
+```
+
+We then apply on the test dataset:
+
+```{r, warning = F}
+iris_smpl$test %>%
+    as_tibble() %>%
+    mutate(pred = predict(iris_rpart, newdata = .)) %>%
+    { table( .$Species, .$pred) }
+```
+
+## Notes
+
+- The `cl_predict()` function in the `clue` package provides similar functionality.
+- Beware of over-interpretation of clusters.
+
+# Quiz
+
+## Question 1
+
+For this quiz we will be using several R packages. R package versions change over time, the right answers have been checked using the following versions of the packages.
+
+
+AppliedPredictiveModeling: v1.1.6
+
+caret: v6.0.47
+
+ElemStatLearn: v2012.04-0
+
+pgmm: v1.1
+
+rpart: v4.1.8
+
+gbm: v2.1
+
+lubridate: v1.3.3
+
+forecast: v5.6
+
+e1071: v1.6.4
+
+If you aren't using these versions of the packages, your answers may not exactly match the right answer, but hopefully should be close.
+
+Load the vowel.train and vowel.test data sets:
+
+```{r}
+library(caret)
+library(ElemStatLearn)
+data(vowel.train)
+data(vowel.test)
+```
+
+
+Set the variable y to be a factor variable in both the training and test set. Then set the seed to 33833. Fit (1) a random forest predictor relating the factor variable y to the remaining variables and (2) a boosted predictor using the "gbm" method. Fit these both with the train() command in the caret package.
+
+What are the accuracies for the two approaches on the test data set? What is the accuracy among the test set samples where the two methods agree?
+
+- RF Accuracy = 0.3233 GBM Accuracy = 0.8371 Agreement Accuracy = 0.9983
+- **RF Accuracy = 0.6082 GBM Accuracy = 0.5152 Agreement Accuracy = 0.6361*
+- RF Accuracy = 0.9987 GBM Accuracy = 0.5152 Agreement Accuracy = 0.9985
+- RF Accuracy = 0.6082 GBM Accuracy = 0.5152 Agreement Accuracy = 0.5325
+
+```{r, warning = F}
+vowel.train %>%
+    mutate(y = factor(y)) ->
+    vowel.train
+
+vowel.test %>%
+    mutate(y = factor(y)) ->
+    vowel.test
+
+set.seed(33833)
+
+
+vowel.train %>%
+    do(
+        rf = train(y ~ ., data = ., method = 'rf', prox = TRUE),
+        gbm = train(y ~ ., data = ., method = 'gbm', verbose = FALSE)
+    ) %>%
+    gather(model_name, model) ->
+    vowel_models
+
+vowel_models
+```
+
+
+```{r, warning = F}
+( vowel_models %>%
+    mutate(
+        test_prediction = map(model, ~predict(.x, newdata = vowel.test))
+    ) ->
+    vowel_models )
+
+vowel_models %>% 
+    pull(test_prediction) %>%
+    walk( ~{ print(confusionMatrix(.x, vowel.test$y)) } )
+```
+
+Now we take a look at the accuracy where the two models predict the same value:
+
+```{r, warning = FALSE}
+vowel_models %>%
+    select(model_name, test_prediction) %>% 
+    spread(key = model_name, value = test_prediction) %>% 
+    mutate(y = list(vowel.test$y)) %>% 
+    unnest() %>% 
+    dplyr::filter(gbm == rf) %>%
+    { confusionMatrix(.$gbm, .$y) }
+```
+
+
+
+## Question 2
+
+Load the Alzheimer's data using the following commands:
+
+```{r, warning = F}
+library(caret)
+library(gbm)
+set.seed(3433)
+library(AppliedPredictiveModeling)
+data(AlzheimerDisease)
+
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+q2_training = adData[ inTrain,]
+q2_testing = adData[-inTrain,]
+```
+
+
+Set the seed to 62433 and predict diagnosis with all the other variables using a random forest ("rf"), boosted trees ("gbm") and linear discriminant analysis ("lda") model. Stack the predictions together using random forests ("rf"). What is the resulting accuracy on the test set? Is it better or worse than each of the individual predictions?
+
+```{r, warning = F}
+set.seed(62433)
+
+q2_training %>% 
+    do(
+        rf = train(diagnosis ~ ., method = 'rf', data = .),
+        gbm = train(diagnosis ~ ., method = 'gbm', data = ., verbose = F),
+        lda = train(diagnosis ~ ., method = 'lda', data = .)
+    ) %>% 
+    gather(algorithm, model) ->
+    alz_models
+```
+
+
+```{r}
+# Look at the test set error rate for each individual model
+alz_models %>% 
+    mutate(
+        diagnosis = list(q2_testing$diagnosis),
+        test_prediction = map(model, ~predict(.x, newdata = q2_testing))
+    ) ->
+    alz_models
+
+alz_models %>%
+    select(-model) %>% 
+    unnest() %>% 
+    group_by(algorithm) %>% 
+    summarise(accuracy = mean(diagnosis == test_prediction))
+```
+
+```{r, warning = F }
+# Stack it up together
+alz_models %>% 
+    select(-model) %>% 
+    spread(algorithm, test_prediction) %>% 
+    unnest() %>% 
+    train(diagnosis ~ ., method = 'rf', data = .) %>% 
+    { tibble(
+        diagnosis = q2_testing$diagnosis,
+        prediction = predict(.)
+    ) } %>% 
+    summarise(accuracy = mean(diagnosis == prediction))
+```
+
+- **Stacked Accuracy: 0.80 is better than all three other methods**
+- Stacked Accuracy: 0.80 is better than random forests and lda and the same as boosting.
+- Stacked Accuracy: 0.76 is better than random forests and boosting, but not lda.
+- Stacked Accuracy: 0.76 is better than lda but not random forests or boosting.
+
+## Question 3
+
+Load the concrete data with the commands:
+
+```{r, warning = F}
+set.seed(3523)
+library(AppliedPredictiveModeling)
+
+data(concrete)
+inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
+q3_training = concrete[ inTrain,]
+q3_testing = concrete[-inTrain,]
+```
+
+
+Set the seed to 233 and fit a lasso model to predict Compressive Strength. Which variable is the last coefficient to be set to zero as the penalty increases? (Hint: it may be useful to look up ?plot.enet).
+
+```{r}
+set.seed(233)
+library(glmnet)
+
+x <- q3_training %>% model.matrix(CompressiveStrength ~ ., .)
+y <- q3_training$CompressiveStrength
+
+glmnet(x, y, alpha = 1, lambda = 10^seq(10, -2, length = 100)) %>% 
+    tidy() %>% 
+    dplyr::filter(term != '(Intercept)') %>% 
+    ggplot() +
+    geom_line(aes(log(lambda), estimate, colour = term))
+```
+
+
+- CoarseAggregate
+- Cement
+- Water
+- Age
+
+## Question 4
+
+Load the data on the number of visitors to the instructors blog from here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/gaData.csv
+
+Using the commands:
+
+```{r}
+library(lubridate) # For year() function below
+
+dat = read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/gaData.csv")
+
+q4_training = dat[year(dat$date) < 2012,]
+q4_testing = dat[(year(dat$date)) > 2011,]
+tstrain = ts(q4_training$visitsTumblr)
+```
+
+
+Fit a model using the bats() function in the forecast package to the training time series. Then forecast this model for the remaining time points. For how many of the testing points is the true value within the 95% prediction interval bounds?
+
+```{r}
+library(forecast)
+
+tstrain %>%
+    bats() %>% 
+    forecast(h = nrow(q4_testing))
+```
+
+
+- 94%
+- 98%
+- 96%
+- 93%
+
+## Question 5
+
+Load the concrete data with the commands:
+
+```{r}
+set.seed(3523)
+library(AppliedPredictiveModeling)
+data(concrete)
+
+inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
+q5_training = concrete[ inTrain,]
+q5_testing = concrete[-inTrain,]
+```
+
+
+Set the seed to 325 and fit a support vector machine using the e1071 package to predict Compressive Strength using the default settings. Predict on the testing set. What is the RMSE?
+
+```{r}
+library(e1071)
+library(modelr)
+
+set.seed(325)
+
+q5_training %>% 
+    svm(CompressiveStrength ~ ., data = .) %>%
+    rmse(model = ., data = q5_testing)
+```
+
+
+- 35.59
+- 6.72
+- 6.93
+- **107.44**
+
