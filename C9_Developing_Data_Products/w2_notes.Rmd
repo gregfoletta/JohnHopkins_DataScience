@@ -1,5 +1,5 @@
 ---
-title: "Course 8 - Practical Machine Learning - Week 2 - Notes"
+title: "Course 9 - Developing Data Products - Week 2 - Notes"
 author: "Greg Foletta"
 date: "`r Sys.Date()`"
 output:
@@ -9,659 +9,98 @@ output:
     toc: true
 ---
 
+# R Markdown Presentations
 
-```{r setup, include=FALSE}
-library(tidyverse)
-library(magrittr)
-library(broom)
-knitr::opts_chunk$set(echo = TRUE)
-library(kableExtra)
-options(warnPartialMatchArgs = FALSE)
-```
+A new slide is a level 2 heading "##".
 
-# Caret Package
+To do a slide without a title, start with '***'.
 
-- Some pre-processing with `preProcess()`
-- Data splitting with
-    - `createDataPartition()`
-    - `createResample()`
-    - `createTimeSlices()`
-- Training/test functions
-    - `train()`
-    - `predict()`
-- Model comparison
-    - `confusionMatrix()`
-    
-
-An example of data splitting
-
-```{r random_dataset, warning = F}
-library(caret)
-# We create a random dataset
-rand <- tibble(
-    x = rnorm(100),
-    y = rbinom(100, 1, .5)
-)
-
-in_train <- createDataPartition(
-    y = rand$y,
-    p = 0.75,
-    list = FALSE
-)
-
-testing <- rand[-in_train,]
-
-( ran_fit <- train(y ~ x, data = rand[in_train,], method = 'glm') )
-```
-
-
-# Data Slicing
-
-```{r data splitting, warning = F}
-# Library for the SPAM dataset
-library(kernlab)
-data(spam)
-# We use resample rather than createDataPartition()
-library(modelr)
-
-spam %>%
-    resample_partition(c(test = .25, train = .75))
-
-# Create folds
-spam %>%
-    crossv_kfold(5)
-```
-
-To do prediction on time use `createTimeSlices()`
-
-```{r timeslices}
-time <- 1:100
-createTimeSlices(time, initialWindow = 20, horizon = 10) ->
-    time_slices
-
-time_slices$train[1]
-time_slices$test[1]
-```
-
-You see that the first training set is 1:20, then the first test set is 21:30. So if you're looking to do prediction, you train on your training time window, then test your predictions against the next test time window.
-
-# Training Options
-
-The train function has a number of options:
-
-- `weights` allows you to upweight or downweight certain observations
-- `metric` sets the metric, could be 'Accuracy' or 'Kappa' for factors, or 'RMSE' or $R^2$ for others
-- `trControl` takes the `trainControl()` function to set a lot of others
-
-## Train Control
+When running R code, you can set `comment = ""` to set the comment character or remove it completely:
 
 ```{r}
-args(trainControl)
+head(mtcars)
 ```
 
-- `method` is the method for resampling.
-    - 'boot'
-    - 'boot632' for bootstrapping with adjustment
-    - 'cv' for cross-validation
-    - 'repeatedcv' for repeated cross-validation
-    - 'LOOCV' for leave-one-out cross validation
-- `number` is the number of folds or number of resampling iterations
-- `repeats` is the number of times to repeat subsampling. Can slow things down if large.
-- `p` determines the size of the training set
-- `initalWindow` gets passed to `createTimeSlices()` when the method is 'timeslice'.
-- `savePredictions` indicates how much of the hold-out predictions for each resample should be saved.
-- `summaryFunction` is a function to compute performance metrics.
+```{r, comment = ""}
+head(mtcars)
+```
 
-# Plotting Predictors
 
-Let's look at example `wages` data.
+# Leaflet
+
+Allows for the creation of interactive maps. 
 
 ```{r}
-library(ISLR)
-
-# Buld a test/training set
-Wage %>%
-    resample_partition(c(train = .75, test = .25)) ->
-    wage_smpl
-
-# Plot the points and add linear regressions
-Wage %>%
-    ggplot(aes(age, wage, colour = education)) +
-    geom_point() +
-    geom_smooth(method = lm) +
-    labs(
-        title = 'Age vs Wage with Education Regression',
-        x = 'Age',
-        y = 'Wage',
-        colour = 'Education Level'
-    )
+library(leaflet)
+leaflet() %>% 
+    addTiles()
 ```
 
-## Cuting
+The mapping data is from OpenStreeMap.
 
-You can use `cut()` to create categorical variables out of continuous ranges
+We can add a marker:
 
 ```{r}
-Wage %>%
-    mutate(wage_quartile = cut(wage, 4)) ->
-    wage_data
-
-wage_data %>%
-    ggplot() +
-    geom_boxplot(aes(wage, age, fill = wage_quartile)) +
-    labs(
-        title = 'Distribution of Wage Versus Age and Qage Quartile',
-        x = 'Wage',
-        y = 'Age',
-        fill = 'Wage Quartile'
-    )
+leaflet() %>% 
+    addTiles() %>% 
+    addMarkers(lat = -37.7298, lng = 144.9553, popup = 'Coburg Velodrome')
 ```
 
-## Tables
+You can add HTML into the popups, e.g. anchors/links.
 
-Use tables:
+To add many markers, you can create a data frame:
 
-```{r}
-wage_data %>% with(table(wage_quartile, jobclass))
-```
-
-Proportion tables are also useful. The '1' denotes the proportion of each row
-
-```{r}
-wage_data %>%
-    with(prop.table(table(wage_quartile, jobclass), 1))
-```
-
-## Density Plot
-
-```{r}
-wage_data %>%
-    ggplot() +
-    geom_density(aes(wage, colour = education)) +
-    labs(
-        title = 'Density of Wage by Education',
-        x = 'Wage',
-        y = 'Density',
-        colour = 'Education Level'
-    )
-```
-
-## Summary
-
-- Only make your plots based on the training set.
-- Look for
-    - Imbalance in outcomes/predictors
-    - Outliers
-    - Groups of points not explained by a predictor
-    - Skewed Variables
-    
-
-# Preprocessing
-
-Sometimes you may need to transform the predictors to make them more useful to certain models.
-
-## Standardising
-
-**Standardising** is one of the ways to trasform. You take away the mean and divide by the standard deviation. The data set then has a mean of 0 and standard deviation of 1.
-
-```{r}
-example_set <- sample(1:100)
-mean(example_set)
-sd(example_set)
-
-example_set_std <- ( example_set - mean(example_set) ) / sd(example_set)
-mean(example_set_std)
-sd(example_set_std)
-```
-
-One thing to remember is that when you standardise the **test set**, you need to use the mean and standard deviation from the **training set**.
-
-The `preProcess()` function in the caret library can help. The objet that's returned from the training set can be used to standardise the the training set. Th preProcess arguments can also be directly passed to the `train()` function (`preProcess = c('train', 'scale')`).
-
-## Box-Cox Transforms
-
-The Box-Cox transform is a way to transform non-normal dependent variables into a normal shape.
-
-# Imputing Data
-
-Most prediction algorithms don't handle missing data. You can impute the missing variables using a k-nearest neighbour algorithm.
-
-```{r}
-set.seed(1)
-example_set[ sample(1:10, 4) ] <- NA
-
-tibble(x = example_set) %>%
-    preProcess(method = 'knnImpute')
-```
-
-# Covariate Creation
-
-Sometimes called predictors, sometimes called features.
-
-Two levels of covariate creation:
-
-- From raw data to covariate.
-    - e.g. an email into properties like average captital letters, etc
-- Transforming tidy coviariates
-
-## Level 1 - Raw to Covariates
-
-Thos depends heavily on the application. The balancing act is going to be summarisation verssus information loss.
-
-**Examples**:
-
-- Test files: word frequency, phrase frequency (Google ngrams), capital letter frequency.
-- Images: Edges, corners, blobs, ridges.
-- Webpages: Number and type of images, position of elements, colours, videos.
-- People: height, weight, sex, country of origin.
-
-When in doubt, err on the side of more features. You can automate this, but proceed with caution because some features will be very useful in a training set, but won't generalise well in a test set.
-
-## Level 2 - Tidy Covariates
-
-This is more necessary for some methods (regression, support vector machines) than others (classification trees). It should only be done on the training set. The new covariates should be added to the data frames.
-
-## Dummy Variables
-
-These are a common variable to add:
-
-```{r}
-Wage %>%
-    dummyVars(wage ~ jobclass, data = .) %>%
-    predict(newdata = Wage) %>%
-    head()
-```
-
-The first varaible is an indicator that you're industrial, the second that you're in an informational sector. The leftmost column is the response variable, in our instance this is `wage`.
-
-## Removing Zero Covariates
-f
-Some variabiles have no variation. Can use `nearZeroVar()`:
-
-```{r}
-Wage %>%
-    nearZeroVar(saveMetrics = TRUE)
-```
-
-- freqRation is the ratio of frequencies for the most common value over the second most common value.
-- percentUnique is the percentage of unique data points out of the total number of data points.
-- zeroVar is a vector of logicals for whether the predictor has only only one distinct value.
-- nsz is a vector of logicals for whether the predictor is a near-zero variance predictor.
-
-## Spine Basis
-
-Sometimes you want to splines as a basis function so you get a curved lines rather than straight lines:
-
-```{r}
-library(splines)
-
-wage_smpl$train %>%
-    as_tibble() %>%
-    ggplot(aes(wage, age)) +
-    geom_point() +
-    geom_smooth(method = lm, formula = y ~ bs(x, df = 3)) +
-    labs(
-        title = "Wage versus Age (Third Degreee Spline)",
-        x = 'Age',
-        y = 'Wage'
-   ) 
-```
-
-# Principal Components Analysis
-
-Often you have multiple quantitative variables that are highly correlated with each other. In this case it's not useful to include every variable in the model. You might want to include some summary that captures most of the information in those quantitative variables.
-
-```{r}
-mtcars %>%
-    select_if(is.numeric) %>%
-    cor() %>%
-    abs() ->
-    wage_cor
-
-diag(wage_cor) <- 0
-which(wage_cor > .9, arr.ind = T)
-```
-
-So there's a high correlation between displacement and the number of cyclinders.
-
-```{r}
-mtcars %>%
-    ggplot(aes(cyl, disp)) +
-    geom_point() +
-    labs(
-        title = 'Cylinders versus Displacement',
-        x = 'Cylinders',
-        y = 'Displacement'
-    )
-```
-
-
-The basic idea of PCA is:
-
-- We might not need every predictor.
-- A weighted combination of predictors might be better.
-- We should pick this combination to capture 'the most information possible',
-- Benefits:
-    - Reduced number of predictors
-    - Reduced noise due to averaging.
-    
-## SVD & PCA
-
-**Singular Value Decomposition**: if $X$ is a matrix with each variable in a column and each ovservation in a row then the SVD is a matrix decomposition:
-
-$$ X = UDV^T $$
-
-where the columns of $u$ are orthogonal (left singular vectors), the columns of $V$ are orthogonal (right singular vectors) and $D$ is a diagonal matrix (singular values).
-
-**Principal Components Analysis**: are equal to the right singular values of you first scale the variables.
-
-```{r}
-set.seed(493875)
-tibble(
-    x = rnorm(20),
-    y = 3 * x + rnorm(20),
-    n = 1:20
-) -> ex_data
-
-ex_data %>%
-    ggplot(aes(x,y)) +
-    geom_point() +
-    geom_text(aes(label = n), vjust = 1.5) +
-    labs(
-        title = 'Example Data',
-        x = 'X',
-        y = 'Y'
-    )
-
-
-ex_data %>%
-    select(-n) %>%
-    prcomp() ->
-    ex_pca
-
-ex_data %>%
-    ggplot() +
-    geom_point(aes(ex_pca$x[,1], ex_pca$x[,2])) +
-    geom_text(aes(ex_pca$x[,1], ex_pca$x[,2], label = n), vjust = 1.5) +
-    labs(
-        title = 'Example PCA',
-        x = 'First Principal Component',
-        y = 'Second Principal Component'
-    )
-```
-
-This is useful for linear-type models, but it can make it harder to interpret predictors.
-
-Watch out for outliers: transform first (log), and plot predictors to identify problems.
-
-# Predicting with Regression
-
-The key ideas:
-
-- Fit a simple regression model.
-- Plug in new covariates and multiple by the coefficients.
-- Useful when the linear model is (nearly) correct.
-
-We'll use data on "Old Faithful's" eruptions.
-
-```{r}
-set.seed(1)
-
-faithful %>%
-    resample_partition(c(train = .8, test = .2)) ->
-    faithful_smpl
-
-faithful_smpl %>%
-    extract2('train') %>%
-    as_tibble() %>%
-    ggplot() +
-    geom_point(aes(waiting, eruptions)) +
-    labs(
-        title = 'Old Faithful: Waiting Time vs Euruption Time',
-        x = 'Waiting Time',
-        y = 'Eruption Duration'
-    )
-```
-
-
-It looks like a linear relationship, so we fit a linear model:
-
-```{r}
-faithful_smpl %>%
-    extract2('train') %>%
-    as_tibble() %>%
-    lm(eruptions ~ waiting, data = .) ->
-    faithful_lm
-
-summary(faithful_lm)
-```
-
-We can predict a new value based on waiting times of 30 and 60 minutes:
 ```{r}
 tibble(
-    waiting = c(30,60)
-) %>%
-    predict(faithful_lm, newdata = .)
+    lat = -c(36, 37, 38),
+    lng = c(143, 144, 145)
+) %>% 
+    leaflet() %>% 
+    addTiles() %>% 
+    addMarkers()
+
 ```
 
-Let's look at the training and test set errors:
+## Custom Markers
 
 ```{r}
-# Training error
-faithful_smpl %>%
-    extract2('train') %>%
-    as_tibble() %>%
-    mutate(pred = predict(faithful_lm, newdata = .)) %>%
-    summarise(RMSE = sqrt(sum((eruptions - pred)^2)))
+ccc_icon <- makeIcon(
+    iconUrl = 'https://scontent.fmel7-1.fna.fbcdn.net/v/t31.0-1/cp0/c7.0.56.56a/p56x56/12045418_1173078239386251_5340026945367359072_o.jpg?_nc_cat=106&_nc_sid=dbb9e7&_nc_ohc=CVP7qbMvVsoAX_B5sru&_nc_ht=scontent.fmel7-1.fna&oh=e8ba7d82868ac3198b6a2771a32ecc39&oe=5EA97D59'
+)
 
-faithful_smpl %>%
-    extract2('test') %>%
-    as_tibble() %>%
-    mutate(pred = predict(faithful_lm, newdata = .)) %>%
-    summarise(RMSE = sqrt(sum((eruptions - pred)^2)))
+leaflet() %>% 
+    addTiles() %>% 
+    addMarkers(lat = -37.7298, lng = 144.9553, popup = 'Coburg Velodrome', icon = ccc_icon)
 ```
-    
 
-# Regression with Multiple Covariates
-
-One useful diagnostic plot is to plot the residuals against the row order to see whether there is some other variable missing. This would be related to time or age or some other continues variable that the rows are ordered by.
+## Mapping Clusters
 
 ```{r}
-wage_smpl %>%
-    extract2('train') %>%
-    lm(wage ~ age + jobclass + education, data = .) ->
-    wage_lm
-
-wage_lm %>%
-    augment() %>%
-    mutate(index = row_number()) %>%
-    ggplot() +
-    geom_point(aes(index, .resid))
+tibble(
+    lat = runif(500, min = -37.8, max = -37.7),
+    lng = runif(500, min = 144.8, max = 145)
+) %>% 
+    leaflet() %>% 
+    addTiles() %>% 
+    addMarkers(clusterOptions = markerClusterOptions())
 ```
 
-
-# Quiz
-
-
-## Question 1
-
-Load the Alzheimer's disease data using the commands:
+You can add circle markers:
 
 ```{r}
-library(AppliedPredictiveModeling)
-data(AlzheimerDisease)
+tibble(
+    lat = runif(500, min = -37.8, max = -37.7),
+    lng = runif(500, min = 144.8, max = 145)
+) %>% 
+    leaflet() %>% 
+    addTiles() %>% 
+    addCircleMarkers()
 ```
 
-Which of the following commands will create non-overlapping training and test sets with about 50% of the observations assigned to each?
+Can use a variable in the data frame to determine the radius.
 
-```{r}
-adData = data.frame(diagnosis,predictors)
-trainIndex = createDataPartition(diagnosis,p=0.5,list=FALSE)
-training = adData[-trainIndex,]
-testing = adData[-trainIndex,]
-```
+## Legend
 
-```{r}
-adData = data.frame(diagnosis,predictors)
-trainIndex = createDataPartition(diagnosis,p=0.5,list=FALSE)
-training = adData[trainIndex,]
-testing = adData[trainIndex,]
-```
+Can add a legend with `addLegend()`.
 
-```{r}
-adData = data.frame(diagnosis,predictors)
-testIndex = createDataPartition(diagnosis, p = 0.50,list=FALSE)
-training = adData[-testIndex,]
-testing = adData[testIndex,]
-```
-
-```{r}
-adData = data.frame(diagnosis,predictors)
-train = createDataPartition(diagnosis, p = 0.50,list=FALSE)
-test = createDataPartition(diagnosis, p = 0.50,list=FALSE)
-```
-
-**Answer:** The answer is 3.
-
-## Question 2
-
-Load the cement data using the commands:
-
-```{r}
-library(AppliedPredictiveModeling)
-data(concrete)
-library(caret)
-set.seed(1000)
-inTrain = createDataPartition(mixtures$CompressiveStrength, p = 3/4)[[1]]
-training = mixtures[ inTrain,]
-testing = mixtures[-inTrain,]
-```
-
-
-Make a plot of the outcome (CompressiveStrength) versus the index of the samples. Color by each of the variables in the data set (you may find the cut2() function in the Hmisc package useful for turning continuous covariates into factors). What do you notice in these plots?
-
-
-```{r}
-training %>%
-    mutate(n = row_number()) %>%
-    ggplot() +
-    geom_point(aes(n, CompressiveStrength, colour = Age))
-
-training %>%
-    mutate(n = row_number()) %>%
-    ggplot() +
-    geom_point(aes(n, CompressiveStrength, colour = FlyAsh))
-```
-
-
-- There is a non-random pattern in the plot of the outcome versus index that does not appear to be perfectly explained by any predictor suggesting a variable may be missing.
-- There is a non-random pattern in the plot of the outcome versus index that is perfectly explained by the Age variable.
-- There is a non-random pattern in the plot of the outcome versus index.
-- There is a non-random pattern in the plot of the outcome versus index that is perfectly explained by the FlyAsh variable.
-
-## Question 3
-
-Load the cement data using the commands:
-
-```{r}
-library(AppliedPredictiveModeling)
-data(concrete)
-library(caret)
-set.seed(1000)
-inTrain = createDataPartition(mixtures$CompressiveStrength, p = 3/4)[[1]]
-training = mixtures[ inTrain,]
-testing = mixtures[-inTrain,]
-```
-
-
-Make a histogram and confirm the SuperPlasticizer variable is skewed. Normally you might use the log transform to try to make the data more symmetric. Why would that be a poor choice for this variable?
-
-- The log transform does not reduce the skewness of the non-zero values of SuperPlasticizer
-- **There are a large number of values that are the same and even if you took the log(SuperPlasticizer + 1) they would still all be identical so the distribution would not be symmetric.**
-- The SuperPlasticizer data include negative values so the log transform can not be performed.
-- The log transform is not a monotone transformation of the data.
-
-
-```{r}
-training %>%
-    ggplot() +
-    geom_histogram(aes(Superplasticizer))
-
-training %>%
-    ggplot() +
-    geom_histogram(aes(log(Superplasticizer + 1)))
-```
-
-
-## Question 4
-
-Load the Alzheimer's disease data using the commands:
-
-```{r}
-library(caret)
-library(AppliedPredictiveModeling)
-set.seed(3433)
-data(AlzheimerDisease)
-adData = data.frame(diagnosis,predictors)
-inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
-training = adData[ inTrain,]
-testing = adData[-inTrain,]
-```
-
-
-Find all the predictor variables in the training set that begin with IL. Perform principal components on these variables with the preProcess() function from the caret package. Calculate the number of principal components needed to capture 90% of the variance. How many are there?
-
-```{r}
-training %>%
-    select_at(vars(starts_with('IL'))) %>%
-    preProcess(method = 'pca', thresh = .9)
-```
-
-
-- 8
-- 10
-- **9**
-- 7
-
-## Question 5
-
-Load the Alzheimer's disease data using the commands:
-
-```{r}
-library(caret)
-library(AppliedPredictiveModeling)
-set.seed(3433)
-data(AlzheimerDisease)
-adData = data.frame(diagnosis,predictors)
-inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
-training = adData[ inTrain,]
-testing = adData[-inTrain,]
-```
-
-
-Create a training data set consisting of only the predictors with variable names beginning with IL and the diagnosis. Build two predictive models, one using the predictors as they are and one using PCA with principal components explaining 80% of the variance in the predictors. Use method="glm" in the train function.
-
-What is the accuracy of each method in the test set? Which is more accurate?
-
-- Non-PCA Accuracy: 0.72 / PCA Accuracy: 0.65
-- **Non-PCA Accuracy: 0.65 / PCA Accuracy: 0.72**
-- Non-PCA Accuracy: 0.74 / PCA Accuracy: 0.74
-- Non-PCA Accuracy: 0.72 / PCA Accuracy: 0.71
-
-```{r warning = F}
-training %>%
-    select_at(vars('diagnosis', starts_with('IL'))) %>%
-    train(diagnosis ~ ., method = 'glm', data = .) %>%
-    predict(newdata = testing) %>%
-    confusionMatrix(testing$diagnosis)
-
-
-tc = trainControl(preProcOptions = list(thresh = .8))
-
-training %>%
-    select_at(vars('diagnosis', starts_with('IL'))) %>%
-    train(diagnosis ~ ., method = 'glm', preProcess = 'pca', trControl = tc, data = .) %>%
-    predict(newdata = testing) %>%
-    confusionMatrix(testing$diagnosis)
-```
 
