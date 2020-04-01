@@ -63,5 +63,7 @@ output:
 
 ## Course 9 - Developing Data Products
 
-* [Week 1 Notes](C9_Developing_Data_Products/w1_notes.html) - Shiny, GoogleVis and Plotly
-* [Week 2 Notes](C9_Developing_Data_Products/w2_notes.html) - Markdown presentations, Leaflet
+* [Week 1 Notes](C9_Developing_Data_Products/w1_notes.html) - Shiny, GoogleVis and Plotly.
+* [Week 2 Notes](C9_Developing_Data_Products/w2_notes.html) - Markdown presentations, Leaflet.
+* [Week 3 Notes](C9_Developing_Data_Products/w3_notes.html) - R packages, classes, and methods.
+* [Assignment](C9_Developing_Data_Products/index.html) - COVID-19 leaflet mapping.
