@@ -1,0 +1,200 @@
+---
+title: "Developing Data Products"
+subtitle: "Week 3 Assignment"
+author: "Greg Foletta"
+date: "`r Sys.Date()`"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(glue)
+library(openxlsx)
+library(plotly)
+library(lubridate)
+library(knitr)
+library(leaflet)
+```
+
+```{r cache = TRUE}
+FINAL_CLEANUP <- TRUE
+
+bike_data_file <- 'cycle_data.zip'
+
+download.file(
+        url = 'https://vicroadsopendatastorehouse.vicroads.vic.gov.au/opendata/Traffic_Measurement/Bicycle_Volume_and_Speed/Bicycle_Volume_Speed_2019.zip',
+        destfile = bike_data_file
+    )
+
+
+# Unzip the outer file
+zip_files <- unzip(zipfile = bike_data_file, list = TRUE)
+unzip(bike_data_file)
+
+# Unzip the inner files
+ex_dir <- 'csv_data'
+
+if (!dir.exists(ex_dir)) {
+    dir.create(ex_dir)
+}
+
+walk(zip_files$Name, ~unzip(.x, exdir = ex_dir))
+```
+
+
+```{r, message = FALSE, cache = TRUE}
+# Read all of the files in
+list.files(ex_dir, full.names = TRUE) %>% 
+    map(~read_csv(.x)) %>% 
+    bind_rows() %>% 
+    mutate(
+        DATETIME = as.POSIXct(paste(DATE, TIME), format = '%d/%m/%Y %H:%M:%S'),
+        DATE = as.Date(DATE),
+        SITE_XN_ROUTE = as.factor(SITE_XN_ROUTE)
+    ) ->
+    bicycle_d
+```
+
+```{r}
+# Counter site listing
+read.xlsx(
+    'https://vicroadsopendatastorehouse.vicroads.vic.gov.au/opendata/Traffic_Measurement/Bicycle_Volume_and_Speed/VicRoads_Bike_Site_Number_Listing.xlsx',
+    sheet = 'VR BIKE Counter Site Locations'
+) %>% 
+    select(LAT, LONG, LOC_LEG, LOC.DESC) %>% 
+    mutate(
+        type = str_extract(LOC.DESC, '^\\(.*?\\)')
+    ) ->
+    sites
+
+# Add in the location description
+bicycle_d %>% 
+    left_join(sites, by = 'LOC_LEG') %>% 
+    mutate(LOC_LEG = as.factor(LOC_LEG)) ->
+bicycle_d
+```
+
+
+## Introduction
+
+- In this presentation we look at bike usage at different points within Melbourne, Victoria.
+- Data is from [discover.data.vic.gov.au](https://discover.data.vic.gov.au/dataset/bicycle-volume-and-speed).
+
+## Site Locations - Map
+
+
+```{r warning = FALSE}
+sites %>% 
+    leaflet() %>% 
+    addTiles() %>% 
+    addMarkers(lat = ~LAT, lng = ~LONG, popup = ~LOC.DESC)
+```
+
+
+
+## Top Sites
+
+- Bike usage is determined by a counter at different locations.
+- We see a large differential between one site.
+
+## Top Sites - Figure
+
+```{r}
+bicycle_d %>% 
+    count(LOC_LEG) %>% 
+    top_n(10) %>% 
+    pull(LOC_LEG) -> 
+top_10_legs
+
+(
+bicycle_d %>% 
+    filter(LOC_LEG %in% top_10_legs) %>% 
+    count(LOC_LEG) %>% 
+    ggplot() +
+    geom_col(aes(fct_reorder(LOC_LEG, n), n)) +
+    coord_flip() +
+    labs(
+        x = 'Top 10 Locations',
+        y = 'Total Count of Bikes'
+    )
+) %>% 
+    ggplotly()
+```
+
+
+## Bikes Per Day
+
+- The following graph shows bikes per day over the year for the the top 10 sites.
+- It appears there is incomplete data for everything but the top reporting site.
+
+## Bikes Per Day - Digure
+
+```{r}
+(
+bicycle_d %>%
+    filter(LOC_LEG %in% top_10_legs) %>% 
+    group_by(LOC_LEG) %>% 
+    count(DATE) %>% 
+    mutate(DATE = as.POSIXct(DATE)) %>% 
+    ggplot() +
+    geom_line(aes(DATE, n, colour = fct_reorder(LOC_LEG, desc(n)))) +
+    labs(
+        x = 'Date',
+        y = 'Number of Bikes',
+        colour = 'Location'
+    )
+) %>% 
+    ggplotly()
+```
+
+## Top Location
+
+- Where is the 60182 location?
+```{r comment = "" }
+sites %>% 
+    dplyr::filter(LOC_LEG == 60182) %>% 
+    slice(1) ->
+    black_rock
+
+
+leaflet() %>% 
+    addTiles() %>% 
+    addMarkers(lat = black_rock$LAT, lng = black_rock$LONG, popup = black_rock$LOC.DESC)
+```
+
+## Black Rock - Intra-day Counts
+
+- The following graph shows intra-day count per hour, per month.
+
+```{r}
+(
+bicycle_d %>% 
+    dplyr::filter(LOC_LEG == 60182) %>% 
+    mutate(
+        hour = hour(TIME),
+        month = month(DATE, label = TRUE)
+    ) %>% 
+    count(month, hour) %>% 
+    ggplot() +
+    geom_line(aes(hour, n, colour = month)) +
+    labs(
+        x = 'Hour of the Day',
+        y = 'Total Bike Count',
+        colour = 'Month'
+    )
+) %>% 
+    ggplotly()
+
+    
+```
+
+```{r}
+# Cleanup
+if (FINAL_CLEANUP) {
+    file.remove(Sys.glob('*.zip'))
+    unlink('csv_data', recursive = TRUE)
+    unlink('index_cache', recursive = TRUE)
+}
+```
+

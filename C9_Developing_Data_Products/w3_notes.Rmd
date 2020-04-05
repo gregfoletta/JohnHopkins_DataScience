@@ -17,3 +17,269 @@ knitr::opts_chunk$set(echo = TRUE)
 library(kableExtra)
 ```
 
+# R Package
+
+- Mechanism for extending the basic functionality of R.
+- Collection of R function or other data objects.
+- Organised in a systematic funciton.
+
+
+## Where?
+
+- CRAN and Bioconductor.
+- GitHub, BitBucket, etc
+
+Packages from CRAN are installed with `install.packages()`, from GitHub with `install_guthub()` from `devtools`.
+
+## Advantages
+
+- Documentation / vignettes
+- Centralised resources
+- Minimal standards for reliability and robustness
+- Maintainability / extension
+- Interface definition / API
+- Users know that it will at least load properly
+
+## Process
+
+- Write some code in an R script file.
+- Incporate it into the package structure.
+- Write documentation for user functions.
+- Include other material (examples, demos, datasets, tutorials).
+- Package it up.
+- Submit to CRAN or Bioconductor.
+- Push source code to GitHub or other repo site.
+- People find problems
+    - They tell you about it.
+    - They fix the problem themselves.
+
+## Contents
+
+It's started by creating a directory with the name of the R package.
+
+### DESCRIPTION
+
+The DESCRIPTION file has:
+
+- Package: aname of the package.
+- Title: full, longer name
+- Description: longer description of the package.
+- Verion: version number, usually in M.m-p format
+- Author, Authors@R: name of the original author(s).
+- Maintainer: name and email of the person who fixes problems.
+- License: license for the source code.
+
+Other optional fields:
+
+- Depends: R packages that your package depends on.
+- Suggests: optional R packages that users may want to have installed.
+- Date: Release date in YYYY-MM-DD format.
+- URL: package home page
+- Other: fields can be added.
+
+### R Code
+
+Copy the code into the **R/** subdirectory. There can be any number of files in this directory. Code for all functions should be here, nowhere else.
+
+### NAMESPACE
+
+This is used to indicate which functions are exported. Exported functions can be called by the user and are considered the public API. Non-exported functions cannot be called directly, but the code can be inspected. 
+
+This hides the implementation details from users and makes for a clean package interface.
+
+You can also indicate what functions you **import** from other packages. This allows for your package to use other packages without making other packages visible to the user.
+
+Importing a function loads the package but does not attach it to the search list.
+
+**Key directives:**
+
+`export(<function>)`
+`import(function)`
+`importFrom(<package>, <function>)`
+
+Also important:
+
+`exportClasses(<class>)`
+`exportMethods(<generic>)`
+
+Example from `magrittr`:
+
+```r
+S3method("[",fseq)
+S3method("[[",fseq)
+S3method(print,fseq)
+export("%$%")
+export("%<>%")
+export("%>%")
+export("%T>%")
+export("n'est pas")
+export(add)
+export(and)
+export(debug_fseq)
+export(debug_pipe)
+export(divide_by)
+```
+
+### Documentation
+
+Documentation files are *.Rd* files placed in the **man/** subdirectory. They're written in a specific markup language, and are required for every exported function.
+
+You can document other things such as concepts and package overview.
+
+Markup example:
+
+```
+name{\%>\%}
+\alias{\%>\%}
+\title{Pipe}
+\usage{
+lhs \%>\% rhs
+}
+\arguments{
+\item{lhs}{A value or the magrittr placeholder.}
+```
+
+## Building and Checking
+
+`R CMD build` is a command-line program that creates a package archive file (.tar.gz).
+
+`R CMD check` runs a battery of tests on the package:
+
+- Documentation exists.
+- Code can be loaded, no major coding problems or errors.
+- Run examples in documentation.
+- Check docs match code.
+- All tests must pass to put package on CRAN.
+
+## Getting Started
+
+The `package.skeleton()` function creates a skeleton R package. Puts the directory structure (R/, man/), DESCRIPTION, NAMESPACE, and documentation files.
+
+If there are functions visible in your workspace, it writes the code files to the R/ directory, and documentation stubs are created in man/.
+
+# R Classes and Methods
+
+R is different in that it is both interactive **and** has a system for object orientation. Object orientation is a bit different in R that most other languages.
+
+There are two styles of classes and methods:
+
+- **S3**
+    - Included with version 3 of the S language.
+    - Informal, slightly 'kludgey'.
+    - Sometimes called old-style.
+- **S4**
+    - More formal and rigorous.
+    - Included with S-PLUS 6 and R 1.4.0 (December 2001).
+    - Also called new-style.
+
+The code for implementing S4 classes/methods is in the `methods` package.
+
+## OO in R
+
+A class can be defined using `setClass()` in the `methods` package. An object is an instance of a class. These are created using `new()`.
+
+A generic function is an R function which dispatches methods. It usually encapsulates a 'generic' concept such as `predict()`. The generic doesn't actually compute anything.
+
+## Classes
+
+All objects in R have a class:
+
+```{r, comment = ''}
+class(1)
+
+class(rnorm(100))
+
+class(TRUE)
+
+class('foo')
+```
+
+## S3 Generics
+
+As an example, `mean()` and `print()` are generic:
+
+```{r}
+mean
+print
+```
+
+You can see what methods are associated with a generic:
+
+```{r}
+methods('mean')
+```
+
+## S4 Generics
+
+The `show()` function from `methods` is an S4 generic:
+
+```{r}
+show
+```
+
+See the methods associated:
+
+```{r}
+showMethods('show')
+```
+
+## Method
+
+THe first argument for a generic function is an object of a particular class. The function checks the class of the object and searches to see if there is an appropriate dispatch method for the class.
+
+If there is, the method is called on the object.
+
+If there is no dispatch method, a search is done to see if there is a default method for the generic. If a default exists, it is called.
+
+If there isn't a default, an error is thrown.
+
+## Examining Code
+
+You cannot jus print the code for a method. If you want to see the code for an S3 method you use `getS3method(<generic>, <class>)`. For S4 you use `getMethod(<generic>, <signature>)`.
+
+
+```{r}
+head(getS3method('mean', 'default'), 10)
+```
+
+Some methods are visible (`mean.default()`), but you shouldn't call these directly.
+
+## Writing
+
+Typically you'll write new methods for `print()`, `summary()` and `plot()`.
+
+Two ways:
+
+- Write a methods for the new class but for an existing generic function.
+- Write new generic functions and new methods for those generics.
+
+## S4 Classes
+
+Defined using the `setClass()` function. You then define methods for the class with the `setMethod()` function.
+
+```{r}
+library(methods)
+setClass(
+    'polygon',
+    representation(x = 'numeric', y = 'numeric')
+)
+```
+
+A plot method can be created with the `setMethod()` function. You specify a generic and a signature. The sginature is a character vector which indicates the classes of objects accepted by the method.
+
+```{r}
+setMethod(
+    'plot', 'polygon',
+    function(x, y, ...) {
+        plot(x@x, x@y, type = 'n', ...)
+        xp <- c(x@x, x@x[1])
+        yp <- c(x@y, x@y[1])
+        lines(xp, yp)
+    }
+)
+```
+
+```{r}
+a <- new('polygon', x = c(1,2,3,4), y = c(1,2,3,1))
+plot(a)
+```
