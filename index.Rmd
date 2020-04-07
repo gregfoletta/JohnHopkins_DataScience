@@ -68,3 +68,5 @@ output:
 * [Week 2 Assignment](C9_Developing_Data_Products/index.html) - COVID-19 leaflet mapping.
 * [Week 3 Notes](C9_Developing_Data_Products/w3_notes.html) - R packages, classes, and methods.
 * [Week 3 Assignment](C9_Developing_Data_Products/w3_assignment/index.html) - Victorian bike data presentation.
+* [Course Assignment](https://gregfoletta.shinyapps.io/DDP_Shiny_App/)
+* [Course Presentation](C9_Developing_Data_Products/course_assignment/presentation)

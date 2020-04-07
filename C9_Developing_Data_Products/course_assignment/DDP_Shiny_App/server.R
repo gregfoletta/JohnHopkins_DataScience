@@ -1,5 +1,6 @@
 #
 library(shiny)
+library(tidyverse)
 
 shinyServer(function(input, output) {
     random_data <- reactive({ 

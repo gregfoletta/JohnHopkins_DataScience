@@ -1,0 +1,12 @@
+name: DDP_Shiny_App
+title: DDP_Shiny_App
+username:
+account: gregfoletta
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2076155
+bundleId: 2983522
+url: https://gregfoletta.shinyapps.io/DDP_Shiny_App/
+when: 1586297016.08794
+asMultiple: FALSE
+asStatic: FALSE
